@@ -1,0 +1,140 @@
+.dashboard-content{
+    padding:18px;
+}
+
+.maintenance-hero{
+    background:var(--main-gradient);
+    border-radius:18px;
+    padding:28px 30px;
+    color:#ffffff;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:22px;
+}
+
+.hero-badge{
+    display:inline-block;
+    padding:8px 14px;
+    border-radius:30px;
+    background:rgba(255,255,255,.16);
+    font-size:12px;
+    font-weight:700;
+    margin-bottom:14px;
+}
+
+.maintenance-hero h1{
+    font-size:24px;
+    font-weight:800;
+    margin-bottom:10px;
+}
+
+.maintenance-hero p{
+    font-size:15px;
+}
+
+.hero-task-count{
+    text-align:right;
+}
+
+.hero-task-count small{
+    font-size:14px;
+}
+
+.hero-task-count h2{
+    font-size:58px;
+    font-weight:800;
+}
+
+.important-note{
+    background:#F1F5FF;
+    border:1px solid #A7C7FF;
+    border-radius:16px;
+    padding:22px;
+    display:flex;
+    gap:16px;
+    margin-bottom:22px;
+}
+
+.note-icon{
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    background:#3B82F6;
+    color:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.important-note h3{
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.important-note p{
+    color:#3355AA;
+    font-size:14px;
+    line-height:1.7;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:16px;
+}
+
+.stat-card{
+    background:#ffffff;
+    border-radius:16px;
+    padding:18px;
+    border:1px solid #E2E8F0;
+}
+
+.stat-icon{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:18px;
+}
+
+.stat-card h2{
+    font-size:20px;
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.stat-card p{
+    color:#64748B;
+    font-size:14px;
+}
+
+.cyan{
+    background:#E0F7FA;
+    color:#06B6D4;
+}
+
+.red{
+    background:#FEECEC;
+    color:#FF3B30;
+}
+
+.orange{
+    background:#FFF4E8;
+    color:#F97316;
+}
+
+.green{
+    background:#EAFBF0;
+    color:#22C55E;
+}
+
+.yellow{
+    background:#FFF7DA;
+    color:#D4A017;
+}

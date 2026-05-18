@@ -1,0 +1,1 @@
+header("Location: ../hash.php");

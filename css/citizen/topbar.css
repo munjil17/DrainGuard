@@ -1,0 +1,208 @@
+/* ==================================================
+   DRAINGUARD - CITIZEN TOPBAR
+   Search removed + profile image avatar
+================================================== */
+
+.citizen-main {
+    width: calc(100vw - 250px);
+    margin-left: 250px;
+    min-height: 100vh;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+.citizen-topbar {
+    width: 100%;
+    height: 76px;
+    padding: 0 24px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+
+/* LEFT */
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.mobile-toggle {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 9px;
+    background: var(--accent-bg);
+    color: var(--primary-color);
+    font-size: 22px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.topbar-page-title {
+    min-width: 0;
+}
+
+.topbar-page-title h3 {
+    margin: 0 0 4px;
+    color: #0F172A;
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.topbar-page-title p {
+    margin: 0;
+    color: #64748B;
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.topbar-page-title p span {
+    margin: 0 5px;
+    color: #94A3B8;
+}
+
+/* RIGHT */
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    flex-shrink: 0;
+}
+
+.notification-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    color: #0F172A;
+    position: relative;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.notification-btn span {
+    width: 8px;
+    height: 8px;
+    background: #EF4444;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    right: 9px;
+}
+
+.topbar-user {
+    padding-left: 22px;
+    border-left: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-user h4 {
+    margin: 0 0 3px;
+    font-size: 14px;
+    line-height: 1.1;
+    font-weight: 800;
+    color: #0F172A;
+}
+
+.topbar-user p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.1;
+    color: #64748B;
+}
+
+.topbar-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--main-gradient);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-decoration: none;
+    border: 2px solid rgba(49, 246, 230, 0.35);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+}
+
+.topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* fallback icon */
+.topbar-avatar i {
+    font-size: 18px;
+    color: #FFFFFF;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 992px) {
+    .citizen-main {
+        width: 100vw;
+        margin-left: 0;
+    }
+
+    .mobile-toggle {
+        display: flex;
+    }
+}
+
+@media (max-width: 768px) {
+    .citizen-topbar {
+        height: auto;
+        padding: 14px;
+        gap: 14px;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .topbar-left,
+    .topbar-right {
+        width: 100%;
+    }
+
+    .topbar-right {
+        justify-content: space-between;
+    }
+
+    .topbar-user {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar-page-title h3 {
+        font-size: 16px;
+    }
+
+    .topbar-user h4,
+    .topbar-user p {
+        display: none;
+    }
+
+    .topbar-user {
+        padding-left: 12px;
+    }
+}

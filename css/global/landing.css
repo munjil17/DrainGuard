@@ -1,0 +1,316 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #050816;
+    color: #F8FAFC;
+    overflow-x: hidden;
+}
+
+.landing-page {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: 44px 24px 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        linear-gradient(
+            120deg,
+            rgba(4, 12, 28, 0.62),
+            rgba(6, 24, 44, 0.52),
+            rgba(0, 194, 199, 0.12)
+        ),
+        radial-gradient(
+            circle at 75% 70%,
+            rgba(49, 246, 230, 0.10),
+            transparent 50%
+        ),
+        url("../../assets/images/drain-hero-bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.hero-section::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to bottom, rgba(5, 8, 22, 0.04), rgba(5, 8, 22, 0.18)),
+        radial-gradient(circle at center, transparent 0%, rgba(5, 8, 22, 0.12) 80%);
+    pointer-events: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 980px;
+    text-align: center;
+}
+
+.brand-icon {
+    width: 82px;
+    height: 82px;
+    margin: 0 auto 26px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #00C2C7, #31F6E6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 42px rgba(49, 246, 230, 0.24);
+}
+
+.brand-icon i {
+    font-size: 48px;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.hero-content h1 {
+    font-size: clamp(56px, 7vw, 88px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    color: #ffffff;
+    margin-bottom: 22px;
+}
+
+.hero-content h2 {
+    font-size: clamp(18px, 1.8vw, 23px);
+    font-weight: 700;
+    color: #31F6E6;
+    margin-bottom: 12px;
+}
+
+.hero-content > p {
+    font-size: clamp(14px, 1.4vw, 17px);
+    font-weight: 400;
+    color: rgba(248, 250, 252, 0.84);
+    margin-bottom: 38px;
+}
+
+.login-btn {
+    border: none;
+    outline: none;
+    min-width: 240px;
+    height: 58px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #00C2C7, #31F6E6);
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 16px 36px rgba(0, 194, 199, 0.24);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.login-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 45px rgba(49, 246, 230, 0.34);
+}
+
+.login-btn i {
+    font-size: 20px;
+}
+
+.version-text {
+    display: block;
+    margin-top: 42px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(248, 250, 252, 0.52);
+    letter-spacing: 0.2px;
+}
+
+.feature-grid {
+    width: 100%;
+    max-width: 860px;
+    margin: 42px auto 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.feature-card {
+    position: relative;
+    min-height: 128px;
+    padding: 22px 24px;
+    border-radius: 18px;
+    background: linear-gradient(
+        145deg,
+        rgba(8, 22, 42, 0.82),
+        rgba(12, 29, 53, 0.74)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(14px);
+    text-align: left;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(49, 246, 230, 0.30);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
+}
+
+.feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        circle at top left,
+        rgba(49, 246, 230, 0.08),
+        transparent 42%
+    );
+    pointer-events: none;
+}
+
+.feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.feature-icon i {
+    color: #ffffff;
+    font-size: 21px;
+}
+
+.tracking-icon {
+    background: rgba(0, 194, 199, 0.40);
+}
+
+.proof-icon {
+    background: rgba(22, 199, 132, 0.34);
+}
+
+.risk-icon {
+    background: rgba(245, 158, 11, 0.38);
+}
+
+.accountability-icon {
+    background: rgba(0, 194, 199, 0.36);
+}
+
+.feature-card h3 {
+    position: relative;
+    z-index: 1;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(248, 250, 252, 0.76);
+    line-height: 1.45;
+}
+
+@media (max-width: 992px) {
+    .hero-content {
+        max-width: 860px;
+    }
+
+    .feature-grid {
+        max-width: 760px;
+        gap: 18px;
+    }
+
+    .feature-card {
+        padding: 24px 20px;
+    }
+
+    .feature-card h3 {
+        font-size: 20px;
+    }
+
+    .feature-card p {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 32px 18px 44px;
+        align-items: flex-start;
+        background-position: center;
+    }
+
+    .brand-icon {
+        width: 72px;
+        height: 72px;
+        margin-bottom: 22px;
+    }
+
+    .brand-icon i {
+        font-size: 42px;
+    }
+
+    .hero-content h1 {
+        letter-spacing: -2px;
+        margin-bottom: 18px;
+    }
+
+    .hero-content > p {
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 32px;
+    }
+
+    .login-btn {
+        width: 100%;
+        max-width: 300px;
+        height: 56px;
+        font-size: 16px;
+    }
+
+    .version-text {
+        margin-top: 34px;
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+        margin-top: 38px;
+        gap: 16px;
+    }
+
+    .feature-card {
+        min-height: auto;
+    }
+}

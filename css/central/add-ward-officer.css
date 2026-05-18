@@ -1,0 +1,307 @@
+.awo-page {
+    padding: 24px;
+    background: #F8FAFC;
+}
+
+.awo-header-card,
+.awo-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.awo-header-card {
+    padding: 28px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.awo-header-card h1 {
+    margin: 0 0 8px;
+    color: #020617;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.awo-header-card p {
+    margin: 0;
+    color: #475569;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.awo-back-btn {
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1px solid #CBD5E1;
+    background: #FFFFFF;
+    color: #0F766E;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.awo-back-btn:hover {
+    background: #ECFDF5;
+    color: #0F766E;
+    border-color: #99F6E4;
+}
+
+.awo-alert {
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: 0.25s ease;
+}
+
+.awo-alert.success {
+    background: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
+}
+
+.awo-alert.error {
+    background: #FEF2F2;
+    color: #B91C1C;
+    border: 1px solid #FCA5A5;
+}
+
+.awo-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.awo-card {
+    padding: 24px;
+}
+
+.awo-login-card {
+    display: none;
+}
+
+.awo-login-card.show {
+    display: block;
+}
+
+.awo-section-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.awo-section-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: #E0FDFB;
+    color: #0F766E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.awo-section-title h2 {
+    margin: 0 0 6px;
+    color: #020617;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.awo-section-title p {
+    margin: 0;
+    color: #64748B;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.awo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.awo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.awo-field.full {
+    grid-column: 1 / -1;
+}
+
+.awo-field label {
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.awo-field label span {
+    color: #DC2626;
+}
+
+.awo-field input,
+.awo-field select,
+.awo-field textarea {
+    width: 100%;
+    border: 1px solid #CBD5E1;
+    border-radius: 9px;
+    background: #FFFFFF;
+    outline: none;
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.awo-field input,
+.awo-field select {
+    height: 46px;
+    padding: 0 14px;
+}
+
+.awo-field textarea {
+    padding: 13px 14px;
+    resize: vertical;
+}
+
+.awo-field input:focus,
+.awo-field select:focus,
+.awo-field textarea:focus {
+    border-color: #22E6DC;
+    box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.12);
+}
+
+.awo-field input::placeholder,
+.awo-field textarea::placeholder {
+    color: #94A3B8;
+}
+
+.awo-password-wrap {
+    position: relative;
+}
+
+.awo-password-wrap input {
+    padding-right: 46px;
+}
+
+.awo-password-toggle {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    color: #64748B;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.awo-password-toggle:hover {
+    color: #0F766E;
+}
+
+.awo-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.awo-cancel-btn,
+.awo-submit-btn {
+    min-height: 46px;
+    padding: 0 20px;
+    border-radius: 9px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.awo-cancel-btn {
+    border: 1px solid #CBD5E1;
+    background: #FFFFFF;
+    color: #475569;
+}
+
+.awo-cancel-btn:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
+.awo-submit-btn {
+    border: none;
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.awo-submit-btn:hover {
+    background: linear-gradient(135deg, #14B8A6, #16A34A);
+}
+
+@media (max-width: 992px) {
+    .awo-page {
+        padding: 20px;
+    }
+
+    .awo-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .awo-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .awo-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .awo-cancel-btn,
+    .awo-submit-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .awo-page {
+        padding: 16px;
+    }
+
+    .awo-header-card,
+    .awo-card {
+        padding: 20px;
+    }
+
+    .awo-header-card h1 {
+        font-size: 23px;
+    }
+}

@@ -1,0 +1,518 @@
+/* ==================================================
+   DRAINGUARD - CITIZEN SUBMIT COMPLAINT
+   Full body width + centered form
+================================================== */
+
+.citizen-main.main-content {
+    min-height: 100vh;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+.sc-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 28px 32px 44px;
+    background:
+        radial-gradient(circle at top left, rgba(19, 184, 200, 0.10), transparent 32%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
+    overflow-x: hidden;
+}
+
+/* Center only content, not whole page */
+.sc-header,
+.sc-card {
+    width: 100%;
+    max-width: 1050px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ===============================
+   HEADER
+================================ */
+
+.sc-header {
+    margin-bottom: 24px;
+}
+
+.sc-header h1 {
+    margin: 0 0 8px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: #07142A;
+    letter-spacing: -0.03em;
+}
+
+.sc-header p {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #475569;
+}
+
+/* ===============================
+   CARD
+================================ */
+
+.sc-card {
+    padding: 30px 34px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.98));
+    border: 1px solid rgba(148, 163, 184, 0.32);
+    border-radius: 18px;
+    box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.10),
+        0 1px 0 rgba(255, 255, 255, 0.80) inset;
+    overflow: hidden;
+}
+
+/* ===============================
+   ALERT
+================================ */
+
+.sc-alert {
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.sc-success {
+    background: linear-gradient(135deg, #DCFCE7, #ECFDF5);
+    color: #047857;
+    border: 1px solid #86EFAC;
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.12);
+}
+
+.sc-error {
+    background: linear-gradient(135deg, #FFE4E6, #FFF1F2);
+    color: #BE123C;
+    border: 1px solid #FDA4AF;
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.10);
+}
+
+/* ===============================
+   SECTION TITLE
+================================ */
+
+.sc-section-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 18px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0F172A;
+}
+
+.sc-section-title i {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #DDFBFF, #CFFAFE);
+    color: #0891B2;
+    box-shadow: 0 6px 14px rgba(8, 145, 178, 0.14);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+}
+
+.sc-location-title {
+    margin-top: 4px;
+}
+
+/* ===============================
+   GRID
+================================ */
+
+.sc-grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 22px;
+    width: 100%;
+}
+
+.sc-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    gap: 26px;
+    align-items: start;
+    width: 100%;
+}
+
+.sc-group {
+    margin-bottom: 22px;
+    min-width: 0;
+}
+
+.sc-full {
+    width: 100%;
+}
+
+.sc-group label {
+    display: block;
+    margin-bottom: 9px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 800;
+    color: #0F172A;
+}
+
+/* ===============================
+   INPUTS
+================================ */
+
+.sc-group input,
+.sc-group select,
+.sc-group textarea {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    border: 1.6px solid #CBDCEE;
+    border-radius: 13px;
+    padding: 15px 17px;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px;
+    line-height: 1.4;
+    outline: none;
+    transition: 0.22s ease;
+    box-sizing: border-box;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.90) inset;
+}
+
+.sc-group select {
+    cursor: pointer;
+}
+
+.sc-group select:disabled {
+    background: #F1F5F9;
+    color: #94A3B8;
+    cursor: not-allowed;
+    border-color: #D7E2EF;
+}
+
+.sc-group textarea {
+    resize: vertical;
+}
+
+.sc-small-textarea {
+    min-height: 78px;
+}
+
+.sc-big-textarea {
+    min-height: 120px;
+}
+
+.sc-group input::placeholder,
+.sc-group textarea::placeholder {
+    color: #8A98AC;
+}
+
+.sc-group input:focus,
+.sc-group select:focus,
+.sc-group textarea:focus {
+    border-color: #13B8C8;
+    box-shadow:
+        0 0 0 4px rgba(19, 184, 200, 0.14),
+        0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* ===============================
+   UPLOAD
+================================ */
+
+.sc-upload-box {
+    width: 100%;
+    min-height: 150px;
+    border: 2px dashed #B9D5F4;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    cursor: pointer;
+    text-align: center;
+    transition: 0.22s ease;
+    box-sizing: border-box;
+
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sc-upload-box:hover {
+    border-color: #13B8C8;
+    background: linear-gradient(180deg, #F0FDFA 0%, #ECFEFF 100%);
+}
+
+.sc-upload-box input {
+    display: none;
+}
+
+.sc-upload-box i {
+    margin-bottom: 10px;
+    font-size: 36px;
+    color: #0891B2;
+}
+
+.sc-upload-box span {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.sc-upload-box small {
+    margin-top: 5px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 13px;
+    color: #64748B;
+}
+
+/* ===============================
+   URGENCY
+================================ */
+
+.sc-urgency {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.sc-urgency label {
+    margin: 0;
+    min-width: 0;
+}
+
+.sc-urgency input {
+    display: none;
+}
+
+.sc-urgency span {
+    min-height: 150px;
+    width: 100%;
+    border: 1.6px solid #DDE6F0;
+    border-radius: 14px;
+    background: #FFFFFF;
+    color: #020617;
+    text-align: center;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.22s ease;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.sc-urgency span i {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.urgency-low {
+    background: linear-gradient(180deg, #F0FDF4, #FFFFFF) !important;
+    border-color: #86EFAC !important;
+}
+
+.urgency-low i {
+    color: #22C55E;
+}
+
+.urgency-medium {
+    background: linear-gradient(180deg, #FFFBEB, #FFFFFF) !important;
+    border-color: #FDE68A !important;
+}
+
+.urgency-medium i {
+    color: #F59E0B;
+}
+
+.urgency-high {
+    background: linear-gradient(180deg, #FFF7ED, #FFFFFF) !important;
+    border-color: #FDBA74 !important;
+}
+
+.urgency-high i {
+    color: #F97316;
+}
+
+.urgency-critical {
+    background: linear-gradient(180deg, #FFF1F2, #FFFFFF) !important;
+    border-color: #FDA4AF !important;
+}
+
+.urgency-critical i {
+    color: #E11D48;
+}
+
+.sc-urgency span:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.sc-urgency input:checked + span {
+    background: linear-gradient(135deg, #0EA5E9, #14B8A6) !important;
+    border-color: #14B8A6 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 12px 24px rgba(20, 184, 166, 0.22);
+}
+
+.sc-urgency input:checked + span i {
+    color: #FFFFFF;
+}
+
+/* ===============================
+   SUBMIT BUTTON
+================================ */
+
+.sc-submit-btn {
+    width: 100%;
+    border: none;
+    border-radius: 13px;
+    padding: 17px 20px;
+    margin-top: 8px;
+    background: linear-gradient(135deg, #FF8A00, #F59E0B, #D97706);
+    color: #FFFFFF;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.35;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.22s ease;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-sizing: border-box;
+    box-shadow: 0 12px 24px rgba(245, 158, 11, 0.24);
+}
+
+.sc-submit-btn:hover {
+    background: linear-gradient(135deg, #EA7600, #D97706, #B45309);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 30px rgba(245, 158, 11, 0.32);
+}
+
+.sc-submit-btn i {
+    font-size: 17px;
+}
+
+/* ===============================
+   SAFETY
+================================ */
+
+.sc-page *,
+.sc-card * {
+    box-sizing: border-box;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 1200px) {
+    .sc-header,
+    .sc-card {
+        max-width: 1000px;
+    }
+
+    .sc-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sc-urgency span {
+        min-height: 100px;
+    }
+}
+
+@media (max-width: 992px) {
+    .sc-page {
+        padding: 24px;
+    }
+
+    .sc-card {
+        padding: 26px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sc-header h1 {
+        font-size: 26px;
+    }
+
+    .sc-header p {
+        font-size: 15px;
+    }
+
+    .sc-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .sc-urgency {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sc-urgency span {
+        min-height: 92px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sc-page {
+        padding: 18px;
+    }
+
+    .sc-card {
+        padding: 20px;
+        border-radius: 14px;
+    }
+
+    .sc-header h1 {
+        font-size: 23px;
+    }
+
+    .sc-group label {
+        font-size: 14px;
+    }
+
+    .sc-group input,
+    .sc-group select,
+    .sc-group textarea {
+        font-size: 14px;
+        padding: 14px 15px;
+    }
+
+    .sc-urgency {
+        grid-template-columns: 1fr;
+    }
+
+    .sc-submit-btn {
+        font-size: 16px;
+        padding: 16px;
+    }
+}

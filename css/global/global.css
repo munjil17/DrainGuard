@@ -1,0 +1,137 @@
+/* =========================================
+   GLOBAL FONT
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+
+/* =========================================
+   GLOBAL RESET
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+/* =========================================
+   GLOBAL THEME VARIABLES
+========================================= */
+
+:root {
+    --background: #050816;
+    --content-bg: #0B1128;
+    --card-bg: #FFFFFF;
+
+    --text-primary: #F8FAFC;
+    --text-dark: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+
+    --border-color: #E2E8F0;
+
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --pending: #FBBF24;
+    --info: #38BDF8;
+
+    --primary-color: #63B3ED;
+    --secondary-color: #4F8FD3;
+    --accent-color: #2B6CB0;
+
+    --accent-bg: rgba(99, 179, 237, 0.14);
+    --accent-border: #63B3ED;
+
+    --main-gradient: linear-gradient(135deg, #63B3ED, #4F8FD3);
+}
+
+
+/* =========================================
+   CENTRAL CONTROL PANEL THEME
+========================================= */
+
+body.central {
+    --primary-color: #10B981;
+    --secondary-color: #34D399;
+    --accent-color: #047857;
+
+    --accent-bg: rgba(16, 185, 129, 0.14);
+    --accent-border: #10B981;
+
+    --main-gradient: linear-gradient(135deg, #10B981, #34D399);
+}
+
+
+/* =========================================
+   CITIZEN PANEL THEME
+========================================= */
+
+body.citizen {
+    --primary-color: #31F6E6;
+    --secondary-color: #3B82F6;
+    --accent-color: #2B6CB0;
+
+    --accent-bg: rgba(49, 246, 230, 0.14);
+    --accent-border: #31F6E6;
+
+    --main-gradient: linear-gradient(135deg, #31F6E6, #3B82F6);
+}
+
+
+/* =========================================
+   WARD OFFICER PANEL THEME
+========================================= */
+
+body.ward {
+    --primary-color: #7BAE9F;
+    --secondary-color: #5F8F86;
+    --accent-color: #466B64;
+
+    --accent-bg: rgba(123, 174, 159, 0.14);
+    --accent-border: #7BAE9F;
+
+    --main-gradient: linear-gradient(135deg, #7BAE9F, #5F8F86);
+}
+
+
+/* =========================================
+   MAINTENANCE PANEL THEME
+========================================= */
+
+body.maintenance {
+    --primary-color: #D4A017;
+    --secondary-color: #B8860B;
+    --accent-color: #8B6914;
+
+    --accent-bg: rgba(212, 160, 23, 0.14);
+    --accent-border: #D4A017;
+
+    --main-gradient: linear-gradient(135deg, #D4A017, #B8860B);
+}
+
+
+/* =========================================
+   INSPECTOR PANEL THEME
+========================================= */
+
+body.inspector {
+    --primary-color: #FF8A3D;
+    --secondary-color: #FFB36B;
+    --accent-color: #FF6B3D;
+
+    --accent-bg: rgba(255, 138, 61, 0.14);
+    --accent-border: #FF8A3D;
+
+    --main-gradient: linear-gradient(135deg, #FF8A3D, #FF6B3D);
+}

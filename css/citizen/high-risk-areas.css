@@ -1,0 +1,447 @@
+/* ==================================================
+   DRAINGUARD - HIGH RISK AREAS
+   Fixed for reusable Citizen sidebar/topbar layout
+================================================== */
+
+.citizen-main.main-content {
+    min-height: 100vh;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* ==================================================
+   PAGE BODY
+================================================== */
+
+.hra-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 30px 36px 44px;
+    background:
+        radial-gradient(circle at top left, rgba(32, 212, 217, 0.10), transparent 34%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
+    overflow-x: hidden;
+}
+
+.hra-header,
+.hra-toolbar,
+.hra-grid {
+    width: 100%;
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ==================================================
+   HEADER
+================================================== */
+
+.hra-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    gap: 22px;
+    align-items: center;
+    margin-bottom: 26px;
+}
+
+.hra-header h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: #020617;
+    letter-spacing: -0.03em;
+}
+
+.hra-header p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #475569;
+}
+
+.hra-count-card {
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    text-align: center;
+}
+
+.hra-count-card span {
+    display: block;
+    font-size: 28px;
+    line-height: 1;
+    font-weight: 800;
+    color: #0891B2;
+}
+
+.hra-count-card small {
+    display: block;
+    margin-top: 7px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: #64748B;
+}
+
+/* ==================================================
+   TOOLBAR
+================================================== */
+
+.hra-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding: 18px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.hra-search-box {
+    position: relative;
+    min-width: 0;
+}
+
+.hra-search-box i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7C89A6;
+    font-size: 20px;
+}
+
+.hra-search-box input,
+.hra-toolbar select {
+    width: 100%;
+    height: 52px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 14px;
+    background: #FFFFFF;
+    color: #020617;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+    transition: 0.22s ease;
+}
+
+.hra-search-box input {
+    padding: 0 18px 0 52px;
+}
+
+.hra-toolbar select {
+    padding: 0 14px;
+    cursor: pointer;
+}
+
+.hra-search-box input::placeholder {
+    color: #8A98AC;
+}
+
+.hra-search-box input:focus,
+.hra-toolbar select:focus {
+    border-color: #20D4D9;
+    box-shadow: 0 0 0 4px rgba(32, 212, 217, 0.12);
+}
+
+/* ==================================================
+   GRID
+================================================== */
+
+.hra-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.hra-card {
+    border-radius: 18px;
+    padding: 24px;
+    background: #FFFFFF;
+    border: 1.5px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    transition: 0.22s ease;
+}
+
+.hra-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.10);
+}
+
+.hra-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.hra-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.hra-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 24px;
+}
+
+.hra-title-wrap h2 {
+    margin: 0 0 5px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #020617;
+}
+
+.hra-title-wrap p {
+    margin: 0;
+    color: #64748B;
+    font-size: 14px;
+}
+
+.hra-badge {
+    padding: 8px 13px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* ==================================================
+   RISK COLORS
+================================================== */
+
+.hra-high {
+    background: #FFF1F2;
+    border-color: #FDA4AF;
+}
+
+.hra-high .hra-icon {
+    background: #FFE4E6;
+    color: #E11D48;
+}
+
+.hra-high .hra-badge {
+    background: #EF4444;
+    color: #FFFFFF;
+}
+
+.hra-medium {
+    background: #FFF7ED;
+    border-color: #FDBA74;
+}
+
+.hra-medium .hra-icon {
+    background: #FFEDD5;
+    color: #F97316;
+}
+
+.hra-medium .hra-badge {
+    background: #F97316;
+    color: #FFFFFF;
+}
+
+.hra-low {
+    background: #FEFCE8;
+    border-color: #FACC15;
+}
+
+.hra-low .hra-icon {
+    background: #FEF9C3;
+    color: #CA8A04;
+}
+
+.hra-low .hra-badge {
+    background: #EAB308;
+    color: #FFFFFF;
+}
+
+/* ==================================================
+   STATS
+================================================== */
+
+.hra-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.hra-stats div {
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.hra-stats strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0F172A;
+}
+
+.hra-stats span {
+    color: #64748B;
+    font-size: 13px;
+}
+
+/* ==================================================
+   DETAILS
+================================================== */
+
+.hra-details {
+    display: grid;
+    gap: 9px;
+}
+
+.hra-details p {
+    margin: 0;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.hra-details i {
+    color: #0891B2;
+    flex-shrink: 0;
+}
+
+/* ==================================================
+   EMPTY
+================================================== */
+
+.hra-empty {
+    grid-column: 1 / -1;
+    padding: 60px 24px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    text-align: center;
+}
+
+.hra-empty i {
+    font-size: 46px;
+    color: #16C784;
+}
+
+.hra-empty h2 {
+    margin: 14px 0 8px;
+    color: #020617;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.hra-empty p {
+    margin: 0;
+    color: #64748B;
+}
+
+/* ==================================================
+   SAFETY
+================================================== */
+
+.hra-page *,
+.hra-card * {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 1200px) {
+    .hra-header,
+    .hra-toolbar,
+    .hra-grid {
+        max-width: 1000px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .hra-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .hra-page {
+        padding: 24px;
+    }
+
+    .hra-header {
+        grid-template-columns: 1fr;
+        align-items: flex-start;
+    }
+
+    .hra-count-card {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .hra-toolbar {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .hra-card-top {
+        flex-direction: column;
+    }
+
+    .hra-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .hra-page {
+        padding: 18px;
+    }
+
+    .hra-header h1 {
+        font-size: 24px;
+    }
+
+    .hra-header p {
+        font-size: 14px;
+    }
+
+    .hra-card {
+        padding: 20px;
+    }
+
+    .hra-search-box input,
+    .hra-toolbar select {
+        height: 48px;
+        font-size: 14px;
+    }
+}
