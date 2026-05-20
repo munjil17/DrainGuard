@@ -1,6 +1,21 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+// C:\xampp\htdocs\DrainGuard\auth\login.php
+
+require_once "../config.php";
+
+/*
+|--------------------------------------------------------------------------
+| If already logged in, send user to own dashboard
+|--------------------------------------------------------------------------
+*/
+
+if (
+    !empty($_SESSION["logged_in"]) &&
+    $_SESSION["logged_in"] === true &&
+    !empty($_SESSION["user_role"])
+) {
+    $dashboardPath = get_role_dashboard($_SESSION["user_role"]);
+    redirect_to($dashboardPath);
 }
 
 $pageTitle = "Login | DrainGuard";
@@ -20,6 +35,18 @@ unset(
 function safeText($value)
 {
     return htmlspecialchars($value ?? "", ENT_QUOTES, "UTF-8");
+}
+
+$validFrontendRoles = [
+    "citizen",
+    "central",
+    "ward",
+    "maintenance",
+    "inspector"
+];
+
+if (!in_array($selectedRole, $validFrontendRoles, true)) {
+    $selectedRole = "citizen";
 }
 
 $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
@@ -154,7 +181,12 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
 
             <form action="login_process.php" method="POST" id="loginForm">
 
-                <input type="hidden" name="selected_role" id="selectedRole" value="<?php echo safeText($selectedRole); ?>">
+                <input 
+                    type="hidden" 
+                    name="selected_role" 
+                    id="selectedRole" 
+                    value="<?php echo safeText($selectedRole); ?>"
+                >
 
                 <div class="form-group">
                     <label for="loginEmailInput">Gmail Address</label>
@@ -172,9 +204,13 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                         >
                     </div>
 
-                    <?php if (!empty($emailError)): ?>
-                        <small class="error-text"><?php echo safeText($emailError); ?></small>
-                    <?php endif; ?>
+                    <small 
+                        class="error-text" 
+                        id="emailErrorText" 
+                        style="display: <?php echo !empty($emailError) ? 'block' : 'none'; ?>;"
+                    >
+                        <?php echo safeText($emailError); ?>
+                    </small>
                 </div>
 
                 <div class="form-group">
@@ -218,7 +254,11 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     <i class="bi bi-arrow-right"></i>
                 </button>
 
-                <div class="signup-redirect" id="citizenSignupRedirect" style="display: <?php echo $showCitizenSignup; ?>;">
+                <div 
+                    class="signup-redirect" 
+                    id="citizenSignupRedirect" 
+                    style="display: <?php echo safeText($showCitizenSignup); ?>;"
+                >
                     <span>New citizen user?</span>
                     <a href="/DrainGuard/auth/citizen_signup.php">Create Citizen Account</a>
                 </div>

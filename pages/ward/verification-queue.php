@@ -1,32 +1,61 @@
 <?php
-$activePage = 'verification-queue';
-$pageTitle = 'Verification Queue';
+$activePage = "verification-queue";
+$pageTitle = "Verification Queue";
 
 require_once "../../config.php";
 require_once "../../auth/session_check.php";
 
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'ward_officer') {
+if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer") {
     header("Location: ../../index.php");
     exit();
 }
 
-$wardOfficerUserId = (int)($_SESSION['user_id'] ?? 0);
+$wardOfficerUserId = (int)($_SESSION["user_id"] ?? 0);
 $successMessage = "";
 $errorMessage = "";
 
-function safeText($value) {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+function safeText($value)
+{
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
-function urgencyClass($urgency) {
+function urgencyClass($urgency)
+{
     $urgency = strtolower((string)$urgency);
 
-    if ($urgency === 'low') return 'priority-low';
-    if ($urgency === 'medium') return 'priority-medium';
-    if ($urgency === 'high') return 'priority-high';
-    if ($urgency === 'critical') return 'priority-critical';
+    if ($urgency === "low") return "priority-low";
+    if ($urgency === "medium") return "priority-medium";
+    if ($urgency === "high") return "priority-high";
+    if ($urgency === "critical") return "priority-critical";
 
-    return 'priority-low';
+    return "priority-low";
+}
+
+function wardDisplayName($wardNo, $wardName)
+{
+    $wardName = trim((string)$wardName);
+
+    if ($wardName !== "") {
+        return $wardName;
+    }
+
+    return "Ward " . $wardNo;
+}
+
+function makeMediaPublicPath($path)
+{
+    $path = trim((string)$path);
+
+    if ($path === "") {
+        return "";
+    }
+
+    $path = str_replace("\\", "/", $path);
+    $path = preg_replace("#^\.\./\.\./#", "", $path);
+    $path = preg_replace("#^\./#", "", $path);
+    $path = ltrim($path, "/");
+
+    return "../../" . $path;
 }
 
 /*
@@ -35,13 +64,21 @@ function urgencyClass($urgency) {
 |--------------------------------------------------------------------------
 */
 
-$assignedWardNo = null;
+$assignedWardId = 0;
 $assignedWardDisplay = "N/A";
 
 $officerSql = "
-    SELECT assigned_ward_no
-    FROM ward_officers
-    WHERE user_id = ?
+    SELECT
+        wo.assigned_ward_id,
+        w.ward_no,
+        w.ward_name,
+        cc.city_cor_name
+    FROM ward_officers wo
+    INNER JOIN wards w
+        ON wo.assigned_ward_id = w.ward_id
+    INNER JOIN city_corporations cc
+        ON wo.city_cor_id = cc.city_cor_id
+    WHERE wo.user_id = ?
     LIMIT 1
 ";
 
@@ -54,20 +91,15 @@ if ($officerStmt) {
     $officerResult = mysqli_stmt_get_result($officerStmt);
     $officerData = $officerResult ? mysqli_fetch_assoc($officerResult) : null;
 
-    if ($officerData && isset($officerData['assigned_ward_no'])) {
-        $assignedWardRaw = (string)$officerData['assigned_ward_no'];
-
-        $assignedWardNo = trim(str_ireplace('Ward', '', $assignedWardRaw));
-        $assignedWardNo = trim($assignedWardNo);
-        $assignedWardNo = (string)((int)$assignedWardNo);
-
-        $assignedWardDisplay = $assignedWardNo;
+    if ($officerData) {
+        $assignedWardId = (int)$officerData["assigned_ward_id"];
+        $assignedWardDisplay = wardDisplayName($officerData["ward_no"], $officerData["ward_name"]);
     }
 
     mysqli_stmt_close($officerStmt);
 }
 
-if ($assignedWardNo === null || $assignedWardNo === '' || (int)$assignedWardNo <= 0) {
+if ($assignedWardId <= 0) {
     $errorMessage = "No valid assigned ward found for this Ward Officer.";
 }
 
@@ -75,50 +107,52 @@ if ($assignedWardNo === null || $assignedWardNo === '' || (int)$assignedWardNo <
 |--------------------------------------------------------------------------
 | ACTION: VERIFY / REJECT / DUPLICATE
 |--------------------------------------------------------------------------
+| No assignment_status enum dependency.
+| Only complaints.complaint_status is updated.
+|--------------------------------------------------------------------------
 */
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardNo !== null && $assignedWardNo !== '' && (int)$assignedWardNo > 0) {
-    $complaintId = (int)($_POST['complaint_id'] ?? 0);
-    $action = trim($_POST['action'] ?? '');
+if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
+    $complaintId = (int)($_POST["complaint_id"] ?? 0);
+    $action = trim($_POST["action"] ?? "");
 
-    $allowedActions = ['verify', 'reject', 'duplicate'];
+    $allowedActions = ["verify", "reject", "duplicate"];
 
     if ($complaintId <= 0 || !in_array($action, $allowedActions, true)) {
         $errorMessage = "Invalid request.";
     } else {
         $newStatus = "";
 
-        if ($action === 'verify') {
+        if ($action === "verify") {
             $newStatus = "verified";
         }
 
-        if ($action === 'reject') {
+        if ($action === "reject") {
             $newStatus = "rejected";
         }
 
-        if ($action === 'duplicate') {
-            $newStatus = "duplicate";
+        if ($action === "duplicate") {
+            /*
+             * Keeping DB-safe behavior because you did not change enum.
+             * Duplicate is treated as rejected/removed from queue.
+             */
+            $newStatus = "rejected";
         }
 
         mysqli_begin_transaction($conn);
 
         try {
             $checkSql = "
-                SELECT 
+                SELECT
                     c.complaint_id,
                     c.complaint_status,
-                    w.ward_no
+                    ca.ward_id
                 FROM complaints c
-
                 INNER JOIN complaint_assignments ca
                     ON c.complaint_id = ca.complaint_id
-
-                INNER JOIN wards w
-                    ON ca.ward_id = w.ward_id
-
                 WHERE c.complaint_id = ?
                 AND c.complaint_status = 'pending_verification'
-                AND CAST(w.ward_no AS UNSIGNED) = CAST(? AS UNSIGNED)
+                AND ca.ward_id = ?
                 LIMIT 1
             ";
 
@@ -128,7 +162,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardNo !== null && $assign
                 throw new Exception("Complaint check failed: " . mysqli_error($conn));
             }
 
-            mysqli_stmt_bind_param($checkStmt, "is", $complaintId, $assignedWardNo);
+            mysqli_stmt_bind_param($checkStmt, "ii", $complaintId, $assignedWardId);
             mysqli_stmt_execute($checkStmt);
 
             $checkResult = mysqli_stmt_get_result($checkStmt);
@@ -163,10 +197,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardNo !== null && $assign
 
             mysqli_commit($conn);
 
-            if ($action === 'verify') {
+            if ($action === "verify") {
                 $successMessage = "Complaint accepted and verified successfully.";
-            } elseif ($action === 'duplicate') {
-                $successMessage = "Complaint marked as duplicate.";
+            } elseif ($action === "duplicate") {
+                $successMessage = "Complaint marked as duplicate and removed from queue.";
             } else {
                 $successMessage = "Complaint rejected successfully.";
             }
@@ -186,7 +220,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardNo !== null && $assign
 
 $verificationComplaints = [];
 
-if ($assignedWardNo !== null && $assignedWardNo !== '' && (int)$assignedWardNo > 0) {
+if ($assignedWardId > 0) {
     $sql = "
         SELECT
             c.complaint_id,
@@ -194,7 +228,6 @@ if ($assignedWardNo !== null && $assignedWardNo !== '' && (int)$assignedWardNo >
             c.issue_type,
             c.address_description,
             c.problem_description,
-            c.complaint_image,
             c.urgency_level,
             c.complaint_status,
             c.submitted_at,
@@ -203,6 +236,7 @@ if ($assignedWardNo !== null && $assignedWardNo !== '' && (int)$assignedWardNo >
             u.user_name,
             u.user_mail,
 
+            w.ward_id,
             w.ward_no,
             w.ward_name,
             a.area_name,
@@ -233,7 +267,7 @@ if ($assignedWardNo !== null && $assignedWardNo !== '' && (int)$assignedWardNo >
             ON l.city_cor_id = cc.city_cor_id
 
         WHERE c.complaint_status = 'pending_verification'
-        AND CAST(w.ward_no AS UNSIGNED) = CAST(? AS UNSIGNED)
+        AND ca.ward_id = ?
 
         ORDER BY
             CASE
@@ -248,14 +282,15 @@ if ($assignedWardNo !== null && $assignedWardNo !== '' && (int)$assignedWardNo >
     $stmt = mysqli_prepare($conn, $sql);
 
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "s", $assignedWardNo);
+        mysqli_stmt_bind_param($stmt, "i", $assignedWardId);
         mysqli_stmt_execute($stmt);
 
         $result = mysqli_stmt_get_result($stmt);
 
         if ($result) {
             while ($row = mysqli_fetch_assoc($result)) {
-                $verificationComplaints[] = $row;
+                $row["media"] = [];
+                $verificationComplaints[(int)$row["complaint_id"]] = $row;
             }
         }
 
@@ -265,11 +300,59 @@ if ($assignedWardNo !== null && $assignedWardNo !== '' && (int)$assignedWardNo >
     }
 }
 
+/*
+|--------------------------------------------------------------------------
+| FETCH COMPLAINT MEDIA
+|--------------------------------------------------------------------------
+*/
+
+if (count($verificationComplaints) > 0) {
+    $complaintIds = array_keys($verificationComplaints);
+    $safeIds = array_map("intval", $complaintIds);
+    $idList = implode(",", $safeIds);
+
+    $mediaSql = "
+        SELECT
+            media_id,
+            complaint_id,
+            media_type,
+            media_path,
+            original_name,
+            file_size,
+            mime_type,
+            uploaded_at
+        FROM complaint_media
+        WHERE complaint_id IN ($idList)
+        ORDER BY complaint_id ASC, media_id ASC
+    ";
+
+    $mediaResult = mysqli_query($conn, $mediaSql);
+
+    if ($mediaResult) {
+        while ($media = mysqli_fetch_assoc($mediaResult)) {
+            $complaintId = (int)$media["complaint_id"];
+
+            if (isset($verificationComplaints[$complaintId])) {
+                $verificationComplaints[$complaintId]["media"][] = [
+                    "media_id" => (int)$media["media_id"],
+                    "type" => (string)$media["media_type"],
+                    "path" => makeMediaPublicPath($media["media_path"]),
+                    "original_name" => (string)($media["original_name"] ?? ""),
+                    "file_size" => (int)($media["file_size"] ?? 0),
+                    "mime_type" => (string)($media["mime_type"] ?? "")
+                ];
+            }
+        }
+    }
+}
+
+$verificationComplaints = array_values($verificationComplaints);
+
 $totalPending = count($verificationComplaints);
 $criticalCount = 0;
 
 foreach ($verificationComplaints as $item) {
-    if (strtolower((string)$item['urgency_level']) === 'critical') {
+    if (strtolower((string)$item["urgency_level"]) === "critical") {
         $criticalCount++;
     }
 }
@@ -282,16 +365,12 @@ foreach ($verificationComplaints as $item) {
     <title>Verification Queue | DrainGuard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-    <!-- Reusable CSS -->
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/ward/sidebar.css">
     <link rel="stylesheet" href="../../css/ward/topbar.css">
     <link rel="stylesheet" href="../../css/ward/footer.css">
-
-    <!-- Page CSS -->
     <link rel="stylesheet" href="../../css/ward/verification-queue.css">
 </head>
 
@@ -319,14 +398,14 @@ foreach ($verificationComplaints as $item) {
                 </div>
             </div>
 
-            <?php if ($successMessage !== ''): ?>
+            <?php if ($successMessage !== ""): ?>
                 <div class="vq-alert vq-success">
                     <i class="bi bi-check-circle"></i>
                     <?php echo safeText($successMessage); ?>
                 </div>
             <?php endif; ?>
 
-            <?php if ($errorMessage !== ''): ?>
+            <?php if ($errorMessage !== ""): ?>
                 <div class="vq-alert vq-error">
                     <i class="bi bi-exclamation-circle"></i>
                     <?php echo safeText($errorMessage); ?>
@@ -359,7 +438,7 @@ foreach ($verificationComplaints as $item) {
                         <i class="bi bi-geo-alt"></i>
                     </div>
                     <div>
-                        <h2>Ward <?php echo safeText($assignedWardDisplay); ?></h2>
+                        <h2><?php echo safeText($assignedWardDisplay); ?></h2>
                         <p>Assigned Ward</p>
                     </div>
                 </div>
@@ -386,33 +465,35 @@ foreach ($verificationComplaints as $item) {
 
                     <?php foreach ($verificationComplaints as $complaint): ?>
                         <?php
-                            $complaintId = (int)$complaint['complaint_id'];
-                            $complaintCode = safeText($complaint['complaint_code']);
-                            $issueType = safeText($complaint['issue_type']);
-                            $rawProblem = (string)$complaint['problem_description'];
+                            $complaintId = (int)$complaint["complaint_id"];
+                            $complaintCode = safeText($complaint["complaint_code"]);
+                            $issueType = safeText($complaint["issue_type"]);
+                            $rawProblem = (string)$complaint["problem_description"];
                             $problem = safeText($rawProblem);
-                            $shortProblemRaw = strlen($rawProblem) > 95 ? substr($rawProblem, 0, 95) . "..." : $rawProblem;
+
+                            $shortProblemRaw = mb_strlen($rawProblem) > 95
+                                ? mb_substr($rawProblem, 0, 95) . "..."
+                                : $rawProblem;
+
                             $shortProblem = safeText($shortProblemRaw);
 
-                            $priority = safeText($complaint['urgency_level']);
-                            $wardText = "Ward " . $complaint['ward_no'];
-                            $areaText = safeText($complaint['area_name']);
-                            $thanaText = safeText($complaint['thana_name']);
-                            $citizenName = safeText($complaint['user_name']);
-                            $citizenEmail = safeText($complaint['user_mail']);
-                            $submittedAt = date("M d, Y h:i A", strtotime($complaint['submitted_at']));
+                            $priority = safeText($complaint["urgency_level"]);
+                            $wardText = wardDisplayName($complaint["ward_no"], $complaint["ward_name"]);
+                            $areaText = safeText($complaint["area_name"]);
+                            $thanaText = safeText($complaint["thana_name"]);
+                            $citizenName = safeText($complaint["user_name"]);
+                            $citizenEmail = safeText($complaint["user_mail"]);
+                            $submittedAt = date("M d, Y h:i A", strtotime($complaint["submitted_at"]));
 
-                            $imagePath = "";
-                            $hasImage = false;
+                            $mediaItems = $complaint["media"] ?? [];
+                            $mediaCount = count($mediaItems);
+                            $mediaJson = json_encode($mediaItems, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
-                            if (!empty($complaint['complaint_image'])) {
-                                $cleanImagePath = ltrim((string)$complaint['complaint_image'], "/");
-                                $imagePath = "../../" . safeText($cleanImagePath);
-
-                                $serverImagePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . str_replace(["/", "\\"], DIRECTORY_SEPARATOR, $cleanImagePath);
-
-                                if (file_exists($serverImagePath) && is_file($serverImagePath)) {
-                                    $hasImage = true;
+                            $firstImagePath = "";
+                            foreach ($mediaItems as $media) {
+                                if (strtolower($media["type"]) === "image") {
+                                    $firstImagePath = $media["path"];
+                                    break;
                                 }
                             }
                         ?>
@@ -429,14 +510,15 @@ foreach ($verificationComplaints as $item) {
                             <div class="vq-card-top">
                                 <div>
                                     <span class="vq-code"><?php echo $complaintCode; ?></span>
+
                                     <span class="vq-priority <?php echo urgencyClass($priority); ?>">
                                         <?php echo $priority; ?>
                                     </span>
 
-                                    <?php if ($hasImage): ?>
+                                    <?php if ($mediaCount > 0): ?>
                                         <span class="vq-photo-badge">
-                                            <i class="bi bi-image"></i>
-                                            Photo Attached
+                                            <i class="bi bi-paperclip"></i>
+                                            <?php echo $mediaCount; ?> Evidence
                                         </span>
                                     <?php endif; ?>
                                 </div>
@@ -450,7 +532,7 @@ foreach ($verificationComplaints as $item) {
                             <div class="vq-meta">
                                 <span><i class="bi bi-person"></i> <?php echo $citizenName; ?></span>
                                 <span><i class="bi bi-geo-alt"></i> <?php echo safeText($wardText); ?>, <?php echo $areaText; ?></span>
-                                <span><i class="bi bi-clock"></i> <?php echo $submittedAt; ?></span>
+                                <span><i class="bi bi-clock"></i> <?php echo safeText($submittedAt); ?></span>
                             </div>
 
                             <div class="vq-evidence-preview">
@@ -458,8 +540,8 @@ foreach ($verificationComplaints as $item) {
 
                                 <div class="vq-evidence-box">
                                     <div class="vq-evidence-thumb">
-                                        <?php if ($hasImage): ?>
-                                            <img src="<?php echo $imagePath; ?>" alt="Complaint Photo">
+                                        <?php if ($firstImagePath !== ""): ?>
+                                            <img src="<?php echo safeText($firstImagePath); ?>" alt="Complaint Evidence">
                                         <?php else: ?>
                                             <i class="bi bi-image"></i>
                                         <?php endif; ?>
@@ -476,14 +558,13 @@ foreach ($verificationComplaints as $item) {
                                             <?php echo $shortProblem; ?>
                                         </p>
 
-                                        <?php if ($hasImage): ?>
-                                            <a href="<?php echo $imagePath; ?>" download class="vq-evidence-download">
-                                                <i class="bi bi-download"></i>
-                                                Download Photo
-                                            </a>
+                                        <?php if ($mediaCount > 0): ?>
+                                            <span class="vq-no-photo-text">
+                                                <?php echo $mediaCount; ?> uploaded evidence file(s). Open details to view.
+                                            </span>
                                         <?php else: ?>
                                             <span class="vq-no-photo-text">
-                                                No photo uploaded by citizen
+                                                No evidence uploaded by citizen.
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -530,14 +611,14 @@ foreach ($verificationComplaints as $item) {
                                     data-email="<?php echo $citizenEmail; ?>"
                                     data-issue="<?php echo $issueType; ?>"
                                     data-priority="<?php echo $priority; ?>"
-                                    data-corporation="<?php echo safeText($complaint['city_cor_name']); ?>"
+                                    data-corporation="<?php echo safeText($complaint["city_cor_name"]); ?>"
                                     data-thana="<?php echo $thanaText; ?>"
                                     data-ward="<?php echo safeText($wardText); ?>"
                                     data-area="<?php echo $areaText; ?>"
-                                    data-address="<?php echo safeText($complaint['address_description']); ?>"
+                                    data-address="<?php echo safeText($complaint["address_description"]); ?>"
                                     data-problem="<?php echo $problem; ?>"
-                                    data-submitted="<?php echo $submittedAt; ?>"
-                                    data-image="<?php echo $hasImage ? $imagePath : ''; ?>"
+                                    data-submitted="<?php echo safeText($submittedAt); ?>"
+                                    data-media="<?php echo safeText($mediaJson ?: "[]"); ?>"
                                 >
                                     <i class="bi bi-info-circle"></i>
                                     Need More Info
@@ -569,7 +650,6 @@ foreach ($verificationComplaints as $item) {
 
 </div>
 
-<!-- DETAILS MODAL -->
 <div class="vq-modal-overlay" id="vqDetailsModal">
     <div class="vq-modal">
 
@@ -608,14 +688,9 @@ foreach ($verificationComplaints as $item) {
                 <p id="modalProblem"></p>
             </div>
 
-            <div class="vq-modal-section" id="modalImageWrap">
-                <h3>Uploaded Complaint Photo</h3>
-                <img id="modalImage" src="" alt="Complaint Photo">
-
-                <a href="#" download class="vq-download-btn" id="modalDownloadBtn">
-                    <i class="bi bi-download"></i>
-                    Download Photo
-                </a>
+            <div class="vq-modal-section" id="modalMediaWrap">
+                <h3>Uploaded Evidence</h3>
+                <div class="vq-media-gallery" id="modalMediaGallery"></div>
             </div>
 
         </div>

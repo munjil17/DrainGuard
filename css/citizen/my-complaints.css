@@ -1,6 +1,7 @@
 /* ==================================================
    DRAINGUARD - MY COMPLAINTS
-   Fixed for reusable Citizen sidebar/topbar layout
+   Responsive only fix
+   No feature added / removed
 ================================================== */
 
 .citizen-main.main-content {
@@ -16,14 +17,13 @@
 .mc-page {
     width: 100%;
     min-height: calc(100vh - 76px);
-    padding: 30px 36px 44px;
+    padding: clamp(18px, 2.4vw, 30px) clamp(14px, 2.8vw, 36px) 44px;
     background:
         radial-gradient(circle at top left, rgba(32, 212, 217, 0.10), transparent 34%),
         linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
     overflow-x: hidden;
 }
 
-/* Center content like submit complaint/public board */
 .mc-header,
 .mc-toolbar,
 .mc-table-card {
@@ -39,7 +39,7 @@
 
 .mc-header {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 150px;
+    grid-template-columns: minmax(0, 1fr) minmax(130px, 150px);
     gap: 22px;
     align-items: center;
     margin-bottom: 26px;
@@ -47,7 +47,7 @@
 
 .mc-header h1 {
     margin: 0 0 8px;
-    font-size: 30px;
+    font-size: clamp(24px, 2.4vw, 30px);
     line-height: 1.2;
     font-weight: 800;
     color: #020617;
@@ -56,15 +56,14 @@
 
 .mc-header p {
     margin: 0;
-    font-size: 16px;
+    font-size: clamp(14px, 1.35vw, 16px);
     line-height: 1.5;
     color: #475569;
 }
 
 .mc-count-card {
-    width: 150px;
-    min-width: 150px;
-    max-width: 150px;
+    width: 100%;
+    min-width: 0;
     padding: 16px 18px;
     border-radius: 16px;
     background: #FFFFFF;
@@ -75,7 +74,7 @@
 
 .mc-count-card span {
     display: block;
-    font-size: 28px;
+    font-size: clamp(24px, 2.2vw, 28px);
     line-height: 1;
     font-weight: 800;
     color: #0891B2;
@@ -98,11 +97,11 @@
 
 .mc-toolbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 220px;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
     gap: 16px;
     align-items: center;
     margin-bottom: 16px;
-    padding: 18px;
+    padding: clamp(14px, 1.5vw, 18px);
     border-radius: 18px;
     background: #FFFFFF;
     border: 1px solid #DDE6F0;
@@ -121,11 +120,13 @@
     transform: translateY(-50%);
     color: #7C89A6;
     font-size: 20px;
+    pointer-events: none;
 }
 
 .mc-search-box input,
 .mc-toolbar select {
     width: 100%;
+    min-width: 0;
     height: 52px;
     border: 1.6px solid #D7E2EF;
     border-radius: 14px;
@@ -168,14 +169,19 @@
     overflow: hidden;
 }
 
+/* This prevents table from breaking small screens */
 .mc-table-wrap {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
+/* Keep table readable on laptop/desktop, scroll-safe on mobile */
 .mc-table {
     width: 100%;
-    min-width: 980px;
+    min-width: 920px;
     border-collapse: collapse;
 }
 
@@ -223,11 +229,16 @@
     white-space: nowrap;
 }
 
+.mc-issue {
+    min-width: 0;
+}
+
 .mc-issue strong {
     display: block;
     margin-bottom: 5px;
     color: #020617;
     font-weight: 700;
+    line-height: 1.35;
 }
 
 .mc-issue small {
@@ -358,7 +369,7 @@
 ================================================== */
 
 .mc-empty {
-    padding: 60px 24px;
+    padding: clamp(40px, 5vw, 60px) 24px;
     text-align: center;
 }
 
@@ -416,6 +427,14 @@ body {
    RESPONSIVE
 ================================================== */
 
+@media (max-width: 1400px) {
+    .mc-header,
+    .mc-toolbar,
+    .mc-table-card {
+        max-width: 1120px;
+    }
+}
+
 @media (max-width: 1200px) {
     .mc-header,
     .mc-toolbar,
@@ -443,17 +462,34 @@ body {
     .mc-toolbar {
         grid-template-columns: 1fr;
     }
-}
 
-@media (max-width: 768px) {
     .mc-table {
-        min-width: 860px;
+        min-width: 900px;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .mc-page {
-        padding: 18px;
+        padding: 22px 18px 40px;
+    }
+
+    .mc-header {
+        gap: 18px;
+    }
+
+    .mc-table {
+        min-width: 860px;
+    }
+
+    .mc-table th,
+    .mc-table td {
+        padding: 16px 18px;
+    }
+}
+
+@media (max-width: 576px) {
+    .mc-page {
+        padding: 18px 14px 36px;
     }
 
     .mc-header h1 {
@@ -466,11 +502,42 @@ body {
 
     .mc-toolbar {
         padding: 14px;
+        border-radius: 16px;
     }
 
     .mc-search-box input,
     .mc-toolbar select {
         height: 48px;
         font-size: 14px;
+    }
+
+    .mc-table-card {
+        border-radius: 16px;
+    }
+
+    .mc-table {
+        min-width: 820px;
+    }
+
+    .mc-table th,
+    .mc-table td {
+        padding: 14px 16px;
+        font-size: 13px;
+    }
+
+    .mc-status,
+    .mc-urgency {
+        font-size: 12px;
+        padding: 7px 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .mc-page {
+        padding: 16px 12px 32px;
+    }
+
+    .mc-table {
+        min-width: 800px;
     }
 }

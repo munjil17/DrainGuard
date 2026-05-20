@@ -12,7 +12,7 @@ $baseUrl = "/DrainGuard/pages/central";
 
 function centralSidebarSafeText($value)
 {
-    return htmlspecialchars($value ?? "", ENT_QUOTES, "UTF-8");
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
 function centralSidebarRoleLabel($role)
@@ -20,26 +20,20 @@ function centralSidebarRoleLabel($role)
     $roleLabels = [
         "central_officer" => "Central Command",
         "ward_officer" => "Ward Officer",
-        "team_leader" => "Team Leader",
-        "assistant_team_leader" => "Assistant Team Leader",
         "inspector" => "Inspector",
-        "citizen" => "Citizen"
+        "citizen" => "Citizen",
+        "team_leader" => "Team Leader",
+        "assistant_team_leader" => "Assistant Team Leader"
     ];
 
-    return $roleLabels[$role] ?? ucwords(str_replace("_", " ", $role));
+    return $roleLabels[$role] ?? ucwords(str_replace("_", " ", (string)$role));
 }
 
-$userName = "Unknown User";
-$userRoleLabel = "Unknown Role";
+$userName = $_SESSION["user_name"] ?? "Central User";
+$userRole = $_SESSION["user_role"] ?? "central_officer";
+$userRoleLabel = $_SESSION["user_role_label"] ?? centralSidebarRoleLabel($userRole);
 
 $loggedUserId = isset($_SESSION["user_id"]) ? (int)$_SESSION["user_id"] : 0;
-$loggedUserEmail = $_SESSION["user_email"] ?? "";
-
-/*
-|--------------------------------------------------------------------------
-| Fetch logged-in user from users table
-|--------------------------------------------------------------------------
-*/
 
 if ($loggedUserId > 0) {
     $userSql = "
@@ -60,45 +54,8 @@ if ($loggedUserId > 0) {
 
         if ($userData) {
             $userName = $userData["user_name"];
-            $userRoleLabel = centralSidebarRoleLabel($userData["user_role"]);
-
-            $_SESSION["user_id"] = $userData["user_id"];
-            $_SESSION["user_name"] = $userData["user_name"];
-            $_SESSION["user_email"] = $userData["user_mail"];
-            $_SESSION["user_role"] = $userData["user_role"];
-            $_SESSION["user_role_label"] = $userRoleLabel;
-        }
-
-        mysqli_stmt_close($userStmt);
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| Fallback by email if user_id missing
-|--------------------------------------------------------------------------
-*/
-
-if ($userName === "Unknown User" && $loggedUserEmail !== "") {
-    $userSql = "
-        SELECT user_id, user_name, user_mail, user_role
-        FROM users
-        WHERE user_mail = ?
-        LIMIT 1
-    ";
-
-    $userStmt = mysqli_prepare($conn, $userSql);
-
-    if ($userStmt) {
-        mysqli_stmt_bind_param($userStmt, "s", $loggedUserEmail);
-        mysqli_stmt_execute($userStmt);
-
-        $userResult = mysqli_stmt_get_result($userStmt);
-        $userData = mysqli_fetch_assoc($userResult);
-
-        if ($userData) {
-            $userName = $userData["user_name"];
-            $userRoleLabel = centralSidebarRoleLabel($userData["user_role"]);
+            $userRole = $userData["user_role"];
+            $userRoleLabel = centralSidebarRoleLabel($userRole);
 
             $_SESSION["user_id"] = $userData["user_id"];
             $_SESSION["user_name"] = $userData["user_name"];
@@ -112,7 +69,7 @@ if ($userName === "Unknown User" && $loggedUserEmail !== "") {
 }
 ?>
 
-<aside class="dg-central-sidebar" id="sidebar">
+<aside class="dg-central-sidebar" id="centralSidebar">
 
     <div class="dg-central-sidebar-brand">
         <div class="dg-central-brand-icon">
@@ -211,3 +168,5 @@ if ($userName === "Unknown User" && $loggedUserEmail !== "") {
     </div>
 
 </aside>
+
+<div class="dg-central-sidebar-overlay" id="centralSidebarOverlay"></div>

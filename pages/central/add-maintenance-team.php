@@ -6,15 +6,13 @@ require_once "../../auth/session_check.php";
 
 $activePage = "user-management";
 $pageTitle = "Add Maintenance Team";
-$pageParent = "Central Control";
-$pageChild = "Add Maintenance Team";
 
 $successMessage = "";
 $errorMessage = "";
 
 function safeText($value)
 {
-    return htmlspecialchars($value ?? "", ENT_QUOTES, "UTF-8");
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
 function redirectAddMaintenanceTeam()
@@ -26,45 +24,72 @@ function redirectAddMaintenanceTeam()
 function setFlashMessage($type, $message)
 {
     if ($type === "success") {
-        $_SESSION["add_maintenance_success"] = $message;
+        $_SESSION["add_maintenance_team_success"] = $message;
     } else {
-        $_SESSION["add_maintenance_error"] = $message;
+        $_SESSION["add_maintenance_team_error"] = $message;
     }
 
     redirectAddMaintenanceTeam();
 }
 
-if (isset($_SESSION["add_maintenance_success"])) {
-    $successMessage = $_SESSION["add_maintenance_success"];
-    unset($_SESSION["add_maintenance_success"]);
+if (isset($_SESSION["add_maintenance_team_success"])) {
+    $successMessage = $_SESSION["add_maintenance_team_success"];
+    unset($_SESSION["add_maintenance_team_success"]);
 }
 
-if (isset($_SESSION["add_maintenance_error"])) {
-    $errorMessage = $_SESSION["add_maintenance_error"];
-    unset($_SESSION["add_maintenance_error"]);
+if (isset($_SESSION["add_maintenance_team_error"])) {
+    $errorMessage = $_SESSION["add_maintenance_team_error"];
+    unset($_SESSION["add_maintenance_team_error"]);
 }
 
 /*
 |--------------------------------------------------------------------------
-| Fetch Thanas
+| Fetch City Corporations
 |--------------------------------------------------------------------------
 */
 
-$thanas = [];
+$cityCorporations = [];
 
-$thanaSql = "
-    SELECT thana_id, thana_name
-    FROM thanas
-    ORDER BY thana_name ASC
+$cityCorSql = "
+    SELECT city_cor_id, city_cor_name
+    FROM city_corporations
+    ORDER BY city_cor_name ASC
 ";
 
-$thanaResult = mysqli_query($conn, $thanaSql);
+$cityCorResult = mysqli_query($conn, $cityCorSql);
 
-if ($thanaResult) {
-    while ($row = mysqli_fetch_assoc($thanaResult)) {
-        $thanas[] = $row;
+if ($cityCorResult) {
+    while ($row = mysqli_fetch_assoc($cityCorResult)) {
+        $cityCorporations[] = $row;
     }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Fetch Anchals With City Corporation
+|--------------------------------------------------------------------------
+*/
+
+$anchals = [];
+
+$anchalSql = "
+    SELECT
+        anchal_id,
+        city_cor_id,
+        anchal_name
+    FROM anchals
+    ORDER BY city_cor_id ASC, anchal_name ASC
+";
+
+$anchalResult = mysqli_query($conn, $anchalSql);
+
+if ($anchalResult) {
+    while ($row = mysqli_fetch_assoc($anchalResult)) {
+        $anchals[] = $row;
+    }
+}
+
+$anchalJson = json_encode($anchals, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
 /*
 |--------------------------------------------------------------------------
@@ -74,108 +99,155 @@ if ($thanaResult) {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $teamName = trim($_POST["team_name"] ?? "");
-    $teamName = preg_replace("/\s+/", " ", $teamName);
+    $cityCorId = (int)($_POST["city_cor_id"] ?? 0);
+    $anchalId = (int)($_POST["anchal_id"] ?? 0);
 
-    $assignedThanaId = trim($_POST["assigned_thana_id"] ?? "");
-
-    if ($teamName === "" || $assignedThanaId === "") {
+    if (
+        $teamName === "" ||
+        $cityCorId <= 0 ||
+        $anchalId <= 0
+    ) {
         setFlashMessage("error", "Please fill up all required fields.");
     }
 
-    if (!is_numeric($assignedThanaId) || (int)$assignedThanaId <= 0) {
-        setFlashMessage("error", "Invalid thana selected.");
+    if (strlen($teamName) < 3) {
+        setFlashMessage("error", "Team name must be at least 3 characters.");
     }
 
-    $assignedThanaId = (int)$assignedThanaId;
-
     /*
-        Team create only.
-        assistant_login_access is controlled later from Add Team Member page.
-        availability_status is system controlled.
-        Default: available
+    |--------------------------------------------------------------------------
+    | Validate City Corporation
+    |--------------------------------------------------------------------------
     */
 
-    $assistantLoginAccess = "no";
-    $availabilityStatus = "available";
+    $checkCityCorSql = "
+        SELECT city_cor_id
+        FROM city_corporations
+        WHERE city_cor_id = ?
+        LIMIT 1
+    ";
+
+    $checkCityCorStmt = mysqli_prepare($conn, $checkCityCorSql);
+
+    if (!$checkCityCorStmt) {
+        setFlashMessage("error", "Database error while checking city corporation.");
+    }
+
+    mysqli_stmt_bind_param($checkCityCorStmt, "i", $cityCorId);
+    mysqli_stmt_execute($checkCityCorStmt);
+
+    $checkCityCorResult = mysqli_stmt_get_result($checkCityCorStmt);
+
+    if (!$checkCityCorResult || mysqli_num_rows($checkCityCorResult) !== 1) {
+        mysqli_stmt_close($checkCityCorStmt);
+        setFlashMessage("error", "Invalid city corporation selected.");
+    }
+
+    mysqli_stmt_close($checkCityCorStmt);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Anchal Under Selected City Corporation
+    |--------------------------------------------------------------------------
+    */
+
+    $checkAnchalSql = "
+        SELECT anchal_id
+        FROM anchals
+        WHERE anchal_id = ?
+        AND city_cor_id = ?
+        LIMIT 1
+    ";
+
+    $checkAnchalStmt = mysqli_prepare($conn, $checkAnchalSql);
+
+    if (!$checkAnchalStmt) {
+        setFlashMessage("error", "Database error while checking anchal.");
+    }
+
+    mysqli_stmt_bind_param($checkAnchalStmt, "ii", $anchalId, $cityCorId);
+    mysqli_stmt_execute($checkAnchalStmt);
+
+    $checkAnchalResult = mysqli_stmt_get_result($checkAnchalStmt);
+
+    if (!$checkAnchalResult || mysqli_num_rows($checkAnchalResult) !== 1) {
+        mysqli_stmt_close($checkAnchalStmt);
+        setFlashMessage("error", "Invalid anchal selected for this city corporation.");
+    }
+
+    mysqli_stmt_close($checkAnchalStmt);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Duplicate Team Check
+    |--------------------------------------------------------------------------
+    */
+
+    $checkTeamSql = "
+        SELECT maintenance_team_id
+        FROM maintenance_teams
+        WHERE team_name = ?
+        LIMIT 1
+    ";
+
+    $checkTeamStmt = mysqli_prepare($conn, $checkTeamSql);
+
+    if (!$checkTeamStmt) {
+        setFlashMessage("error", "Database error while checking maintenance team.");
+    }
+
+    mysqli_stmt_bind_param($checkTeamStmt, "s", $teamName);
+    mysqli_stmt_execute($checkTeamStmt);
+
+    $checkTeamResult = mysqli_stmt_get_result($checkTeamStmt);
+
+    if ($checkTeamResult && mysqli_num_rows($checkTeamResult) > 0) {
+        mysqli_stmt_close($checkTeamStmt);
+        setFlashMessage("error", "This maintenance team name already exists.");
+    }
+
+    mysqli_stmt_close($checkTeamStmt);
 
     mysqli_begin_transaction($conn);
 
     try {
-        /*
-        |--------------------------------------------------------------------------
-        | Duplicate Check
-        |--------------------------------------------------------------------------
-        */
-
-        $checkSql = "
-            SELECT maintenance_team_id
-            FROM maintenance_teams
-            WHERE team_name = ?
-            AND assigned_thana_id = ?
-            LIMIT 1
-        ";
-
-        $checkStmt = mysqli_prepare($conn, $checkSql);
-
-        if (!$checkStmt) {
-            throw new Exception("Team check preparation failed: " . mysqli_error($conn));
-        }
-
-        mysqli_stmt_bind_param($checkStmt, "si", $teamName, $assignedThanaId);
-        mysqli_stmt_execute($checkStmt);
-
-        $checkResult = mysqli_stmt_get_result($checkStmt);
-
-        if ($checkResult && mysqli_num_rows($checkResult) > 0) {
-            mysqli_stmt_close($checkStmt);
-            throw new Exception("This maintenance team already exists for selected thana.");
-        }
-
-        mysqli_stmt_close($checkStmt);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Insert Maintenance Team
-        |--------------------------------------------------------------------------
-        | Skill type removed.
-        | Availability status will always start as available.
-        |--------------------------------------------------------------------------
-        */
-
-        $insertSql = "
+        $insertTeamSql = "
             INSERT INTO maintenance_teams (
                 team_name,
-                assigned_thana_id,
-                availability_status,
-                assistant_login_access
+                city_cor_id,
+                anchal_id,
+                availability_status
             )
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, 'available')
         ";
 
-        $insertStmt = mysqli_prepare($conn, $insertSql);
+        $insertTeamStmt = mysqli_prepare($conn, $insertTeamSql);
 
-        if (!$insertStmt) {
-            throw new Exception("Team insert preparation failed: " . mysqli_error($conn));
+        if (!$insertTeamStmt) {
+            throw new Exception("Maintenance team insert preparation failed: " . mysqli_error($conn));
         }
 
         mysqli_stmt_bind_param(
-            $insertStmt,
-            "siss",
+            $insertTeamStmt,
+            "sii",
             $teamName,
-            $assignedThanaId,
-            $availabilityStatus,
-            $assistantLoginAccess
+            $cityCorId,
+            $anchalId
         );
 
-        if (!mysqli_stmt_execute($insertStmt)) {
-            throw new Exception("Team insert failed: " . mysqli_stmt_error($insertStmt));
+        if (!mysqli_stmt_execute($insertTeamStmt)) {
+            throw new Exception("Maintenance team insert failed: " . mysqli_stmt_error($insertTeamStmt));
         }
 
-        mysqli_stmt_close($insertStmt);
+        $maintenanceTeamId = (int)mysqli_insert_id($conn);
+        mysqli_stmt_close($insertTeamStmt);
 
         mysqli_commit($conn);
 
-        setFlashMessage("success", "Maintenance team created successfully. Now add team members.");
+        $_SESSION["add_maintenance_team_success"] = "Maintenance team added successfully. Now add team members.";
+
+        header("Location: /DrainGuard/pages/central/add-team-member.php?team_id=" . $maintenanceTeamId);
+        exit();
 
     } catch (Exception $e) {
         mysqli_rollback($conn);
@@ -188,7 +260,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title><?php echo safeText($pageTitle); ?> | DrainGuard</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -198,6 +272,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/footer.css">
     <link rel="stylesheet" href="../../css/central/add-maintenance-team.css">
+    <link rel="stylesheet" href="../../css/central/centralTextFix.css">
 </head>
 
 <body class="central">
@@ -238,7 +313,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
             <?php endif; ?>
 
-            <form action="add-maintenance-team.php" method="POST" class="amt-form" id="maintenanceTeamForm" autocomplete="off">
+            <form action="add-maintenance-team.php" method="POST" class="amt-form" id="maintenanceTeamForm">
 
                 <div class="amt-card">
                     <div class="amt-section-title">
@@ -248,7 +323,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         <div>
                             <h2>Maintenance Team Information</h2>
-                            <p>Only team name and assigned thana will be saved here.</p>
+                            <p>Team will be assigned by city corporation and anchal.</p>
                         </div>
                     </div>
 
@@ -266,15 +341,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </div>
 
                         <div class="amt-field">
-                            <label for="assigned_thana_id">Assigned Thana <span>*</span></label>
-                            <select id="assigned_thana_id" name="assigned_thana_id" required>
-                                <option value="">Select thana</option>
+                            <label for="city_cor_id">City Corporation <span>*</span></label>
+                            <select id="city_cor_id" name="city_cor_id" required>
+                                <option value="">Select city corporation</option>
 
-                                <?php foreach ($thanas as $thana): ?>
-                                    <option value="<?php echo (int)$thana["thana_id"]; ?>">
-                                        <?php echo safeText($thana["thana_name"]); ?>
+                                <?php foreach ($cityCorporations as $cityCorporation): ?>
+                                    <option value="<?php echo (int)$cityCorporation["city_cor_id"]; ?>">
+                                        <?php echo safeText($cityCorporation["city_cor_name"]); ?>
                                     </option>
                                 <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="amt-field">
+                            <label for="anchal_id">Assigned Anchal <span>*</span></label>
+                            <select id="anchal_id" name="anchal_id" required disabled>
+                                <option value="">Select city corporation first</option>
                             </select>
                         </div>
 
@@ -300,6 +382,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 </div>
 
+<script>
+    window.DG_MAINTENANCE_ANCHALS = <?php echo $anchalJson ?: "[]"; ?>;
+</script>
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/add-maintenance-team.js"></script>
 

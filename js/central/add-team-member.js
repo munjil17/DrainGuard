@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const teamSelect = document.getElementById("maintenance_team_id");
     const memberRole = document.getElementById("member_role");
-    const assistantLoginAccess = document.getElementById("assistant_login_access");
+    const loginAccess = document.getElementById("login_access");
 
     const memberInfoCard = document.getElementById("memberInfoCard");
     const loginAccessCard = document.getElementById("loginAccessCard");
@@ -27,10 +27,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const teamPreview = document.getElementById("teamPreview");
     const previewTeam = document.getElementById("previewTeam");
-    const previewThana = document.getElementById("previewThana");
-    const previewSkill = document.getElementById("previewSkill");
+    const previewCityCorporation = document.getElementById("previewCityCorporation");
+    const previewAnchal = document.getElementById("previewAnchal");
     const previewAvailability = document.getElementById("previewAvailability");
-    const previewAssistantAccess = document.getElementById("previewAssistantAccess");
 
     const memberRequiredFields = [
         fullName,
@@ -49,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
             setTimeout(function () {
                 alertBox.style.display = "none";
             }, 250);
-        }, 8000);
+        }, 5000);
     });
 
     function setRequired(fields, required) {
@@ -69,25 +68,25 @@ document.addEventListener("DOMContentLoaded", function () {
         return teamSelect.options[teamSelect.selectedIndex] || null;
     }
 
-    function hasSelectedTeamRoleAccess() {
+    function hasSelectedBaseInfo() {
         return (
             teamSelect &&
             memberRole &&
-            assistantLoginAccess &&
+            loginAccess &&
             teamSelect.value !== "" &&
             memberRole.value !== "" &&
-            assistantLoginAccess.value !== ""
+            loginAccess.value !== ""
         );
     }
 
     function shouldShowLogin() {
-        if (!memberRole || !assistantLoginAccess) return false;
+        if (!memberRole || !loginAccess) return false;
 
         if (memberRole.value === "team_leader") {
             return true;
         }
 
-        if (memberRole.value === "assistant_team_leader" && assistantLoginAccess.value === "yes") {
+        if (memberRole.value === "assistant_team_leader" && loginAccess.value === "yes") {
             return true;
         }
 
@@ -105,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateTeamPreview() {
         const option = selectedTeamOption();
 
-        if (!teamPreview || !option || teamSelect.value === "") {
+        if (!teamPreview || !option || !teamSelect || teamSelect.value === "") {
             if (teamPreview) {
                 teamPreview.classList.remove("show");
             }
@@ -115,22 +114,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
         teamPreview.classList.add("show");
 
-        if (previewTeam) previewTeam.textContent = option.dataset.teamName || "N/A";
-        if (previewThana) previewThana.textContent = option.dataset.thana || "N/A";
-        if (previewSkill) previewSkill.textContent = formatText(option.dataset.skill);
-        if (previewAvailability) previewAvailability.textContent = formatText(option.dataset.availability);
-        if (previewAssistantAccess) previewAssistantAccess.textContent = formatText(option.dataset.assistantAccess);
+        if (previewTeam) {
+            previewTeam.textContent = option.dataset.teamName || "N/A";
+        }
+
+        if (previewCityCorporation) {
+            previewCityCorporation.textContent = option.dataset.cityCorporation || "N/A";
+        }
+
+        if (previewAnchal) {
+            previewAnchal.textContent = option.dataset.anchal || "N/A";
+        }
+
+        if (previewAvailability) {
+            previewAvailability.textContent = formatText(option.dataset.availability);
+        }
+    }
+
+    function normalizeLoginAccessByRole() {
+        if (!memberRole || !loginAccess) return;
+
+        if (memberRole.value === "team_leader") {
+            loginAccess.value = "yes";
+        }
+
+        if (memberRole.value === "worker") {
+            loginAccess.value = "no";
+        }
     }
 
     function updateMemberUI() {
         updateTeamPreview();
+        normalizeLoginAccessByRole();
 
         if (!memberRole || !memberInfoCard || !loginAccessCard) return;
 
         const role = memberRole.value;
-        const access = assistantLoginAccess ? assistantLoginAccess.value : "";
+        const access = loginAccess ? loginAccess.value : "";
 
-        if (!hasSelectedTeamRoleAccess()) {
+        if (!hasSelectedBaseInfo()) {
             memberInfoCard.classList.remove("show");
             loginAccessCard.classList.remove("show");
 
@@ -152,41 +174,50 @@ document.addEventListener("DOMContentLoaded", function () {
         setRequired(memberRequiredFields, true);
 
         if (role === "team_leader") {
-            memberTitle.textContent = "Team Leader Information";
-            memberSubtitle.textContent = "Team leader always gets login access.";
-            roleNote.className = "atm-note leader";
-            roleNote.innerHTML = `
-                <i class="bi bi-check-circle"></i>
-                <span>Team Leader will be inserted into users table as maintenance_team and can login.</span>
-            `;
-        }
+            if (memberTitle) memberTitle.textContent = "Team Leader Information";
+            if (memberSubtitle) memberSubtitle.textContent = "Team leader always gets login access.";
 
-        if (role === "assistant_team_leader") {
-            memberTitle.textContent = "Assistant Team Leader Information";
-            memberSubtitle.textContent = "Assistant login depends on selected Login Access.";
-            roleNote.className = "atm-note assistant";
-
-            if (access === "yes") {
+            if (roleNote) {
+                roleNote.className = "atm-note leader";
                 roleNote.innerHTML = `
-                    <i class="bi bi-info-circle"></i>
-                    <span>Assistant will get login access because Login Access is Yes.</span>
-                `;
-            } else {
-                roleNote.innerHTML = `
-                    <i class="bi bi-info-circle"></i>
-                    <span>Assistant will be inserted into users table, but login_access will be 0.</span>
+                    <i class="bi bi-check-circle"></i>
+                    <span>Team Leader will be inserted into users table as team_leader and can login.</span>
                 `;
             }
         }
 
+        if (role === "assistant_team_leader") {
+            if (memberTitle) memberTitle.textContent = "Assistant Team Leader Information";
+            if (memberSubtitle) memberSubtitle.textContent = "Assistant login depends on selected Login Access.";
+
+            if (roleNote) {
+                roleNote.className = "atm-note assistant";
+
+                if (access === "yes") {
+                    roleNote.innerHTML = `
+                        <i class="bi bi-info-circle"></i>
+                        <span>Assistant Team Leader will be inserted into users table and can login.</span>
+                    `;
+                } else {
+                    roleNote.innerHTML = `
+                        <i class="bi bi-info-circle"></i>
+                        <span>Assistant Team Leader will be inserted into users table, but login_access will be 0.</span>
+                    `;
+                }
+            }
+        }
+
         if (role === "worker") {
-            memberTitle.textContent = "Worker Information";
-            memberSubtitle.textContent = "Worker does not get login access.";
-            roleNote.className = "atm-note worker";
-            roleNote.innerHTML = `
-                <i class="bi bi-info-circle"></i>
-                <span>Worker will be inserted only into maintenance_team_members table.</span>
-            `;
+            if (memberTitle) memberTitle.textContent = "Worker Information";
+            if (memberSubtitle) memberSubtitle.textContent = "Worker does not get login access.";
+
+            if (roleNote) {
+                roleNote.className = "atm-note worker";
+                roleNote.innerHTML = `
+                    <i class="bi bi-info-circle"></i>
+                    <span>Worker will be inserted only into maintenance_team_members table. No users table insert.</span>
+                `;
+            }
         }
 
         if (shouldShowLogin()) {
@@ -209,8 +240,8 @@ document.addEventListener("DOMContentLoaded", function () {
         memberRole.addEventListener("change", updateMemberUI);
     }
 
-    if (assistantLoginAccess) {
-        assistantLoginAccess.addEventListener("change", updateMemberUI);
+    if (loginAccess) {
+        loginAccess.addEventListener("change", updateMemberUI);
     }
 
     toggles.forEach(function (button) {
@@ -235,6 +266,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (form) {
         form.addEventListener("submit", function (event) {
+            normalizeLoginAccessByRole();
+
             if (!teamSelect || teamSelect.value === "") {
                 event.preventDefault();
                 alert("Please select a maintenance team.");
@@ -249,10 +282,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            if (!assistantLoginAccess || assistantLoginAccess.value === "") {
+            if (!loginAccess || loginAccess.value === "") {
                 event.preventDefault();
                 alert("Please select login access.");
-                assistantLoginAccess.focus();
+                loginAccess.focus();
                 return;
             }
 

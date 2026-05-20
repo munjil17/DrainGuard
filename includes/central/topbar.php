@@ -1,14 +1,4 @@
 <?php
-/*
-|--------------------------------------------------------------------------
-| Central Topbar
-|--------------------------------------------------------------------------
-| Reusable topbar.
-| Shows logged-in user's name and role from users table using session user_id.
-| Sidebar/topbar layout class untouched.
-|--------------------------------------------------------------------------
-*/
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -19,7 +9,7 @@ if (!isset($conn)) {
 
 function centralTopbarSafeText($value)
 {
-    return htmlspecialchars($value ?? "", ENT_QUOTES, "UTF-8");
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
 function centralTopbarRoleLabel($role)
@@ -27,10 +17,10 @@ function centralTopbarRoleLabel($role)
     $roleLabels = [
         "central_officer" => "Central Command",
         "ward_officer" => "Ward Officer",
-        "team_leader" => "Team Leader",
-        "assistant_team_leader" => "Assistant Team Leader",
         "inspector" => "Inspector",
-        "citizen" => "Citizen"
+        "citizen" => "Citizen",
+        "team_leader" => "Team Leader",
+        "assistant_team_leader" => "Assistant Team Leader"
     ];
 
     return $roleLabels[$role] ?? ucwords(str_replace("_", " ", (string)$role));
@@ -40,20 +30,11 @@ $topbarUserName = $_SESSION["user_name"] ?? "Central User";
 $topbarUserRole = $_SESSION["user_role"] ?? "central_officer";
 $topbarUserRoleLabel = $_SESSION["user_role_label"] ?? centralTopbarRoleLabel($topbarUserRole);
 
-$loggedUserId = isset($_SESSION["user_id"]) ? (int) $_SESSION["user_id"] : 0;
-
-/*
-|--------------------------------------------------------------------------
-| Fetch latest logged-in user info from users table
-|--------------------------------------------------------------------------
-*/
+$loggedUserId = isset($_SESSION["user_id"]) ? (int)$_SESSION["user_id"] : 0;
 
 if ($loggedUserId > 0) {
     $userSql = "
-        SELECT 
-            user_id, 
-            user_name, 
-            user_role
+        SELECT user_id, user_name, user_role
         FROM users
         WHERE user_id = ?
         LIMIT 1

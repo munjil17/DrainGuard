@@ -20,10 +20,20 @@
     --active-secondary: #2B6CB0;
 }
 
-* {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 body {
@@ -31,7 +41,6 @@ body {
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--page-bg);
     color: var(--text-primary);
-    overflow-x: hidden;
 }
 
 button,
@@ -39,12 +48,18 @@ input {
     font-family: inherit;
 }
 
+button {
+    border: 0;
+}
+
 .login-page {
     width: 100%;
     min-height: 100vh;
+    max-width: 100%;
     display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
     background: var(--page-bg);
+    overflow-x: hidden;
 }
 
 .login-page[data-active-role="citizen"] {
@@ -80,7 +95,7 @@ input {
 .login-left {
     position: relative;
     min-height: 100vh;
-    padding: 74px 72px;
+    padding: clamp(36px, 4.5vw, 74px) clamp(24px, 5vw, 72px);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -104,7 +119,6 @@ input {
     content: "";
     position: absolute;
     inset: 0;
-
     background:
         radial-gradient(
             circle at 24% 24%,
@@ -116,7 +130,6 @@ input {
             rgba(5, 8, 22, .70),
             rgba(5, 8, 22, .24)
         );
-
     pointer-events: none;
 }
 
@@ -131,20 +144,20 @@ input {
     display: flex;
     align-items: center;
     gap: 16px;
-    margin: 0 auto 56px;
+    margin: 0 auto clamp(32px, 4vw, 56px);
     width: 100%;
+    min-width: 0;
 }
 
 .brand-logo {
     width: 58px;
     height: 58px;
+    flex: 0 0 58px;
     border-radius: 14px;
     background: linear-gradient(135deg, #00C2C7, #31F6E6);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     box-shadow: 0 0 38px rgba(49, 246, 230, .22);
 }
 
@@ -154,7 +167,7 @@ input {
 }
 
 .brand-block h2 {
-    font-size: 30px;
+    font-size: clamp(24px, 2vw, 30px);
     font-weight: 800;
     line-height: 1;
     margin-bottom: 7px;
@@ -170,6 +183,7 @@ input {
     max-width: 650px;
     width: 100%;
     margin: 0 auto;
+    min-width: 0;
 }
 
 .role-helper {
@@ -182,36 +196,31 @@ input {
 .role-list {
     display: flex;
     flex-direction: column;
-    gap: 17px;
+    gap: clamp(12px, 1.2vw, 17px);
 }
 
 .role-card {
     width: 100%;
-    min-height: 96px;
+    min-width: 0;
+    min-height: 92px;
     padding: 18px 22px;
-
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, .12);
-
     background: rgba(21, 31, 61, .76);
     color: var(--text-primary);
-
     display: grid;
-    grid-template-columns: 52px 1fr 24px;
+    grid-template-columns: 52px minmax(0, 1fr) 24px;
     align-items: center;
     gap: 18px;
-
     cursor: pointer;
     text-align: left;
     backdrop-filter: blur(14px);
-
     transition: all .25s ease;
 }
 
 .role-card:hover,
 .role-card.active {
     border-color: rgba(var(--active-rgb), .85);
-
     background:
         linear-gradient(
             135deg,
@@ -219,9 +228,7 @@ input {
             rgba(16, 28, 56, .94) 45%,
             rgba(10, 18, 40, .98)
         );
-
     transform: translateY(-2px);
-
     box-shadow:
         0 18px 42px rgba(0, 0, 0, .28),
         0 0 24px rgba(var(--active-rgb), .10);
@@ -231,7 +238,6 @@ input {
     width: 48px;
     height: 48px;
     border-radius: 11px;
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -262,11 +268,16 @@ input {
     background: rgba(255, 107, 61, .28);
 }
 
+.role-info {
+    min-width: 0;
+}
+
 .role-info h3 {
-    font-size: 20px;
+    font-size: clamp(17px, 1.4vw, 20px);
     font-weight: 800;
     line-height: 1.25;
     margin-bottom: 6px;
+    overflow-wrap: break-word;
 }
 
 .role-info h3 span {
@@ -278,6 +289,7 @@ input {
     color: var(--active-color);
     font-size: 12px;
     font-weight: 800;
+    vertical-align: middle;
 }
 
 .role-info p {
@@ -285,6 +297,7 @@ input {
     line-height: 1.55;
     color: rgba(248, 250, 252, .78);
     margin: 0;
+    overflow-wrap: break-word;
 }
 
 .check-icon {
@@ -298,12 +311,10 @@ input {
 
 .login-right {
     min-height: 100vh;
-    padding: 60px 72px;
-
+    padding: clamp(34px, 4vw, 60px) clamp(22px, 5vw, 72px);
     display: flex;
     align-items: center;
     justify-content: center;
-
     background:
         radial-gradient(
             circle at 70% 30%,
@@ -316,23 +327,22 @@ input {
             #0D1328 55%,
             #081426
         );
+    min-width: 0;
 }
 
 .login-card {
     width: 100%;
     max-width: 540px;
-    padding: 40px 42px 34px;
+    min-width: 0;
+    padding: clamp(28px, 3vw, 40px) clamp(20px, 3vw, 42px) clamp(26px, 3vw, 34px);
     border-radius: 18px;
-
     background:
         linear-gradient(
             145deg,
             rgba(18, 28, 56, .98),
             rgba(13, 22, 45, .96)
         );
-
     border: 1px solid rgba(var(--active-rgb), .65);
-
     box-shadow:
         0 30px 80px rgba(0, 0, 0, .34),
         0 0 42px rgba(var(--active-rgb), .08);
@@ -340,6 +350,7 @@ input {
 
 .login-badge {
     width: fit-content;
+    max-width: 100%;
     padding: 8px 14px;
     border-radius: 8px;
     background: rgba(var(--active-rgb), .13);
@@ -347,6 +358,7 @@ input {
     font-size: 12px;
     font-weight: 700;
     margin-bottom: 30px;
+    overflow-wrap: break-word;
 }
 
 .login-badge span {
@@ -363,7 +375,7 @@ input {
 }
 
 .login-header h1 {
-    font-size: 32px;
+    font-size: clamp(25px, 2.2vw, 32px);
     font-weight: 800;
     line-height: 1.2;
     margin-bottom: 10px;
@@ -393,11 +405,9 @@ input {
     border-radius: 11px;
     background: rgba(5, 8, 22, .62);
     border: 1px solid rgba(167, 180, 214, .24);
-
     display: flex;
     align-items: center;
     gap: 12px;
-
     overflow: hidden;
     transition: .22s ease;
 }
@@ -438,6 +448,7 @@ input {
     color: #8EA2C8;
     cursor: pointer;
     flex-shrink: 0;
+    padding: 0;
 }
 
 .auth-options {
@@ -445,6 +456,8 @@ input {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
 }
 
 .auth-options a {
@@ -458,11 +471,9 @@ input {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
-
     cursor: pointer;
     user-select: none;
     position: relative;
@@ -484,11 +495,9 @@ input {
     border: 1.5px solid #CBD5E1;
     border-radius: 3px;
     background: transparent;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     flex-shrink: 0;
     transition: 0.18s ease;
 }
@@ -512,28 +521,32 @@ input {
 
 .submit-btn {
     width: 100%;
-    height: 60px;
+    min-width: 0;
+    min-height: 60px;
     border: none;
     border-radius: 11px;
-
     background:
         linear-gradient(
             135deg,
             var(--active-color),
             var(--active-secondary)
         );
-
     color: #FFFFFF;
     font-size: 17px;
     font-weight: 800;
     cursor: pointer;
-
-    display: flex;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
     align-items: center;
-    justify-content: space-between;
-
-    padding: 0 26px;
+    gap: 10px;
+    padding: 0 22px;
     transition: .24s ease;
+}
+
+.submit-btn span {
+    min-width: 0;
+    overflow-wrap: break-word;
+    text-align: center;
 }
 
 .submit-btn:hover {
@@ -546,10 +559,10 @@ input {
     text-align: center;
     font-size: 14px;
     color: #AAB4C5;
-
     align-items: center;
     justify-content: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .signup-redirect span {
@@ -629,7 +642,28 @@ input {
     }
 }
 
-@media (max-width: 1200px) {
+/* 14 inch laptop / medium desktop safety */
+@media (max-width: 1280px) {
+    .login-page {
+        grid-template-columns: minmax(0, 1fr) minmax(390px, 0.92fr);
+    }
+
+    .login-left {
+        padding: 44px 40px;
+    }
+
+    .login-right {
+        padding: 44px 36px;
+    }
+
+    .role-card {
+        min-height: 88px;
+        padding: 16px 18px;
+    }
+}
+
+/* Tablet: stack left and right */
+@media (max-width: 1100px) {
     .login-page {
         grid-template-columns: 1fr;
     }
@@ -637,10 +671,38 @@ input {
     .login-left,
     .login-right {
         min-height: auto;
-        padding: 48px 28px;
+    }
+
+    .login-left {
+        padding: 44px 28px;
+    }
+
+    .login-right {
+        padding: 44px 28px 56px;
+    }
+
+    .brand-block,
+    .role-selector {
+        max-width: 760px;
+    }
+
+    .role-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .role-card {
+        height: 100%;
+        grid-template-columns: 48px minmax(0, 1fr);
+        align-items: flex-start;
+    }
+
+    .check-icon {
+        display: none;
     }
 }
 
+/* Mobile landscape / small tablet */
 @media (max-width: 768px) {
     .login-left,
     .login-right {
@@ -648,19 +710,16 @@ input {
     }
 
     .brand-block {
-        margin-bottom: 42px;
+        margin-bottom: 34px;
+    }
+
+    .role-list {
+        grid-template-columns: 1fr;
     }
 
     .role-card {
-        grid-template-columns: 48px 1fr;
-    }
-
-    .check-icon {
-        display: none;
-    }
-
-    .role-info h3 {
-        font-size: 17px;
+        grid-template-columns: 48px minmax(0, 1fr);
+        gap: 14px;
     }
 
     .role-info h3 span {
@@ -683,16 +742,74 @@ input {
         padding: 0 18px;
     }
 }
-/* =========================================================
-   FINAL FIX: REMOVE WHITE AUTOFILL / SELECTED INPUT BOX
-========================================================= */
 
+/* Small mobile */
+@media (max-width: 480px) {
+    .login-left,
+    .login-right {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .brand-block {
+        gap: 12px;
+    }
+
+    .brand-logo {
+        width: 50px;
+        height: 50px;
+        flex-basis: 50px;
+        border-radius: 12px;
+    }
+
+    .brand-logo i {
+        font-size: 27px;
+    }
+
+    .role-card {
+        min-height: auto;
+        padding: 15px;
+        border-radius: 13px;
+    }
+
+    .role-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .role-icon i {
+        font-size: 20px;
+    }
+
+    .role-info p {
+        font-size: 13px;
+    }
+
+    .login-card {
+        border-radius: 16px;
+        padding: 26px 16px;
+    }
+
+    .input-box {
+        height: 54px;
+        padding: 0 13px;
+    }
+
+    .submit-btn {
+        min-height: 56px;
+        font-size: 15px;
+        padding: 0 14px;
+        grid-template-columns: 20px minmax(0, 1fr) 20px;
+    }
+}
+
+/* Remove white autofill / selected input box */
 .input-box input:-webkit-autofill,
 .input-box input:-webkit-autofill:hover,
 .input-box input:-webkit-autofill:focus,
 .input-box input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-    box-shadow: 0 0 0 1000px transparent inset !important;
+    -webkit-box-shadow: 0 0 0 1000px rgba(5, 8, 22, .62) inset !important;
+    box-shadow: 0 0 0 1000px rgba(5, 8, 22, .62) inset !important;
     -webkit-text-fill-color: #FFFFFF !important;
     caret-color: var(--active-color) !important;
     transition: background-color 9999s ease-in-out 0s !important;

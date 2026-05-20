@@ -1,6 +1,17 @@
+/* =========================================================
+   ADD TEAM MEMBER PAGE ONLY
+   Prefix: atm-
+   Normal 100% zoom layout
+========================================================= */
+
 .atm-page {
-    padding: 24px;
-    background: #F8FAFC;
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 24px 28px 40px;
+    background:
+        radial-gradient(circle at top left, rgba(34, 230, 220, 0.08), transparent 32%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
+    overflow-x: hidden;
 }
 
 .atm-header-card,
@@ -11,9 +22,19 @@
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
+.atm-header-card,
+.atm-alert,
+.atm-form {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 .atm-header-card {
     padding: 28px;
     margin-bottom: 20px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -23,7 +44,8 @@
 .atm-header-card h1 {
     margin: 0 0 8px;
     color: #020617;
-    font-size: 26px;
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height: 1.2;
     font-weight: 800;
 }
 
@@ -31,6 +53,7 @@
     margin: 0;
     color: #475569;
     font-size: 15px;
+    line-height: 1.5;
     font-weight: 500;
 }
 
@@ -40,13 +63,18 @@
     border-radius: 8px;
     border: 1px solid #CBD5E1;
     background: #FFFFFF;
+
     color: #0F766E;
     text-decoration: none;
     font-size: 14px;
     font-weight: 800;
+
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+
+    white-space: nowrap;
 }
 
 .atm-back-btn:hover {
@@ -57,13 +85,16 @@
 
 .atm-alert {
     min-height: 48px;
-    padding: 0 16px;
+    padding: 12px 16px;
     border-radius: 12px;
     margin-bottom: 18px;
+
     display: flex;
     align-items: center;
     gap: 10px;
+
     font-size: 14px;
+    line-height: 1.45;
     font-weight: 700;
     transition: 0.25s ease;
 }
@@ -115,9 +146,11 @@
     border-radius: 12px;
     background: #E0FDFB;
     color: #0F766E;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     font-size: 22px;
     flex-shrink: 0;
 }
@@ -126,6 +159,7 @@
     margin: 0 0 6px;
     color: #020617;
     font-size: 18px;
+    line-height: 1.25;
     font-weight: 800;
 }
 
@@ -133,12 +167,13 @@
     margin: 0;
     color: #64748B;
     font-size: 13px;
+    line-height: 1.45;
     font-weight: 500;
 }
 
 .atm-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
 }
 
@@ -146,6 +181,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
 }
 
 .atm-field.full {
@@ -155,6 +191,7 @@
 .atm-field label {
     color: #0F172A;
     font-size: 14px;
+    line-height: 1.35;
     font-weight: 800;
 }
 
@@ -165,6 +202,7 @@
 .atm-field small {
     color: #64748B;
     font-size: 12px;
+    line-height: 1.4;
     font-weight: 600;
 }
 
@@ -172,13 +210,18 @@
 .atm-field select,
 .atm-field textarea {
     width: 100%;
+    min-width: 0;
+
     border: 1px solid #CBD5E1;
     border-radius: 9px;
     background: #FFFFFF;
     outline: none;
+
     color: #0F172A;
     font-size: 14px;
     font-weight: 500;
+
+    box-sizing: border-box;
 }
 
 .atm-field input,
@@ -188,6 +231,7 @@
 }
 
 .atm-field textarea {
+    min-height: 86px;
     padding: 13px 14px;
     resize: vertical;
 }
@@ -199,6 +243,11 @@
     box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.12);
 }
 
+.atm-field input::placeholder,
+.atm-field textarea::placeholder {
+    color: #94A3B8;
+}
+
 .atm-team-preview {
     display: none;
     margin-top: 18px;
@@ -206,7 +255,8 @@
     border-radius: 12px;
     background: #F8FAFC;
     border: 1px solid #E2E8F0;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
 }
 
@@ -243,10 +293,13 @@
     background: #F8FAFC;
     border: 1px solid #E2E8F0;
     color: #475569;
+
     display: flex;
     align-items: center;
     gap: 10px;
+
     font-size: 14px;
+    line-height: 1.45;
     font-weight: 700;
 }
 
@@ -268,13 +321,30 @@
     color: #92400E;
 }
 
+/* Password */
+
 .atm-password-wrap {
     position: relative;
     width: 100%;
 }
 
-.atm-password-wrap input {
-    padding-right: 46px !important;
+.atm-password-wrap input[type="password"],
+.atm-password-wrap input[type="text"] {
+    padding-right: 48px !important;
+}
+
+.atm-password-wrap input::-ms-reveal,
+.atm-password-wrap input::-ms-clear {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.atm-password-wrap input::-webkit-credentials-auto-fill-button,
+.atm-password-wrap input::-webkit-contacts-auto-fill-button {
+    visibility: hidden !important;
+    display: none !important;
+    pointer-events: none !important;
 }
 
 .atm-password-toggle {
@@ -283,30 +353,29 @@
     border: none;
     background: transparent;
     color: #64748B;
+
     position: absolute;
     right: 2px;
     top: 2px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     cursor: pointer;
+    z-index: 5;
+}
+
+.atm-password-toggle i {
+    font-size: 16px;
+    line-height: 1;
 }
 
 .atm-password-toggle:hover {
-    color: #0F172A;
+    color: #0F766E;
 }
 
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {
-    display: none;
-}
-
-input[type="password"]::-webkit-credentials-auto-fill-button,
-input[type="password"]::-webkit-contacts-auto-fill-button {
-    visibility: hidden;
-    display: none !important;
-    pointer-events: none;
-}
+/* Actions */
 
 .atm-actions {
     display: flex;
@@ -321,10 +390,12 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     padding: 0 20px;
     border-radius: 9px;
     text-decoration: none;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+
     font-size: 14px;
     font-weight: 800;
 }
@@ -335,6 +406,11 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     color: #475569;
 }
 
+.atm-cancel-btn:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
 .atm-submit-btn {
     border: none;
     background: linear-gradient(135deg, #22E6DC, #16C784);
@@ -342,7 +418,23 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     cursor: pointer;
 }
 
+.atm-submit-btn:hover {
+    background: linear-gradient(135deg, #14B8A6, #16A34A);
+}
+
+.atm-page *,
+.atm-card *,
+.atm-header-card * {
+    box-sizing: border-box;
+}
+
+/* Responsive */
+
 @media (max-width: 1200px) {
+    .atm-page {
+        padding: 22px 22px 38px;
+    }
+
     .atm-team-preview {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -350,7 +442,7 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
 
 @media (max-width: 992px) {
     .atm-page {
-        padding: 20px;
+        padding: 22px 18px 38px;
     }
 
     .atm-header-card {
@@ -372,7 +464,39 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     }
 
     .atm-cancel-btn,
-    .atm-submit-btn {
+    .atm-submit-btn,
+    .atm-back-btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .atm-page {
+        padding: 18px 14px 36px;
+    }
+
+    .atm-header-card,
+    .atm-card {
+        padding: 20px;
+    }
+
+    .atm-section-title {
+        align-items: flex-start;
+    }
+
+    .atm-note {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 400px) {
+    .atm-page {
+        padding: 16px 12px 32px;
+    }
+
+    .atm-header-card,
+    .atm-card {
+        padding: 18px;
+        border-radius: 12px;
     }
 }

@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-* {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -10,6 +12,8 @@ html,
 body {
     width: 100%;
     min-height: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 body {
@@ -22,6 +26,8 @@ body {
 .landing-page {
     width: 100%;
     min-height: 100vh;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .hero-section {
@@ -48,6 +54,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    overflow-x: hidden;
 }
 
 .hero-section::after {
@@ -64,8 +71,10 @@ body {
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 980px;
+    max-width: 1180px;
     text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .brand-icon {
@@ -87,12 +96,14 @@ body {
 }
 
 .hero-content h1 {
-    font-size: clamp(56px, 7vw, 88px);
+    font-size: clamp(42px, 6vw, 88px);
     font-weight: 800;
     line-height: 0.95;
     letter-spacing: -3px;
     color: #ffffff;
     margin-bottom: 22px;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .hero-content h2 {
@@ -100,19 +111,25 @@ body {
     font-weight: 700;
     color: #31F6E6;
     margin-bottom: 12px;
+    line-height: 1.25;
 }
 
 .hero-content > p {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
     font-size: clamp(14px, 1.4vw, 17px);
     font-weight: 400;
     color: rgba(248, 250, 252, 0.84);
     margin-bottom: 38px;
+    line-height: 1.6;
 }
 
 .login-btn {
     border: none;
     outline: none;
     min-width: 240px;
+    max-width: 100%;
     height: 58px;
     border-radius: 14px;
     background: linear-gradient(135deg, #00C2C7, #31F6E6);
@@ -126,6 +143,7 @@ body {
     box-shadow: 0 16px 36px rgba(0, 194, 199, 0.24);
     cursor: pointer;
     transition: all 0.25s ease;
+    white-space: nowrap;
 }
 
 .login-btn:hover {
@@ -146,18 +164,40 @@ body {
     letter-spacing: 0.2px;
 }
 
+/* 
+   IMPORTANT:
+   This section is now Bootstrap row-cols friendly.
+   HTML should be:
+   <div class="feature-grid row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 g-lg-4">
+       <div class="col">
+           <div class="feature-card h-100">...</div>
+       </div>
+   </div>
+*/
 .feature-grid {
     width: 100%;
-    max-width: 860px;
+    max-width: 980px;
     margin: 42px auto 0;
+}
+
+/* Bootstrap column safety */
+.feature-grid > .col {
+    min-width: 0;
+}
+
+/* If old HTML does not use Bootstrap .col, this fallback still works */
+.feature-grid:not(.row) {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
     gap: 18px;
 }
 
 .feature-card {
     position: relative;
+    width: 100%;
+    min-width: 0;
     min-height: 128px;
+    height: 100%;
     padding: 22px 24px;
     border-radius: 18px;
     background: linear-gradient(
@@ -169,6 +209,8 @@ body {
     backdrop-filter: blur(14px);
     text-align: left;
     overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: normal;
     transition: all 0.25s ease;
 }
 
@@ -191,8 +233,11 @@ body {
 }
 
 .feature-icon {
+    position: relative;
+    z-index: 1;
     width: 44px;
     height: 44px;
+    flex: 0 0 44px;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -224,7 +269,7 @@ body {
 .feature-card h3 {
     position: relative;
     z-index: 1;
-    font-size: 21px;
+    font-size: clamp(18px, 1.4vw, 21px);
     font-weight: 800;
     line-height: 1.25;
     color: #ffffff;
@@ -241,6 +286,7 @@ body {
     line-height: 1.45;
 }
 
+/* Large tablet / small laptop */
 @media (max-width: 992px) {
     .hero-content {
         max-width: 860px;
@@ -248,15 +294,11 @@ body {
 
     .feature-grid {
         max-width: 760px;
-        gap: 18px;
+        margin-top: 38px;
     }
 
     .feature-card {
         padding: 24px 20px;
-    }
-
-    .feature-card h3 {
-        font-size: 20px;
     }
 
     .feature-card p {
@@ -264,6 +306,7 @@ body {
     }
 }
 
+/* Tablet and mobile */
 @media (max-width: 768px) {
     .hero-section {
         padding: 32px 18px 44px;
@@ -288,8 +331,6 @@ body {
 
     .hero-content > p {
         max-width: 520px;
-        margin-left: auto;
-        margin-right: auto;
         margin-bottom: 32px;
     }
 
@@ -305,12 +346,57 @@ body {
     }
 
     .feature-grid {
-        grid-template-columns: 1fr;
-        margin-top: 38px;
-        gap: 16px;
+        margin-top: 34px;
     }
 
     .feature-card {
         min-height: auto;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 575.98px) {
+    .hero-section {
+        padding: 30px 14px 38px;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(38px, 13vw, 54px);
+        letter-spacing: -1.5px;
+    }
+
+    .hero-content h2 {
+        font-size: 17px;
+    }
+
+    .hero-content > p {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .login-btn {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .feature-grid {
+        max-width: 100%;
+        margin-top: 30px;
+    }
+
+    .feature-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+        margin-bottom: 15px;
+    }
+
+    .feature-icon i {
+        font-size: 19px;
     }
 }

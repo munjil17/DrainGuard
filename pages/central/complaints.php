@@ -1,136 +1,188 @@
 <?php
-$activePage = 'complaints';
+require_once "../../config.php";
+
+$allowed_role = "central_officer";
+require_once "../../auth/session_check.php";
+
+$activePage = "complaints";
 $pageTitle = "Complaints Management";
 $pageParent = "Central Control";
 $pageChild = "Complaints";
 
-require_once "../../config.php";
-require_once "../../auth/session_check.php";
-
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'central_officer') {
-    header("Location: ../../index.php");
-    exit();
-}
-
 $successMessage = "";
 $errorMessage = "";
 
-function safeText($value) {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+function safeText($value)
+{
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
-function formatStatus($status) {
-    return ucwords(str_replace('_', ' ', (string)$status));
+function formatStatus($status)
+{
+    return ucwords(str_replace("_", " ", (string)$status));
 }
 
-function statusClass($status) {
+function statusClass($status)
+{
     $status = strtolower((string)$status);
 
-    if ($status === 'submitted') return 'status-submitted';
-    if ($status === 'received') return 'status-received';
-    if ($status === 'pending_verification') return 'status-pending';
-    if ($status === 'verified') return 'status-verified';
-    if ($status === 'assigned_to_team') return 'status-assigned';
-    if ($status === 'in_progress') return 'status-progress';
-    if ($status === 'solved_by_team') return 'status-completed';
-    if ($status === 'inspector_verification') return 'status-inspection';
-    if ($status === 'closed') return 'status-solved';
-    if ($status === 'rejected') return 'status-rejected';
-    if ($status === 'reopened') return 'status-reopened';
+    if ($status === "submitted") return "status-submitted";
+    if ($status === "received") return "status-received";
+    if ($status === "pending_verification") return "status-pending";
+    if ($status === "verified") return "status-verified";
+    if ($status === "assigned_to_team") return "status-assigned";
+    if ($status === "in_progress") return "status-progress";
+    if ($status === "solved_by_team") return "status-completed";
+    if ($status === "inspector_verification") return "status-inspection";
+    if ($status === "closed") return "status-solved";
+    if ($status === "rejected") return "status-rejected";
+    if ($status === "reopened") return "status-reopened";
 
-    return 'status-submitted';
+    return "status-submitted";
 }
 
-function urgencyClass($urgency) {
+function urgencyClass($urgency)
+{
     $urgency = strtolower((string)$urgency);
 
-    if ($urgency === 'low') return 'priority-low';
-    if ($urgency === 'medium') return 'priority-medium';
-    if ($urgency === 'high') return 'priority-high';
-    if ($urgency === 'critical') return 'priority-critical';
+    if ($urgency === "low") return "priority-low";
+    if ($urgency === "medium") return "priority-medium";
+    if ($urgency === "high") return "priority-high";
+    if ($urgency === "critical") return "priority-critical";
 
-    return 'priority-low';
+    return "priority-low";
 }
 
-/* ===============================
-   ACCEPT / REJECT ACTION
-   Central Complaints:
-   Accept => received
-   Reject => rejected
-================================ */
+function makeMediaPublicPath($path)
+{
+    $path = trim((string)$path);
+
+    if ($path === "") {
+        return "";
+    }
+
+    $path = str_replace("\\", "/", $path);
+    $path = preg_replace("#^\.\./\.\./#", "", $path);
+    $path = preg_replace("#^\./#", "", $path);
+    $path = ltrim($path, "/");
+
+    return "../../" . $path;
+}
+
+function redirectComplaints()
+{
+    header("Location: /DrainGuard/pages/central/complaints.php");
+    exit();
+}
+
+function setComplaintFlash($type, $message)
+{
+    if ($type === "success") {
+        $_SESSION["central_complaint_success"] = $message;
+    } else {
+        $_SESSION["central_complaint_error"] = $message;
+    }
+
+    redirectComplaints();
+}
+
+if (isset($_SESSION["central_complaint_success"])) {
+    $successMessage = $_SESSION["central_complaint_success"];
+    unset($_SESSION["central_complaint_success"]);
+}
+
+if (isset($_SESSION["central_complaint_error"])) {
+    $errorMessage = $_SESSION["central_complaint_error"];
+    unset($_SESSION["central_complaint_error"]);
+}
+
+/*
+|--------------------------------------------------------------------------
+| ACCEPT / REJECT ACTION
+|--------------------------------------------------------------------------
+| Central:
+| submitted/reopened -> accept = received
+| submitted/reopened -> reject = rejected
+|--------------------------------------------------------------------------
+*/
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $complaintId = (int)($_POST['complaint_id'] ?? 0);
-    $action = trim($_POST['action'] ?? '');
+    $complaintId = (int)($_POST["complaint_id"] ?? 0);
+    $action = trim($_POST["action"] ?? "");
 
-    if ($complaintId <= 0 || !in_array($action, ['accept', 'reject'], true)) {
-        $errorMessage = "Invalid action.";
-    } else {
-        $allowedCurrentStatuses = ['submitted', 'reopened'];
-
-        $checkSql = "
-            SELECT complaint_status
-            FROM complaints
-            WHERE complaint_id = ?
-            LIMIT 1
-        ";
-
-        $checkStmt = mysqli_prepare($conn, $checkSql);
-
-        if (!$checkStmt) {
-            $errorMessage = "Complaint check query failed: " . mysqli_error($conn);
-        } else {
-            mysqli_stmt_bind_param($checkStmt, "i", $complaintId);
-            mysqli_stmt_execute($checkStmt);
-
-            $checkResult = mysqli_stmt_get_result($checkStmt);
-            $complaintRow = $checkResult ? mysqli_fetch_assoc($checkResult) : null;
-
-            mysqli_stmt_close($checkStmt);
-
-            if (!$complaintRow) {
-                $errorMessage = "Complaint not found.";
-            } else {
-                $currentStatus = strtolower((string)$complaintRow['complaint_status']);
-
-                if (!in_array($currentStatus, $allowedCurrentStatuses, true)) {
-                    $errorMessage = "Only submitted or reopened complaints can be accepted/rejected from this page.";
-                } else {
-                    $newStatus = ($action === 'accept') ? 'received' : 'rejected';
-
-                    $updateSql = "
-                        UPDATE complaints
-                        SET complaint_status = ?,
-                            updated_at = NOW()
-                        WHERE complaint_id = ?
-                    ";
-
-                    $stmt = mysqli_prepare($conn, $updateSql);
-
-                    if ($stmt) {
-                        mysqli_stmt_bind_param($stmt, "si", $newStatus, $complaintId);
-
-                        if (mysqli_stmt_execute($stmt)) {
-                            $successMessage = ($action === 'accept')
-                                ? "Complaint accepted and marked as received."
-                                : "Complaint rejected successfully.";
-                        } else {
-                            $errorMessage = "Complaint update failed.";
-                        }
-
-                        mysqli_stmt_close($stmt);
-                    } else {
-                        $errorMessage = "Query failed: " . mysqli_error($conn);
-                    }
-                }
-            }
-        }
+    if ($complaintId <= 0 || !in_array($action, ["accept", "reject"], true)) {
+        setComplaintFlash("error", "Invalid action.");
     }
+
+    $allowedCurrentStatuses = ["submitted", "reopened"];
+
+    $checkSql = "
+        SELECT complaint_status
+        FROM complaints
+        WHERE complaint_id = ?
+        LIMIT 1
+    ";
+
+    $checkStmt = mysqli_prepare($conn, $checkSql);
+
+    if (!$checkStmt) {
+        setComplaintFlash("error", "Complaint check query failed: " . mysqli_error($conn));
+    }
+
+    mysqli_stmt_bind_param($checkStmt, "i", $complaintId);
+    mysqli_stmt_execute($checkStmt);
+
+    $checkResult = mysqli_stmt_get_result($checkStmt);
+    $complaintRow = $checkResult ? mysqli_fetch_assoc($checkResult) : null;
+
+    mysqli_stmt_close($checkStmt);
+
+    if (!$complaintRow) {
+        setComplaintFlash("error", "Complaint not found.");
+    }
+
+    $currentStatus = strtolower((string)$complaintRow["complaint_status"]);
+
+    if (!in_array($currentStatus, $allowedCurrentStatuses, true)) {
+        setComplaintFlash("error", "Only submitted or reopened complaints can be accepted/rejected from this page.");
+    }
+
+    $newStatus = ($action === "accept") ? "received" : "rejected";
+
+    $updateSql = "
+        UPDATE complaints
+        SET complaint_status = ?,
+            updated_at = NOW()
+        WHERE complaint_id = ?
+    ";
+
+    $updateStmt = mysqli_prepare($conn, $updateSql);
+
+    if (!$updateStmt) {
+        setComplaintFlash("error", "Complaint update query failed: " . mysqli_error($conn));
+    }
+
+    mysqli_stmt_bind_param($updateStmt, "si", $newStatus, $complaintId);
+
+    if (!mysqli_stmt_execute($updateStmt)) {
+        mysqli_stmt_close($updateStmt);
+        setComplaintFlash("error", "Complaint update failed.");
+    }
+
+    mysqli_stmt_close($updateStmt);
+
+    if ($action === "accept") {
+        setComplaintFlash("success", "Complaint accepted and marked as received.");
+    }
+
+    setComplaintFlash("success", "Complaint rejected successfully.");
 }
 
-/* ===============================
-   FETCH COMPLAINTS
-================================ */
+/*
+|--------------------------------------------------------------------------
+| FETCH COMPLAINTS
+|--------------------------------------------------------------------------
+*/
 
 $complaints = [];
 
@@ -138,13 +190,14 @@ $sql = "
     SELECT
         c.complaint_id,
         c.complaint_code,
+        c.drain_id,
         c.issue_type,
         c.address_description,
         c.problem_description,
-        c.complaint_image,
         c.urgency_level,
         c.complaint_status,
         c.submitted_at,
+        c.updated_at,
 
         u.user_name,
         u.user_mail,
@@ -154,7 +207,10 @@ $sql = "
         t.thana_name,
         w.ward_no,
         w.ward_name,
-        a.area_name
+        a.area_name,
+
+        d.drain_code,
+        d.drain_name
 
     FROM complaints c
 
@@ -179,6 +235,9 @@ $sql = "
     INNER JOIN areas a
         ON l.area_id = a.area_id
 
+    LEFT JOIN drains d
+        ON c.drain_id = d.drain_id
+
     ORDER BY c.submitted_at DESC
 ";
 
@@ -186,31 +245,79 @@ $result = mysqli_query($conn, $sql);
 
 if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
-        $complaints[] = $row;
+        $row["media"] = [];
+        $complaints[(int)$row["complaint_id"]] = $row;
     }
 } else {
     $errorMessage = "Complaint fetch failed: " . mysqli_error($conn);
 }
+
+/*
+|--------------------------------------------------------------------------
+| FETCH COMPLAINT MEDIA
+|--------------------------------------------------------------------------
+*/
+
+if (count($complaints) > 0) {
+    $complaintIds = array_keys($complaints);
+    $safeIds = array_map("intval", $complaintIds);
+    $idList = implode(",", $safeIds);
+
+    $mediaSql = "
+        SELECT
+            media_id,
+            complaint_id,
+            media_type,
+            media_path,
+            original_name,
+            file_size,
+            mime_type,
+            uploaded_at
+        FROM complaint_media
+        WHERE complaint_id IN ($idList)
+        ORDER BY complaint_id ASC, media_id ASC
+    ";
+
+    $mediaResult = mysqli_query($conn, $mediaSql);
+
+    if ($mediaResult) {
+        while ($media = mysqli_fetch_assoc($mediaResult)) {
+            $complaintId = (int)$media["complaint_id"];
+
+            if (isset($complaints[$complaintId])) {
+                $complaints[$complaintId]["media"][] = [
+                    "media_id" => (int)$media["media_id"],
+                    "type" => (string)$media["media_type"],
+                    "path" => makeMediaPublicPath($media["media_path"]),
+                    "original_name" => (string)($media["original_name"] ?? ""),
+                    "file_size" => (int)($media["file_size"] ?? 0),
+                    "mime_type" => (string)($media["mime_type"] ?? "")
+                ];
+            }
+        }
+    }
+}
+
+$complaints = array_values($complaints);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <title>Complaints Management | DrainGuard</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-    <!-- Reusable Central Layout CSS -->
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/footer.css">
-
-    <!-- Page CSS only -->
     <link rel="stylesheet" href="../../css/central/complaints.css">
+    <link rel="stylesheet" href="../../css/central/centralTextFix.css">
 </head>
 
 <body class="central">
@@ -237,14 +344,14 @@ if ($result) {
                 </div>
             </div>
 
-            <?php if ($successMessage !== ''): ?>
+            <?php if ($successMessage !== ""): ?>
                 <div class="cm-alert cm-success">
                     <i class="bi bi-check-circle"></i>
                     <?php echo safeText($successMessage); ?>
                 </div>
             <?php endif; ?>
 
-            <?php if ($errorMessage !== ''): ?>
+            <?php if ($errorMessage !== ""): ?>
                 <div class="cm-alert cm-error">
                     <i class="bi bi-exclamation-circle"></i>
                     <?php echo safeText($errorMessage); ?>
@@ -323,6 +430,7 @@ if ($result) {
                                     <th>Ward</th>
                                     <th>Area</th>
                                     <th>Type</th>
+                                    <th>Evidence</th>
                                     <th>Priority</th>
                                     <th>Status</th>
                                     <th>Date</th>
@@ -333,42 +441,49 @@ if ($result) {
                             <tbody>
                                 <?php foreach ($complaints as $complaint): ?>
                                     <?php
-                                        $complaintId = (int)$complaint['complaint_id'];
-                                        $complaintCode = safeText($complaint['complaint_code']);
-                                        $issueType = safeText($complaint['issue_type']);
+                                        $complaintId = (int)$complaint["complaint_id"];
+                                        $complaintCode = safeText($complaint["complaint_code"]);
+                                        $issueType = safeText($complaint["issue_type"]);
 
-                                        $rawProblemDescription = (string)$complaint['problem_description'];
-                                        $problemDescription = safeText($rawProblemDescription);
+                                        $rawProblemDescription = (string)$complaint["problem_description"];
 
-                                        $shortTitleRaw = strlen($rawProblemDescription) > 60
-                                            ? substr($rawProblemDescription, 0, 60) . "..."
+                                        $shortTitleRaw = mb_strlen($rawProblemDescription) > 60
+                                            ? mb_substr($rawProblemDescription, 0, 60) . "..."
                                             : $rawProblemDescription;
 
                                         $shortTitle = safeText($shortTitleRaw);
 
-                                        $ward = safeText("Ward " . $complaint['ward_no']);
-                                        $area = safeText($complaint['area_name']);
-                                        $priority = safeText($complaint['urgency_level']);
+                                        $ward = !empty($complaint["ward_name"])
+                                            ? safeText($complaint["ward_name"])
+                                            : safeText("Ward " . $complaint["ward_no"]);
 
-                                        $rawStatus = strtolower((string)$complaint['complaint_status']);
+                                        $area = safeText($complaint["area_name"]);
+                                        $priority = safeText($complaint["urgency_level"]);
+
+                                        $rawStatus = strtolower((string)$complaint["complaint_status"]);
                                         $status = safeText($rawStatus);
                                         $statusText = safeText(formatStatus($rawStatus));
 
-                                        $date = date("M d", strtotime($complaint['submitted_at']));
+                                        $date = date("M d", strtotime($complaint["submitted_at"]));
+                                        $fullDate = date("M d, Y h:i A", strtotime($complaint["submitted_at"]));
 
-                                        $imagePath = "";
-                                        if (!empty($complaint['complaint_image'])) {
-                                            $imagePath = "../../" . safeText($complaint['complaint_image']);
+                                        $canCentralAct = in_array($rawStatus, ["submitted", "reopened"], true);
+
+                                        $mediaItems = $complaint["media"] ?? [];
+                                        $mediaCount = count($mediaItems);
+                                        $mediaJson = json_encode($mediaItems, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+
+                                        $drainText = "Not linked";
+                                        if (!empty($complaint["drain_code"]) || !empty($complaint["drain_name"])) {
+                                            $drainText = trim(($complaint["drain_code"] ?? "") . " - " . ($complaint["drain_name"] ?? ""), " -");
                                         }
-
-                                        $canCentralAct = in_array($rawStatus, ['submitted', 'reopened'], true);
                                     ?>
 
                                     <tr
                                         class="cm-row"
                                         data-code="<?php echo strtolower($complaintCode); ?>"
                                         data-title="<?php echo strtolower($shortTitle); ?>"
-                                        data-user="<?php echo strtolower(safeText($complaint['user_name'])); ?>"
+                                        data-user="<?php echo strtolower(safeText($complaint["user_name"])); ?>"
                                         data-ward="<?php echo strtolower($ward); ?>"
                                         data-area="<?php echo strtolower($area); ?>"
                                         data-type="<?php echo strtolower($issueType); ?>"
@@ -382,7 +497,7 @@ if ($result) {
                                         <td>
                                             <div class="cm-title">
                                                 <strong><?php echo $shortTitle; ?></strong>
-                                                <small><?php echo safeText($complaint['user_name']); ?></small>
+                                                <small><?php echo safeText($complaint["user_name"]); ?></small>
                                             </div>
                                         </td>
 
@@ -393,6 +508,13 @@ if ($result) {
                                         <td>
                                             <span class="cm-type-badge">
                                                 <?php echo $issueType; ?>
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <span class="cm-media-count">
+                                                <i class="bi bi-paperclip"></i>
+                                                <?php echo $mediaCount; ?>
                                             </span>
                                         </td>
 
@@ -408,7 +530,7 @@ if ($result) {
                                             </span>
                                         </td>
 
-                                        <td><?php echo $date; ?></td>
+                                        <td><?php echo safeText($date); ?></td>
 
                                         <td>
                                             <div class="cm-actions">
@@ -418,6 +540,7 @@ if ($result) {
                                                     <form method="POST" action="complaints.php" class="cm-action-form">
                                                         <input type="hidden" name="complaint_id" value="<?php echo $complaintId; ?>">
                                                         <input type="hidden" name="action" value="accept">
+
                                                         <button type="submit" class="cm-icon-btn accept" title="Accept / Mark as Received">
                                                             <i class="bi bi-check-circle"></i>
                                                         </button>
@@ -426,6 +549,7 @@ if ($result) {
                                                     <form method="POST" action="complaints.php" class="cm-action-form">
                                                         <input type="hidden" name="complaint_id" value="<?php echo $complaintId; ?>">
                                                         <input type="hidden" name="action" value="reject">
+
                                                         <button type="submit" class="cm-icon-btn reject" title="Reject">
                                                             <i class="bi bi-x-lg"></i>
                                                         </button>
@@ -438,20 +562,21 @@ if ($result) {
                                                     class="cm-details-btn"
                                                     data-code="<?php echo $complaintCode; ?>"
                                                     data-title="<?php echo $shortTitle; ?>"
-                                                    data-user="<?php echo safeText($complaint['user_name']); ?>"
-                                                    data-email="<?php echo safeText($complaint['user_mail']); ?>"
+                                                    data-user="<?php echo safeText($complaint["user_name"]); ?>"
+                                                    data-email="<?php echo safeText($complaint["user_mail"]); ?>"
                                                     data-type="<?php echo $issueType; ?>"
                                                     data-priority="<?php echo $priority; ?>"
                                                     data-status="<?php echo $statusText; ?>"
-                                                    data-city="<?php echo safeText($complaint['city_name']); ?>"
-                                                    data-corporation="<?php echo safeText($complaint['city_cor_name']); ?>"
-                                                    data-thana="<?php echo safeText($complaint['thana_name']); ?>"
+                                                    data-city="<?php echo safeText($complaint["city_name"]); ?>"
+                                                    data-corporation="<?php echo safeText($complaint["city_cor_name"]); ?>"
+                                                    data-thana="<?php echo safeText($complaint["thana_name"]); ?>"
                                                     data-ward="<?php echo $ward; ?>"
                                                     data-area="<?php echo $area; ?>"
-                                                    data-address="<?php echo safeText($complaint['address_description']); ?>"
-                                                    data-problem="<?php echo $problemDescription; ?>"
-                                                    data-date="<?php echo date("M d, Y h:i A", strtotime($complaint['submitted_at'])); ?>"
-                                                    data-image="<?php echo $imagePath; ?>"
+                                                    data-drain="<?php echo safeText($drainText); ?>"
+                                                    data-address="<?php echo safeText($complaint["address_description"]); ?>"
+                                                    data-problem="<?php echo safeText($complaint["problem_description"]); ?>"
+                                                    data-date="<?php echo safeText($fullDate); ?>"
+                                                    data-media="<?php echo safeText($mediaJson ?: "[]"); ?>"
                                                 >
                                                     View Details
                                                     <i class="bi bi-arrow-right"></i>
@@ -486,7 +611,6 @@ if ($result) {
 
 </div>
 
-<!-- DETAILS MODAL -->
 <div class="cm-modal-overlay" id="detailsModal">
     <div class="cm-modal">
 
@@ -514,6 +638,7 @@ if ($result) {
                 <div><span>Thana</span><strong id="modalThana"></strong></div>
                 <div><span>Ward</span><strong id="modalWard"></strong></div>
                 <div><span>Area</span><strong id="modalArea"></strong></div>
+                <div><span>Drain</span><strong id="modalDrain"></strong></div>
             </div>
 
             <div class="cm-modal-section">
@@ -526,9 +651,9 @@ if ($result) {
                 <p id="modalProblem"></p>
             </div>
 
-            <div class="cm-modal-section" id="modalImageWrap">
-                <h4>Uploaded Photo</h4>
-                <img id="modalImage" src="" alt="Complaint photo">
+            <div class="cm-modal-section" id="modalMediaWrap">
+                <h4>Uploaded Evidence</h4>
+                <div class="cm-media-gallery" id="modalMediaGallery"></div>
             </div>
 
         </div>

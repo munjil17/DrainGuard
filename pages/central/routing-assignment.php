@@ -1,82 +1,95 @@
 <?php
-$activePage = 'routing-assignment';
+require_once "../../config.php";
+
+$allowed_role = "central_officer";
+require_once "../../auth/session_check.php";
+
+$activePage = "routing-assignment";
 $pageTitle = "Ward Verification";
 $pageParent = "Central Control";
 $pageChild = "Ward Verification";
 
-require_once "../../config.php";
-require_once "../../auth/session_check.php";
-
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'central_officer') {
-    header("Location: ../../index.php");
-    exit();
-}
-
-$centralUserId = (int) $_SESSION['user_id'];
 $successMessage = "";
 $errorMessage = "";
 
-function safeText($value) {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+function safeText($value)
+{
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
-function urgencyClass($urgency) {
+function urgencyClass($urgency)
+{
     $urgency = strtolower((string)$urgency);
 
-    if ($urgency === 'low') return 'priority-low';
-    if ($urgency === 'medium') return 'priority-medium';
-    if ($urgency === 'high') return 'priority-high';
-    if ($urgency === 'critical') return 'priority-critical';
+    if ($urgency === "low") return "priority-low";
+    if ($urgency === "medium") return "priority-medium";
+    if ($urgency === "high") return "priority-high";
+    if ($urgency === "critical") return "priority-critical";
 
-    return 'priority-low';
+    return "priority-low";
 }
 
-function assignmentStatusText($status) {
-    return ucwords(str_replace('_', ' ', (string)$status));
+function formatStatus($status)
+{
+    return ucwords(str_replace("_", " ", (string)$status));
 }
 
-function assignmentStatusClass($status) {
+function statusClass($status)
+{
     $status = strtolower((string)$status);
 
-    if ($status === 'ward_assigned') return 'status-assigned';
-    if ($status === 'pending_verification') return 'status-pending';
-    if ($status === 'verified') return 'status-verified';
-    if ($status === 'team_assigned') return 'status-team';
-    if ($status === 'in_progress') return 'status-progress';
-    if ($status === 'completed') return 'status-completed';
-    if ($status === 'rejected') return 'status-rejected';
+    if ($status === "ward_assigned") return "status-assigned";
+    if ($status === "pending_verification") return "status-pending";
+    if ($status === "team_assigned") return "status-team";
+    if ($status === "in_progress") return "status-progress";
+    if ($status === "solved_by_team") return "status-completed";
+    if ($status === "closed") return "status-completed";
+    if ($status === "rejected") return "status-rejected";
 
-    return 'status-assigned';
+    return "status-assigned";
 }
 
-/* ===============================
-   ROUTE / REJECT ACTION
-   Correct flow:
-   received → pending_verification
-================================ */
+function wardDisplayName($wardNo, $wardName)
+{
+    $wardName = trim((string)$wardName);
+
+    if ($wardName !== "") {
+        return $wardName;
+    }
+
+    return "Ward " . $wardNo;
+}
+
+/*
+|--------------------------------------------------------------------------
+| ROUTE / REJECT ACTION
+|--------------------------------------------------------------------------
+| Existing DB-safe flow:
+| complaints.complaint_status = received
+| Route:
+|   complaint_assignments.assignment_status = ward_assigned
+|   complaints.complaint_status = pending_verification
+| Reject:
+|   complaints.complaint_status = rejected
+|--------------------------------------------------------------------------
+*/
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $complaintId = (int)($_POST['complaint_id'] ?? 0);
-    $action = trim($_POST['action'] ?? '');
-    $wardId = (int)($_POST['ward_id'] ?? 0);
+    $complaintId = (int)($_POST["complaint_id"] ?? 0);
+    $action = trim($_POST["action"] ?? "");
+    $wardId = (int)($_POST["ward_id"] ?? 0);
+    $centralUserId = (int)($_SESSION["user_id"] ?? 0);
 
-    if ($complaintId <= 0 || $action === '') {
+    if ($complaintId <= 0 || $action === "" || $centralUserId <= 0) {
         $errorMessage = "Invalid request.";
     } else {
-
-        if ($action === 'route') {
+        if ($action === "route") {
             if ($wardId <= 0) {
                 $errorMessage = "Please select a valid ward.";
             } else {
                 mysqli_begin_transaction($conn);
 
                 try {
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Check complaint must be received
-                    |--------------------------------------------------------------------------
-                    */
-
                     $checkSql = "
                         SELECT complaint_status
                         FROM complaints
@@ -102,15 +115,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         throw new Exception("Complaint not found.");
                     }
 
-                    if ($complaintRow['complaint_status'] !== 'received') {
+                    if ($complaintRow["complaint_status"] !== "received") {
                         throw new Exception("Only received complaints can be sent for ward verification.");
                     }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Prevent duplicate assignment
-                    |--------------------------------------------------------------------------
-                    */
+                    $wardCheckSql = "
+                        SELECT ward_id
+                        FROM wards
+                        WHERE ward_id = ?
+                        LIMIT 1
+                    ";
+
+                    $wardCheckStmt = mysqli_prepare($conn, $wardCheckSql);
+
+                    if (!$wardCheckStmt) {
+                        throw new Exception("Ward check failed: " . mysqli_error($conn));
+                    }
+
+                    mysqli_stmt_bind_param($wardCheckStmt, "i", $wardId);
+                    mysqli_stmt_execute($wardCheckStmt);
+
+                    $wardCheckResult = mysqli_stmt_get_result($wardCheckStmt);
+
+                    if (!$wardCheckResult || mysqli_num_rows($wardCheckResult) !== 1) {
+                        mysqli_stmt_close($wardCheckStmt);
+                        throw new Exception("Selected ward does not exist.");
+                    }
+
+                    mysqli_stmt_close($wardCheckStmt);
 
                     $duplicateSql = "
                         SELECT assignment_id
@@ -137,15 +169,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     mysqli_stmt_close($duplicateStmt);
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Insert ward assignment
-                    |--------------------------------------------------------------------------
-                    */
-
                     $insertSql = "
-                        INSERT INTO complaint_assignments
-                        (complaint_id, ward_id, assigned_by, assignment_status)
+                        INSERT INTO complaint_assignments (
+                            complaint_id,
+                            ward_id,
+                            assigned_by,
+                            assignment_status
+                        )
                         VALUES (?, ?, ?, 'ward_assigned')
                     ";
 
@@ -162,12 +192,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
 
                     mysqli_stmt_close($insertStmt);
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Update complaint status for citizen tracking and ward queue
-                    |--------------------------------------------------------------------------
-                    */
 
                     $updateSql = "
                         UPDATE complaints
@@ -201,7 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
 
-        if ($action === 'reject') {
+        if ($action === "reject") {
             $checkSql = "
                 SELECT complaint_status
                 FROM complaints
@@ -211,7 +235,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $checkStmt = mysqli_prepare($conn, $checkSql);
 
-            if ($checkStmt) {
+            if (!$checkStmt) {
+                $errorMessage = "Complaint check failed: " . mysqli_error($conn);
+            } else {
                 mysqli_stmt_bind_param($checkStmt, "i", $complaintId);
                 mysqli_stmt_execute($checkStmt);
 
@@ -222,7 +248,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 if (!$complaintRow) {
                     $errorMessage = "Complaint not found.";
-                } elseif ($complaintRow['complaint_status'] !== 'received') {
+                } elseif ($complaintRow["complaint_status"] !== "received") {
                     $errorMessage = "Only received complaints can be rejected from Ward Verification.";
                 } else {
                     $updateSql = "
@@ -234,30 +260,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     $stmt = mysqli_prepare($conn, $updateSql);
 
-                    if ($stmt) {
+                    if (!$stmt) {
+                        $errorMessage = "Reject query failed: " . mysqli_error($conn);
+                    } else {
                         mysqli_stmt_bind_param($stmt, "i", $complaintId);
 
                         if (mysqli_stmt_execute($stmt)) {
                             $successMessage = "Complaint rejected successfully.";
                         } else {
-                            $errorMessage = "Reject failed.";
+                            $errorMessage = "Reject failed: " . mysqli_stmt_error($stmt);
                         }
 
                         mysqli_stmt_close($stmt);
-                    } else {
-                        $errorMessage = "Reject query failed.";
                     }
                 }
-            } else {
-                $errorMessage = "Complaint check failed.";
             }
         }
     }
 }
 
-/* ===============================
-   FETCH WARDS
-================================ */
+/*
+|--------------------------------------------------------------------------
+| FETCH WARDS
+|--------------------------------------------------------------------------
+*/
 
 $wards = [];
 
@@ -266,11 +292,14 @@ $wardSql = "
         w.ward_id,
         w.ward_no,
         w.ward_name,
-        t.thana_name
+        t.thana_name,
+        cc.city_cor_name
     FROM wards w
     INNER JOIN thanas t
         ON w.thana_id = t.thana_id
-    ORDER BY CAST(w.ward_no AS UNSIGNED), w.ward_no ASC
+    INNER JOIN city_corporations cc
+        ON w.city_cor_id = cc.city_cor_id
+    ORDER BY cc.city_cor_name ASC, CAST(w.ward_no AS UNSIGNED), w.ward_no ASC
 ";
 
 $wardResult = mysqli_query($conn, $wardSql);
@@ -281,10 +310,12 @@ if ($wardResult) {
     }
 }
 
-/* ===============================
-   FETCH RECEIVED COMPLAINTS
-   Only received complaints appear here
-================================ */
+/*
+|--------------------------------------------------------------------------
+| FETCH RECEIVED COMPLAINTS
+| Only accepted/received complaints that are not routed yet.
+|--------------------------------------------------------------------------
+*/
 
 $awaitingComplaints = [];
 
@@ -349,11 +380,15 @@ if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
         $awaitingComplaints[] = $row;
     }
+} else {
+    $errorMessage = "Complaint fetch failed: " . mysqli_error($conn);
 }
 
-/* ===============================
-   FETCH RECENTLY ROUTED
-================================ */
+/*
+|--------------------------------------------------------------------------
+| FETCH RECENTLY ROUTED
+|--------------------------------------------------------------------------
+*/
 
 $routedComplaints = [];
 
@@ -367,9 +402,13 @@ $routedSql = "
 
         aw.ward_no AS assigned_ward_no,
         aw.ward_name AS assigned_ward_name,
+        at.thana_name AS assigned_thana_name,
+        acc.city_cor_name AS assigned_city_cor_name,
 
         ca.assignment_status,
-        ca.assigned_at
+        ca.assigned_at,
+
+        au.user_name AS assigned_by_name
 
     FROM complaint_assignments ca
 
@@ -378,6 +417,15 @@ $routedSql = "
 
     INNER JOIN wards aw
         ON ca.ward_id = aw.ward_id
+
+    INNER JOIN thanas at
+        ON aw.thana_id = at.thana_id
+
+    INNER JOIN city_corporations acc
+        ON aw.city_cor_id = acc.city_cor_id
+
+    INNER JOIN users au
+        ON ca.assigned_by = au.user_id
 
     ORDER BY ca.assigned_at DESC
     LIMIT 10
@@ -396,20 +444,19 @@ if ($routedResult) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <title>Ward Verification | DrainGuard</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Reusable Central Layout CSS -->
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/footer.css">
-
-    <!-- Page CSS only -->
     <link rel="stylesheet" href="../../css/central/routing-assignment.css">
+    <link rel="stylesheet" href="../../css/central/centralTextFix.css">
 </head>
 
 <body class="central">
@@ -427,7 +474,7 @@ if ($routedResult) {
             <div class="ra-header">
                 <div>
                     <h1>Ward Verification</h1>
-                    <p>Send received complaints to the correct ward for problem verification.</p>
+                    <p>Route accepted complaints to the correct ward for field verification.</p>
                 </div>
 
                 <div class="ra-count-card">
@@ -436,14 +483,14 @@ if ($routedResult) {
                 </div>
             </div>
 
-            <?php if ($successMessage !== ''): ?>
+            <?php if ($successMessage !== ""): ?>
                 <div class="ra-alert ra-success">
                     <i class="bi bi-check-circle"></i>
                     <?php echo safeText($successMessage); ?>
                 </div>
             <?php endif; ?>
 
-            <?php if ($errorMessage !== ''): ?>
+            <?php if ($errorMessage !== ""): ?>
                 <div class="ra-alert ra-error">
                     <i class="bi bi-exclamation-circle"></i>
                     <?php echo safeText($errorMessage); ?>
@@ -453,12 +500,12 @@ if ($routedResult) {
             <div class="ra-warning-card">
                 <div class="ra-warning-left">
                     <div class="ra-warning-icon">
-                        <i class="bi bi-send-check"></i>
+                        <i class="bi bi-arrow-up-circle"></i>
                     </div>
 
                     <div>
-                        <h2><?php echo count($awaitingComplaints); ?> Received Complaints Awaiting Ward Verification</h2>
-                        <p>Route complaints to their ward so ward officers can verify the problem.</p>
+                        <h2>Received Complaints Need Ward Verification</h2>
+                        <p><?php echo count($awaitingComplaints); ?> received complaint(s) are waiting to be routed.</p>
                     </div>
                 </div>
 
@@ -473,16 +520,16 @@ if ($routedResult) {
                     <input
                         type="text"
                         id="routeSearch"
-                        placeholder="Search by complaint ID, ward, area, issue..."
+                        placeholder="Search by complaint ID, issue, ward, area..."
                     >
                 </div>
 
                 <select id="priorityFilter">
                     <option value="all">All Priority</option>
-                    <option value="Critical">Critical</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
                 </select>
             </div>
 
@@ -492,52 +539,53 @@ if ($routedResult) {
 
                     <?php foreach ($awaitingComplaints as $complaint): ?>
                         <?php
-                            $complaintId = (int)$complaint['complaint_id'];
-                            $complaintCode = safeText($complaint['complaint_code']);
-                            $issueType = safeText($complaint['issue_type']);
-
-                            $rawProblem = (string)$complaint['problem_description'];
-                            $problem = safeText($rawProblem);
-                            $shortTitleRaw = strlen($rawProblem) > 80 ? substr($rawProblem, 0, 80) . "..." : $rawProblem;
-                            $shortTitle = safeText($shortTitleRaw);
-
-                            $wardId = (int)$complaint['ward_id'];
-                            $wardText = "Ward " . $complaint['ward_no'];
-                            $areaText = safeText($complaint['area_name']);
-                            $thanaText = safeText($complaint['thana_name']);
-                            $priority = safeText($complaint['urgency_level']);
-                            $dateText = date("M d, h:i A", strtotime($complaint['submitted_at']));
+                            $complaintId = (int)$complaint["complaint_id"];
+                            $complaintCode = safeText($complaint["complaint_code"]);
+                            $issueType = safeText($complaint["issue_type"]);
+                            $problemDescription = safeText($complaint["problem_description"]);
+                            $urgency = safeText($complaint["urgency_level"]);
+                            $wardId = (int)$complaint["ward_id"];
+                            $wardText = wardDisplayName($complaint["ward_no"], $complaint["ward_name"]);
+                            $areaText = safeText($complaint["area_name"]);
+                            $thanaText = safeText($complaint["thana_name"]);
+                            $cityCorText = safeText($complaint["city_cor_name"]);
+                            $dateText = date("M d, Y h:i A", strtotime($complaint["submitted_at"]));
                         ?>
 
                         <article
                             class="ra-card"
                             data-code="<?php echo strtolower($complaintCode); ?>"
                             data-issue="<?php echo strtolower($issueType); ?>"
-                            data-title="<?php echo strtolower($shortTitle); ?>"
-                            data-ward="<?php echo strtolower($wardText); ?>"
+                            data-title="<?php echo strtolower($problemDescription); ?>"
+                            data-ward="<?php echo strtolower(safeText($wardText)); ?>"
                             data-area="<?php echo strtolower($areaText); ?>"
-                            data-priority="<?php echo $priority; ?>"
+                            data-priority="<?php echo $urgency; ?>"
                         >
 
                             <div class="ra-card-meta">
                                 <span class="ra-code"><?php echo $complaintCode; ?></span>
-                                <span class="ra-priority <?php echo urgencyClass($priority); ?>">
-                                    <?php echo $priority; ?>
+
+                                <span class="ra-priority <?php echo urgencyClass($urgency); ?>">
+                                    <?php echo $urgency; ?>
                                 </span>
+
+                                <span>Issue: <strong><?php echo $issueType; ?></strong></span>
                             </div>
 
-                            <h2><?php echo $shortTitle; ?></h2>
+                            <h2><?php echo $problemDescription; ?></h2>
 
                             <div class="ra-info-line">
-                                <span>Detected Ward: <strong><?php echo safeText($wardText); ?></strong></span>
+                                <span>City Corporation: <strong><?php echo $cityCorText; ?></strong></span>
+                                <span>•</span>
+                                <span>Ward: <strong><?php echo safeText($wardText); ?></strong></span>
                                 <span>•</span>
                                 <span>Thana: <strong><?php echo $thanaText; ?></strong></span>
                                 <span>•</span>
                                 <span>Area: <strong><?php echo $areaText; ?></strong></span>
                                 <span>•</span>
-                                <span>Submitted: <?php echo $dateText; ?></span>
+                                <span>Submitted: <?php echo safeText($dateText); ?></span>
                                 <span>•</span>
-                                <span>By: <?php echo safeText($complaint['user_name']); ?></span>
+                                <span>By: <?php echo safeText($complaint["user_name"]); ?></span>
                             </div>
 
                             <div class="ra-actions">
@@ -559,9 +607,15 @@ if ($routedResult) {
 
                                     <select name="ward_id" required>
                                         <option value="">Different Ward</option>
+
                                         <?php foreach ($wards as $ward): ?>
-                                            <option value="<?php echo (int)$ward['ward_id']; ?>">
-                                                Ward <?php echo safeText($ward['ward_no']); ?> - <?php echo safeText($ward['thana_name']); ?>
+                                            <?php
+                                                $optionWardText = wardDisplayName($ward["ward_no"], $ward["ward_name"]);
+                                            ?>
+                                            <option value="<?php echo (int)$ward["ward_id"]; ?>">
+                                                <?php echo safeText($ward["city_cor_name"]); ?> -
+                                                <?php echo safeText($optionWardText); ?> -
+                                                <?php echo safeText($ward["thana_name"]); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -610,53 +664,61 @@ if ($routedResult) {
                         <table class="ra-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Title</th>
-                                    <th>Sent To</th>
+                                    <th>Complaint ID</th>
+                                    <th>Issue</th>
+                                    <th>Assigned Ward</th>
                                     <th>Priority</th>
-                                    <th>Current Status</th>
-                                    <th>Sent At</th>
+                                    <th>Complaint Status</th>
+                                    <th>Assignment Status</th>
+                                    <th>Assigned By</th>
+                                    <th>Assigned At</th>
                                 </tr>
                             </thead>
 
                             <tbody>
                                 <?php foreach ($routedComplaints as $routed): ?>
                                     <?php
-                                        $routedCode = safeText($routed['complaint_code']);
-                                        $routedProblemRaw = (string)$routed['problem_description'];
-                                        $routedTitleRaw = strlen($routedProblemRaw) > 55 ? substr($routedProblemRaw, 0, 55) . "..." : $routedProblemRaw;
-                                        $routedTitle = safeText($routedTitleRaw);
-
-                                        $assignedWard = safeText("Ward " . $routed['assigned_ward_no']);
-                                        $routedPriority = safeText($routed['urgency_level']);
-                                        $assignmentStatus = safeText(assignmentStatusText($routed['assignment_status']));
-                                        $assignedAt = date("M d, h:i A", strtotime($routed['assigned_at']));
+                                        $assignedWardText = wardDisplayName($routed["assigned_ward_no"], $routed["assigned_ward_name"]);
+                                        $assignedAt = date("M d, Y h:i A", strtotime($routed["assigned_at"]));
                                     ?>
 
                                     <tr>
                                         <td>
-                                            <span class="ra-code"><?php echo $routedCode; ?></span>
+                                            <span class="ra-code">
+                                                <?php echo safeText($routed["complaint_code"]); ?>
+                                            </span>
                                         </td>
 
-                                        <td><?php echo $routedTitle; ?></td>
-
-                                        <td><?php echo $assignedWard; ?></td>
+                                        <td><?php echo safeText($routed["issue_type"]); ?></td>
 
                                         <td>
-                                            <span class="ra-priority <?php echo urgencyClass($routedPriority); ?>">
-                                                <?php echo $routedPriority; ?>
+                                            <?php echo safeText($routed["assigned_city_cor_name"]); ?> -
+                                            <?php echo safeText($assignedWardText); ?> -
+                                            <?php echo safeText($routed["assigned_thana_name"]); ?>
+                                        </td>
+
+                                        <td>
+                                            <span class="ra-priority <?php echo urgencyClass($routed["urgency_level"]); ?>">
+                                                <?php echo safeText($routed["urgency_level"]); ?>
                                             </span>
                                         </td>
 
                                         <td>
-                                            <span class="ra-status <?php echo assignmentStatusClass($routed['assignment_status']); ?>">
-                                                <?php echo $assignmentStatus; ?>
+                                            <span class="ra-status <?php echo statusClass($routed["complaint_status"]); ?>">
+                                                <?php echo safeText(formatStatus($routed["complaint_status"])); ?>
                                             </span>
                                         </td>
 
-                                        <td><?php echo $assignedAt; ?></td>
+                                        <td>
+                                            <span class="ra-status <?php echo statusClass($routed["assignment_status"]); ?>">
+                                                <?php echo safeText(formatStatus($routed["assignment_status"])); ?>
+                                            </span>
+                                        </td>
+
+                                        <td><?php echo safeText($routed["assigned_by_name"]); ?></td>
+
+                                        <td><?php echo safeText($assignedAt); ?></td>
                                     </tr>
-
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
@@ -665,7 +727,7 @@ if ($routedResult) {
                 <?php else: ?>
 
                     <div class="ra-empty-small">
-                        No complaints sent for ward verification yet.
+                        No routed complaints yet.
                     </div>
 
                 <?php endif; ?>

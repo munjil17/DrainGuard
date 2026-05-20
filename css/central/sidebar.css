@@ -7,6 +7,7 @@
     min-height: 100vh;
     display: flex;
     background: #F8FAFC;
+    overflow-x: hidden;
 }
 
 /* =========================
@@ -15,6 +16,7 @@
 
 .dg-central-sidebar {
     width: 280px;
+    height: 100vh;
     min-height: 100vh;
     background: #08233D;
     color: #FFFFFF;
@@ -25,8 +27,9 @@
     display: flex;
     flex-direction: column;
 
-    z-index: 1000;
+    z-index: 1100;
     overflow: hidden;
+    transition: transform 0.25s ease;
 }
 
 .dg-central-main {
@@ -34,6 +37,7 @@
     min-height: 100vh;
     margin-left: 280px;
     background: #F8FAFC;
+    overflow-x: hidden;
 }
 
 /* =========================
@@ -88,12 +92,17 @@
     bottom: -2px;
 }
 
+.dg-central-brand-text {
+    min-width: 0;
+}
+
 .dg-central-brand-text h2 {
     margin: 0 0 5px;
     color: #FFFFFF;
     font-size: 20px;
     font-weight: 800;
     line-height: 1.05;
+    white-space: nowrap;
 }
 
 .dg-central-brand-text p {
@@ -102,6 +111,7 @@
     font-size: 12px;
     font-weight: 700;
     line-height: 1;
+    white-space: nowrap;
 }
 
 /* =========================
@@ -200,6 +210,10 @@
 .dg-central-menu-link span {
     flex: 1;
     display: block;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dg-central-menu-link:hover {
@@ -331,12 +345,34 @@
 }
 
 /* =========================
+   Mobile Overlay
+========================= */
+
+.dg-central-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(4px);
+    display: none;
+}
+
+.dg-central-sidebar-overlay.active {
+    display: block;
+}
+
+/* =========================
    Safety
 ========================= */
 
 .dg-central-layout *,
 .dg-central-sidebar * {
     box-sizing: border-box;
+}
+
+html,
+body {
+    overflow-x: hidden;
 }
 
 /* =========================
@@ -346,7 +382,7 @@
 @media (max-width: 992px) {
     .dg-central-sidebar {
         transform: translateX(-100%);
-        transition: 0.25s ease;
+        box-shadow: 18px 0 45px rgba(15, 23, 42, 0.25);
     }
 
     .dg-central-sidebar.active {
@@ -356,5 +392,23 @@
     .dg-central-main {
         width: 100%;
         margin-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .dg-central-sidebar {
+        width: 270px;
+    }
+
+    .dg-central-sidebar-brand {
+        padding: 18px 20px;
+    }
+
+    .dg-central-menu {
+        padding: 16px 14px;
+    }
+
+    .dg-central-menu-link {
+        padding: 0 14px;
     }
 }

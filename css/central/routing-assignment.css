@@ -6,8 +6,10 @@
 .ra-page {
     width: 100%;
     min-height: calc(100vh - 76px);
-    padding: 30px 36px;
-    background: #F8FAFC;
+    padding: 24px 28px 40px;
+    background:
+        radial-gradient(circle at top left, rgba(34, 230, 220, 0.08), transparent 32%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
     overflow-x: hidden;
 }
 
@@ -23,7 +25,7 @@
 
 .ra-header h1 {
     margin: 0 0 8px;
-    font-size: 30px;
+    font-size: clamp(24px, 2.2vw, 30px);
     line-height: 1.2;
     font-weight: 800;
     color: #020617;
@@ -32,6 +34,7 @@
 .ra-header p {
     margin: 0;
     font-size: 16px;
+    line-height: 1.5;
     color: #475569;
 }
 
@@ -100,6 +103,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    min-width: 0;
 }
 
 .ra-warning-icon {
@@ -128,6 +132,7 @@
     margin: 0;
     color: #92400E;
     font-size: 15px;
+    line-height: 1.5;
 }
 
 .ra-bulk-btn {
@@ -230,6 +235,7 @@
 .ra-code {
     color: #0891B2;
     font-weight: 800;
+    white-space: nowrap;
 }
 
 .ra-priority {
@@ -263,8 +269,10 @@
 .ra-card h2 {
     margin: 0 0 14px;
     font-size: 22px;
+    line-height: 1.35;
     font-weight: 800;
     color: #020617;
+    overflow-wrap: anywhere;
 }
 
 .ra-info-line {
@@ -274,6 +282,7 @@
     color: #475569;
     margin-bottom: 20px;
     font-size: 15px;
+    line-height: 1.5;
 }
 
 .ra-info-line strong {
@@ -372,6 +381,7 @@
 .ra-table-header h2 {
     margin: 0;
     font-size: 20px;
+    line-height: 1.25;
     font-weight: 800;
     color: #020617;
 }
@@ -382,7 +392,7 @@
 
 .ra-table {
     width: 100%;
-    min-width: 900px;
+    min-width: 1100px;
     border-collapse: collapse;
 }
 
@@ -405,6 +415,7 @@
     color: #334155;
     border-bottom: 1px solid #E2E8F0;
     font-size: 14px;
+    line-height: 1.45;
 }
 
 .ra-table tbody tr:hover {
@@ -486,6 +497,10 @@
 /* RESPONSIVE */
 
 @media (max-width: 1200px) {
+    .ra-page {
+        padding: 22px 22px 38px;
+    }
+
     .ra-actions {
         grid-template-columns: 1fr 1fr;
     }
@@ -493,7 +508,7 @@
 
 @media (max-width: 992px) {
     .ra-page {
-        padding: 24px;
+        padding: 22px 18px 38px;
     }
 
     .ra-header {
@@ -530,7 +545,7 @@
 
 @media (max-width: 480px) {
     .ra-page {
-        padding: 18px;
+        padding: 18px 14px 36px;
     }
 
     .ra-header h1 {

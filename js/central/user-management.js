@@ -32,13 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const role = row.getAttribute("data-role") || "";
             const status = row.getAttribute("data-status") || "";
             const assigned = row.getAttribute("data-assigned") || "";
+            const employeeCode = row.getAttribute("data-employee-code") || "";
 
             const matchesSearch =
                 name.includes(searchValue) ||
                 email.includes(searchValue) ||
                 role.includes(searchValue) ||
                 status.includes(searchValue) ||
-                assigned.includes(searchValue);
+                assigned.includes(searchValue) ||
+                employeeCode.includes(searchValue);
 
             const matchesRole =
                 selectedRole === "all" || role === selectedRole;

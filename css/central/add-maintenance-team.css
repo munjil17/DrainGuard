@@ -1,6 +1,16 @@
+/* =========================================================
+   ADD MAINTENANCE TEAM PAGE ONLY
+   Prefix: amt-
+========================================================= */
+
 .amt-page {
-    padding: 24px;
-    background: #F8FAFC;
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 24px 28px 40px;
+    background:
+        radial-gradient(circle at top left, rgba(34, 230, 220, 0.08), transparent 32%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
+    overflow-x: hidden;
 }
 
 .amt-header-card,
@@ -11,9 +21,19 @@
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
+.amt-header-card,
+.amt-alert,
+.amt-form {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 .amt-header-card {
     padding: 28px;
     margin-bottom: 20px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -23,7 +43,8 @@
 .amt-header-card h1 {
     margin: 0 0 8px;
     color: #020617;
-    font-size: 26px;
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height: 1.2;
     font-weight: 800;
 }
 
@@ -31,6 +52,7 @@
     margin: 0;
     color: #475569;
     font-size: 15px;
+    line-height: 1.5;
     font-weight: 500;
 }
 
@@ -40,13 +62,18 @@
     border-radius: 8px;
     border: 1px solid #CBD5E1;
     background: #FFFFFF;
+
     color: #0F766E;
     text-decoration: none;
     font-size: 14px;
     font-weight: 800;
+
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+
+    white-space: nowrap;
 }
 
 .amt-back-btn:hover {
@@ -57,13 +84,16 @@
 
 .amt-alert {
     min-height: 48px;
-    padding: 0 16px;
+    padding: 12px 16px;
     border-radius: 12px;
     margin-bottom: 18px;
+
     display: flex;
     align-items: center;
     gap: 10px;
+
     font-size: 14px;
+    line-height: 1.45;
     font-weight: 700;
     transition: 0.25s ease;
 }
@@ -105,9 +135,11 @@
     border-radius: 12px;
     background: #E0FDFB;
     color: #0F766E;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     font-size: 22px;
     flex-shrink: 0;
 }
@@ -116,6 +148,7 @@
     margin: 0 0 6px;
     color: #020617;
     font-size: 18px;
+    line-height: 1.25;
     font-weight: 800;
 }
 
@@ -123,10 +156,10 @@
     margin: 0;
     color: #64748B;
     font-size: 13px;
+    line-height: 1.45;
     font-weight: 500;
 }
 
-/* Only Team Name + Assigned Thana now */
 .amt-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -143,6 +176,7 @@
 .amt-field label {
     color: #0F172A;
     font-size: 14px;
+    line-height: 1.35;
     font-weight: 800;
 }
 
@@ -153,15 +187,19 @@
 .amt-field input,
 .amt-field select {
     width: 100%;
+    min-width: 0;
     height: 46px;
     padding: 0 14px;
+
     border: 1px solid #CBD5E1;
     border-radius: 9px;
     background: #FFFFFF;
     outline: none;
+
     color: #0F172A;
     font-size: 14px;
     font-weight: 500;
+
     box-sizing: border-box;
 }
 
@@ -169,6 +207,16 @@
 .amt-field select:focus {
     border-color: #22E6DC;
     box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.12);
+}
+
+.amt-field select:disabled {
+    background: #F1F5F9;
+    color: #94A3B8;
+    cursor: not-allowed;
+}
+
+.amt-field input::placeholder {
+    color: #94A3B8;
 }
 
 .amt-actions {
@@ -184,10 +232,12 @@
     padding: 0 20px;
     border-radius: 9px;
     text-decoration: none;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+
     font-size: 14px;
     font-weight: 800;
 }
@@ -211,25 +261,29 @@
 }
 
 .amt-submit-btn:hover {
-    box-shadow: 0 10px 20px rgba(22, 199, 132, 0.18);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #14B8A6, #16A34A);
 }
 
-/* Safety */
 .amt-page *,
 .amt-card *,
 .amt-header-card * {
     box-sizing: border-box;
 }
 
+@media (max-width: 1200px) {
+    .amt-page {
+        padding: 22px 22px 38px;
+    }
+}
+
 @media (max-width: 992px) {
     .amt-page {
-        padding: 20px;
+        padding: 22px 18px 38px;
     }
 
     .amt-header-card {
-        flex-direction: column;
         align-items: flex-start;
+        flex-direction: column;
     }
 
     .amt-grid {
@@ -247,9 +301,9 @@
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
     .amt-page {
-        padding: 16px;
+        padding: 18px 14px 36px;
     }
 
     .amt-header-card,
@@ -257,11 +311,42 @@
         padding: 20px;
     }
 
-    .amt-header-card h1 {
-        font-size: 22px;
+    .amt-back-btn {
+        width: 100%;
     }
 
     .amt-section-title {
         align-items: flex-start;
+    }
+}
+
+@media (max-width: 400px) {
+    .amt-page {
+        padding: 16px 12px 32px;
+    }
+
+    .amt-header-card,
+    .amt-card {
+        padding: 18px;
+        border-radius: 12px;
+    }
+}
+/* =========================================================
+   FIX: Add Maintenance Team without assistant login field
+========================================================= */
+
+.amt-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1200px) {
+    .amt-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .amt-grid {
+        grid-template-columns: 1fr;
     }
 }

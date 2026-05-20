@@ -3,9 +3,19 @@ document.addEventListener("DOMContentLoaded", function () {
     |--------------------------------------------------------------------------
     | Central Sidebar Mobile Toggle
     |--------------------------------------------------------------------------
-    | Supports both old and new IDs:
-    | - Toggle button: centralMobileToggle / dgCentralMobileToggle
-    | - Sidebar: sidebar / dgCentralSidebar
+    | Supported IDs:
+    | Toggle:
+    | - centralMobileToggle
+    | - dgCentralMobileToggle
+    |
+    | Sidebar:
+    | - centralSidebar
+    | - dgCentralSidebar
+    | - sidebar
+    |
+    | Overlay:
+    | - centralSidebarOverlay
+    | - dgCentralSidebarOverlay
     |--------------------------------------------------------------------------
     */
 
@@ -14,14 +24,58 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("dgCentralMobileToggle");
 
     const sidebar =
-        document.getElementById("sidebar") ||
-        document.getElementById("dgCentralSidebar");
+        document.getElementById("centralSidebar") ||
+        document.getElementById("dgCentralSidebar") ||
+        document.getElementById("sidebar");
+
+    const overlay =
+        document.getElementById("centralSidebarOverlay") ||
+        document.getElementById("dgCentralSidebarOverlay");
+
+    function openSidebar() {
+        if (!sidebar) return;
+
+        sidebar.classList.add("active");
+
+        if (overlay) {
+            overlay.classList.add("active");
+        }
+
+        document.body.classList.add("central-sidebar-open");
+    }
+
+    function closeSidebar() {
+        if (!sidebar) return;
+
+        sidebar.classList.remove("active");
+
+        if (overlay) {
+            overlay.classList.remove("active");
+        }
+
+        document.body.classList.remove("central-sidebar-open");
+    }
+
+    function toggleSidebar(event) {
+        if (event) {
+            event.stopPropagation();
+        }
+
+        if (!sidebar) return;
+
+        if (sidebar.classList.contains("active")) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    }
 
     if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener("click", function (event) {
-            event.stopPropagation();
-            sidebar.classList.toggle("active");
-        });
+        toggleBtn.addEventListener("click", toggleSidebar);
+    }
+
+    if (overlay) {
+        overlay.addEventListener("click", closeSidebar);
     }
 
     document.addEventListener("click", function (event) {
@@ -30,14 +84,28 @@ document.addEventListener("DOMContentLoaded", function () {
         const clickedInsideSidebar = sidebar.contains(event.target);
         const clickedToggle = toggleBtn.contains(event.target);
 
-        if (!clickedInsideSidebar && !clickedToggle) {
-            sidebar.classList.remove("active");
+        if (!clickedInsideSidebar && !clickedToggle && window.innerWidth <= 992) {
+            closeSidebar();
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeSidebar();
         }
     });
 
     window.addEventListener("resize", function () {
-        if (window.innerWidth > 992 && sidebar) {
-            sidebar.classList.remove("active");
+        if (window.innerWidth > 992) {
+            closeSidebar();
         }
+    });
+
+    document.querySelectorAll(".dg-central-menu-link").forEach(function (link) {
+        link.addEventListener("click", function () {
+            if (window.innerWidth <= 992) {
+                closeSidebar();
+            }
+        });
     });
 });

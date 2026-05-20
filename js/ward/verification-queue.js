@@ -40,8 +40,89 @@ document.addEventListener("DOMContentLoaded", function () {
         const element = document.getElementById(id);
 
         if (element) {
-            element.textContent = value && value.trim() !== "" ? value : "N/A";
+            const safeValue = String(value || "").trim();
+            element.textContent = safeValue !== "" ? safeValue : "N/A";
         }
+    }
+
+    function parseMedia(rawMedia) {
+        if (!rawMedia || rawMedia.trim() === "") {
+            return [];
+        }
+
+        try {
+            const media = JSON.parse(rawMedia);
+            return Array.isArray(media) ? media : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function createMediaElement(media) {
+        const item = document.createElement("div");
+        item.className = "vq-media-item";
+
+        const mediaType = String(media.type || "").toLowerCase();
+        const mediaPath = String(media.path || "").trim();
+        const originalName = String(media.original_name || "").trim();
+
+        if (mediaPath === "") {
+            return null;
+        }
+
+        if (mediaType === "video") {
+            const video = document.createElement("video");
+            video.src = mediaPath;
+            video.controls = true;
+            video.preload = "metadata";
+            item.appendChild(video);
+        } else {
+            const image = document.createElement("img");
+            image.src = mediaPath;
+            image.alt = originalName || "Complaint evidence";
+            item.appendChild(image);
+        }
+
+        const caption = document.createElement("div");
+        caption.className = "vq-media-caption";
+        caption.textContent = originalName || mediaPath.split("/").pop() || "Evidence file";
+
+        item.appendChild(caption);
+
+        return item;
+    }
+
+    function renderMedia(rawMedia) {
+        const mediaWrap = document.getElementById("modalMediaWrap");
+        const gallery = document.getElementById("modalMediaGallery");
+
+        if (!mediaWrap || !gallery) {
+            return;
+        }
+
+        gallery.innerHTML = "";
+
+        const mediaItems = parseMedia(rawMedia);
+
+        if (mediaItems.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "vq-media-empty";
+            empty.textContent = "No uploaded evidence found for this complaint.";
+
+            gallery.appendChild(empty);
+            mediaWrap.style.display = "block";
+            return;
+        }
+
+        mediaItems.forEach(function (media) {
+            const element = createMediaElement(media);
+
+            if (element) {
+                gallery.appendChild(element);
+            }
+        });
+
+        mediaWrap.style.display = "block";
     }
 
     function openModal(button) {
@@ -60,23 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setText("modalProblem", button.dataset.problem);
         setText("modalSubmitted", button.dataset.submitted);
 
-        const imageWrap = document.getElementById("modalImageWrap");
-        const modalImage = document.getElementById("modalImage");
-        const downloadBtn = document.getElementById("modalDownloadBtn");
-
-        if (imageWrap && modalImage && downloadBtn) {
-            const imagePath = button.dataset.image || "";
-
-            if (imagePath.trim() !== "") {
-                imageWrap.style.display = "block";
-                modalImage.src = imagePath;
-                downloadBtn.href = imagePath;
-            } else {
-                imageWrap.style.display = "none";
-                modalImage.src = "";
-                downloadBtn.href = "#";
-            }
-        }
+        renderMedia(button.dataset.media || "[]");
 
         modal.classList.add("active");
         document.body.style.overflow = "hidden";
@@ -84,6 +149,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function closeModal() {
         if (!modal) return;
+
+        const gallery = document.getElementById("modalMediaGallery");
+
+        if (gallery) {
+            gallery.querySelectorAll("video").forEach(function (video) {
+                video.pause();
+                video.currentTime = 0;
+            });
+        }
 
         modal.classList.remove("active");
         document.body.style.overflow = "";
@@ -139,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     duplicateButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
-            const confirmed = confirm("Mark this complaint as Duplicate? Status will become Duplicate.");
+            const confirmed = confirm("Mark this complaint as duplicate and remove it from the queue?");
 
             if (!confirmed) {
                 event.preventDefault();

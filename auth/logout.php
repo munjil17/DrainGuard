@@ -1,10 +1,21 @@
 <?php
+// C:\xampp\htdocs\DrainGuard\auth\logout.php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once "../config.php";
+
+/*
+|--------------------------------------------------------------------------
+| Clear all session data
+|--------------------------------------------------------------------------
+*/
 
 $_SESSION = [];
+
+/*
+|--------------------------------------------------------------------------
+| Delete session cookie
+|--------------------------------------------------------------------------
+*/
 
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
@@ -20,9 +31,20 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
+/*
+|--------------------------------------------------------------------------
+| Destroy session
+|--------------------------------------------------------------------------
+*/
+
 session_destroy();
 
-header("Location: /DrainGuard/auth/login.php");
-exit();
+/*
+|--------------------------------------------------------------------------
+| Redirect to login
+|--------------------------------------------------------------------------
+*/
 
+header("Location: " . $baseUrl . "auth/login.php");
+exit();
 ?>

@@ -1,6 +1,7 @@
 /* ==================================================
    DRAINGUARD - CITIZEN SETTINGS
-   Fixed for reusable Citizen sidebar/topbar layout
+   Responsive only fix
+   Sidebar/topbar untouched
 ================================================== */
 
 .citizen-main.main-content {
@@ -16,7 +17,7 @@
 .st-page {
     width: 100%;
     min-height: calc(100vh - 76px);
-    padding: 30px 36px 44px;
+    padding: clamp(18px, 2.4vw, 30px) clamp(14px, 2.8vw, 36px) 44px;
     background:
         radial-gradient(circle at top left, rgba(32, 212, 217, 0.10), transparent 34%),
         linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
@@ -42,7 +43,7 @@
 
 .st-header h1 {
     margin: 0 0 8px;
-    font-size: 30px;
+    font-size: clamp(24px, 2.4vw, 30px);
     line-height: 1.2;
     font-weight: 800;
     color: #020617;
@@ -51,7 +52,7 @@
 
 .st-header p {
     margin: 0;
-    font-size: 16px;
+    font-size: clamp(14px, 1.35vw, 16px);
     line-height: 1.5;
     color: #475569;
 }
@@ -68,6 +69,8 @@
     display: flex;
     gap: 10px;
     align-items: center;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
 }
 
 .st-success {
@@ -98,18 +101,22 @@
 
 .st-card {
     width: 100%;
-    padding: 28px;
+    min-width: 0;
+    padding: clamp(20px, 2.3vw, 28px);
     border-radius: 18px;
     background: #FFFFFF;
     border: 1px solid #DDE6F0;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    overflow: hidden;
 }
 
 .st-card h2 {
     margin: 0 0 22px;
-    font-size: 22px;
+    font-size: clamp(20px, 2vw, 22px);
+    line-height: 1.25;
     font-weight: 800;
     color: #020617;
+    overflow-wrap: anywhere;
 }
 
 /* ==================================================
@@ -118,18 +125,22 @@
 
 .st-form-group {
     margin-bottom: 20px;
+    min-width: 0;
 }
 
 .st-form-group label {
     display: block;
     margin-bottom: 9px;
     font-size: 14px;
+    line-height: 1.35;
     font-weight: 800;
     color: #0F172A;
+    overflow-wrap: anywhere;
 }
 
 .st-form-group input {
     width: 100%;
+    min-width: 0;
     height: 56px;
     border: 1.6px solid #D7E2EF;
     border-radius: 14px;
@@ -140,6 +151,11 @@
     outline: none;
     box-sizing: border-box;
     transition: 0.22s ease;
+}
+
+.st-form-group input::placeholder {
+    color: #64748B;
+    opacity: 1;
 }
 
 .st-form-group input:focus {
@@ -154,14 +170,21 @@
 .st-primary-btn,
 .st-warning-btn {
     width: 100%;
+    min-width: 0;
     height: 56px;
     border: none;
     border-radius: 14px;
     color: #FFFFFF;
     font-size: 16px;
+    line-height: 1.35;
     font-weight: 800;
     cursor: pointer;
     transition: 0.22s ease;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .st-primary-btn {
@@ -195,7 +218,9 @@
     cursor: pointer;
     color: #0F172A;
     font-size: 16px;
+    line-height: 1.45;
     font-weight: 700;
+    min-width: 0;
 }
 
 .st-check-row input {
@@ -204,6 +229,12 @@
     accent-color: #12BFC7;
     cursor: pointer;
     flex-shrink: 0;
+}
+
+.st-check-row span,
+.st-check-row label {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .st-pref-btn {
@@ -228,6 +259,22 @@ body {
    RESPONSIVE
 ================================================== */
 
+@media (max-width: 1400px) {
+    .st-header,
+    .st-alert,
+    .st-grid {
+        max-width: 760px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .st-header,
+    .st-alert,
+    .st-grid {
+        max-width: 720px;
+    }
+}
+
 @media (max-width: 992px) {
     .st-page {
         padding: 24px;
@@ -240,17 +287,23 @@ body {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .st-page {
-        padding: 18px;
+        padding: 22px 18px 40px;
     }
 
-    .st-header h1 {
-        font-size: 24px;
+    .st-grid {
+        gap: 20px;
     }
 
-    .st-header p {
-        font-size: 14px;
+    .st-card {
+        border-radius: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .st-page {
+        padding: 18px 14px 36px;
     }
 
     .st-card {
@@ -267,5 +320,28 @@ body {
     .st-check-row {
         align-items: flex-start;
         font-size: 14px;
+        gap: 12px;
+    }
+
+    .st-check-row input {
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+    }
+}
+
+@media (max-width: 400px) {
+    .st-page {
+        padding: 16px 12px 32px;
+    }
+
+    .st-card {
+        padding: 18px;
+    }
+
+    .st-form-group input,
+    .st-primary-btn,
+    .st-warning-btn {
+        height: 50px;
     }
 }

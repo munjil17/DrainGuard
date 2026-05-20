@@ -113,6 +113,7 @@ function statusClass($status) {
 
     <!-- Page CSS -->
     <link rel="stylesheet" href="../../css/citizen/my-complaints.css">
+    <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
 </head>
 <body class="citizen">
 

@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("wardOfficerForm");
 
+    const cityCorSelect = document.getElementById("city_cor_id");
+    const wardSelect = document.getElementById("assigned_ward_id");
+
     const loginAccess = document.getElementById("login_access");
     const loginAccessCard = document.getElementById("loginAccessCard");
 
@@ -9,6 +12,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const toggles = document.querySelectorAll(".awo-password-toggle");
     const alerts = document.querySelectorAll(".awo-alert");
+
+    const wards = Array.isArray(window.DG_WARD_OFFICER_WARDS)
+        ? window.DG_WARD_OFFICER_WARDS
+        : [];
 
     alerts.forEach(function (alertBox) {
         setTimeout(function () {
@@ -21,6 +28,67 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 3000);
     });
 
+    function clearWardSelect(message) {
+        if (!wardSelect) {
+            return;
+        }
+
+        wardSelect.innerHTML = "";
+
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = message;
+
+        wardSelect.appendChild(option);
+    }
+
+    function loadWardsByCityCorporation() {
+        if (!cityCorSelect || !wardSelect) {
+            return;
+        }
+
+        const selectedCityCorId = String(cityCorSelect.value || "").trim();
+
+        clearWardSelect("Select ward");
+
+        if (selectedCityCorId === "") {
+            clearWardSelect("Select city corporation first");
+            wardSelect.disabled = true;
+            return;
+        }
+
+        const filteredWards = wards.filter(function (ward) {
+            return String(ward.city_cor_id) === selectedCityCorId;
+        });
+
+        if (filteredWards.length === 0) {
+            clearWardSelect("No ward found for this city corporation");
+            wardSelect.disabled = true;
+            return;
+        }
+
+        wardSelect.disabled = false;
+
+        filteredWards.forEach(function (ward) {
+            const option = document.createElement("option");
+
+            option.value = ward.ward_id;
+
+            if (ward.ward_name && String(ward.ward_name).trim() !== "") {
+                option.textContent = ward.ward_name;
+            } else {
+                option.textContent = "Ward " + ward.ward_no;
+            }
+
+            wardSelect.appendChild(option);
+        });
+    }
+
+    if (cityCorSelect && wardSelect) {
+        cityCorSelect.addEventListener("change", loadWardsByCityCorporation);
+        loadWardsByCityCorporation();
+    }
+
     function toggleLoginAccess() {
         if (!loginAccess || !loginAccessCard || !password || !confirmPassword) {
             return;
@@ -28,12 +96,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (loginAccess.value === "yes") {
             loginAccessCard.classList.add("show");
+
             password.setAttribute("required", "required");
             confirmPassword.setAttribute("required", "required");
         } else {
             loginAccessCard.classList.remove("show");
+
             password.removeAttribute("required");
             confirmPassword.removeAttribute("required");
+
             password.value = "";
             confirmPassword.value = "";
         }
@@ -68,6 +139,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (form) {
         form.addEventListener("submit", function (event) {
+            if (cityCorSelect && cityCorSelect.value.trim() === "") {
+                event.preventDefault();
+                alert("Please select city corporation.");
+                cityCorSelect.focus();
+                return;
+            }
+
+            if (wardSelect && wardSelect.value.trim() === "") {
+                event.preventDefault();
+                alert("Please select assigned ward.");
+                wardSelect.focus();
+                return;
+            }
+
             if (!loginAccess) {
                 return;
             }

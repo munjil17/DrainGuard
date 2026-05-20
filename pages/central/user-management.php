@@ -16,17 +16,17 @@ $errorMessage = "";
 
 function safeText($value)
 {
-    return htmlspecialchars($value ?? "", ENT_QUOTES, "UTF-8");
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
 function formatRoleName($role)
 {
-    return ucwords(str_replace("_", " ", $role));
+    return ucwords(str_replace("_", " ", (string)$role));
 }
 
 function formatStatusName($status)
 {
-    return ucfirst(strtolower($status));
+    return ucfirst(strtolower((string)$status));
 }
 
 function formatLastActive($lastActive)
@@ -110,39 +110,141 @@ function setUserManagementFlash($type, $message)
     redirectUserManagement();
 }
 
-/*
-|--------------------------------------------------------------------------
-| Assigned Area / Team Display Logic
-|--------------------------------------------------------------------------
-| Inspector              => Assigned Ward
-| Ward Officer           => Assigned Ward
-| Team Leader            => Team Name
-| Assistant Team Leader  => Team Name
-|--------------------------------------------------------------------------
-*/
-
-function getAssignedInfo($conn, $userId, $role)
+function getUserManagementMeta($conn, $userId, $role)
 {
     $userId = (int)$userId;
 
+    $meta = [
+        "employee_code" => "N/A",
+        "assigned_info" => "Not assigned",
+        "edit_url" => "#"
+    ];
+
     if ($userId <= 0) {
-        return "Not assigned";
+        return $meta;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Team Leader / Assistant Team Leader
-    | Show Maintenance Team Name
-    |--------------------------------------------------------------------------
-    */
-
-    if (in_array($role, ["team_leader", "assistant_team_leader", "maintenance_team", "maintenance_member"], true)) {
-        if (!tableExists($conn, "maintenance_team_members") || !tableExists($conn, "maintenance_teams")) {
-            return "Not assigned";
+    if ($role === "inspector") {
+        if (!tableExists($conn, "inspectors")) {
+            return $meta;
         }
 
         $sql = "
-            SELECT 
+            SELECT
+                i.inspector_id,
+                i.employee_code,
+                cc.city_cor_name,
+                w.ward_name
+            FROM inspectors i
+            LEFT JOIN city_corporations cc
+                ON i.city_cor_id = cc.city_cor_id
+            LEFT JOIN wards w
+                ON i.assigned_ward_id = w.ward_id
+            WHERE i.user_id = ?
+            LIMIT 1
+        ";
+
+        $stmt = mysqli_prepare($conn, $sql);
+
+        if (!$stmt) {
+            return $meta;
+        }
+
+        mysqli_stmt_bind_param($stmt, "i", $userId);
+        mysqli_stmt_execute($stmt);
+
+        $result = mysqli_stmt_get_result($stmt);
+        $row = $result ? mysqli_fetch_assoc($result) : null;
+
+        mysqli_stmt_close($stmt);
+
+        if (!$row) {
+            return $meta;
+        }
+
+        $meta["employee_code"] = $row["employee_code"] ?: "N/A";
+
+        $assignedParts = [];
+
+        if (!empty($row["city_cor_name"])) {
+            $assignedParts[] = $row["city_cor_name"];
+        }
+
+        if (!empty($row["ward_name"])) {
+            $assignedParts[] = $row["ward_name"];
+        }
+
+        $meta["assigned_info"] = count($assignedParts) > 0 ? implode(" - ", $assignedParts) : "Not assigned";
+        $meta["edit_url"] = "/DrainGuard/pages/central/edit-inspector.php?id=" . (int)$row["inspector_id"];
+
+        return $meta;
+    }
+
+    if ($role === "ward_officer") {
+        if (!tableExists($conn, "ward_officers")) {
+            return $meta;
+        }
+
+        $sql = "
+            SELECT
+                wo.ward_officer_id,
+                wo.employee_code,
+                cc.city_cor_name,
+                w.ward_name
+            FROM ward_officers wo
+            LEFT JOIN city_corporations cc
+                ON wo.city_cor_id = cc.city_cor_id
+            LEFT JOIN wards w
+                ON wo.assigned_ward_id = w.ward_id
+            WHERE wo.user_id = ?
+            LIMIT 1
+        ";
+
+        $stmt = mysqli_prepare($conn, $sql);
+
+        if (!$stmt) {
+            return $meta;
+        }
+
+        mysqli_stmt_bind_param($stmt, "i", $userId);
+        mysqli_stmt_execute($stmt);
+
+        $result = mysqli_stmt_get_result($stmt);
+        $row = $result ? mysqli_fetch_assoc($result) : null;
+
+        mysqli_stmt_close($stmt);
+
+        if (!$row) {
+            return $meta;
+        }
+
+        $meta["employee_code"] = $row["employee_code"] ?: "N/A";
+
+        $assignedParts = [];
+
+        if (!empty($row["city_cor_name"])) {
+            $assignedParts[] = $row["city_cor_name"];
+        }
+
+        if (!empty($row["ward_name"])) {
+            $assignedParts[] = $row["ward_name"];
+        }
+
+        $meta["assigned_info"] = count($assignedParts) > 0 ? implode(" - ", $assignedParts) : "Not assigned";
+        $meta["edit_url"] = "/DrainGuard/pages/central/edit-ward-officer.php?id=" . (int)$row["ward_officer_id"];
+
+        return $meta;
+    }
+
+    if (in_array($role, ["team_leader", "assistant_team_leader"], true)) {
+        if (!tableExists($conn, "maintenance_team_members") || !tableExists($conn, "maintenance_teams")) {
+            return $meta;
+        }
+
+        $sql = "
+            SELECT
+                mtm.member_id,
+                mtm.employee_code,
                 mt.team_name
             FROM maintenance_team_members mtm
             LEFT JOIN maintenance_teams mt
@@ -154,72 +256,7 @@ function getAssignedInfo($conn, $userId, $role)
         $stmt = mysqli_prepare($conn, $sql);
 
         if (!$stmt) {
-            return "Not assigned";
-        }
-
-        mysqli_stmt_bind_param($stmt, "i", $userId);
-        mysqli_stmt_execute($stmt);
-
-        $result = mysqli_stmt_get_result($stmt);
-        $row = $result ? mysqli_fetch_assoc($result) : null;
-
-        mysqli_stmt_close($stmt);
-
-        if (!$row || empty($row["team_name"])) {
-            return "Not assigned";
-        }
-
-        return $row["team_name"];
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Ward Officer
-    | Show Assigned Ward
-    |--------------------------------------------------------------------------
-    */
-
-    if ($role === "ward_officer") {
-        if (!tableExists($conn, "ward_officers")) {
-            return "Not assigned";
-        }
-
-        $selectParts = [];
-        $joinParts = "";
-
-        if (columnExists($conn, "ward_officers", "assigned_ward_no")) {
-            $selectParts[] = "wo.assigned_ward_no";
-        } else {
-            $selectParts[] = "NULL AS assigned_ward_no";
-        }
-
-        if (columnExists($conn, "ward_officers", "ward_id") && tableExists($conn, "wards")) {
-            $selectParts[] = "w.ward_no";
-            $selectParts[] = "w.ward_name";
-            $joinParts .= " LEFT JOIN wards w ON wo.ward_id = w.ward_id ";
-        } elseif (columnExists($conn, "ward_officers", "assigned_ward_id") && tableExists($conn, "wards")) {
-            $selectParts[] = "w.ward_no";
-            $selectParts[] = "w.ward_name";
-            $joinParts .= " LEFT JOIN wards w ON wo.assigned_ward_id = w.ward_id ";
-        } else {
-            $selectParts[] = "NULL AS ward_no";
-            $selectParts[] = "NULL AS ward_name";
-        }
-
-        $selectSql = implode(", ", $selectParts);
-
-        $sql = "
-            SELECT {$selectSql}
-            FROM ward_officers wo
-            {$joinParts}
-            WHERE wo.user_id = ?
-            LIMIT 1
-        ";
-
-        $stmt = mysqli_prepare($conn, $sql);
-
-        if (!$stmt) {
-            return "Not assigned";
+            return $meta;
         }
 
         mysqli_stmt_bind_param($stmt, "i", $userId);
@@ -231,106 +268,17 @@ function getAssignedInfo($conn, $userId, $role)
         mysqli_stmt_close($stmt);
 
         if (!$row) {
-            return "Not assigned";
+            return $meta;
         }
 
-        if (!empty($row["assigned_ward_no"])) {
-            return "Ward " . $row["assigned_ward_no"];
-        }
+        $meta["employee_code"] = $row["employee_code"] ?: "N/A";
+        $meta["assigned_info"] = !empty($row["team_name"]) ? $row["team_name"] : "Not assigned";
+        $meta["edit_url"] = "/DrainGuard/pages/central/edit-team-member.php?id=" . (int)$row["member_id"];
 
-        if (!empty($row["ward_no"])) {
-            $wardText = "Ward " . $row["ward_no"];
-
-            if (!empty($row["ward_name"])) {
-                $wardText .= " - " . $row["ward_name"];
-            }
-
-            return $wardText;
-        }
-
-        return "Not assigned";
+        return $meta;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Inspector
-    | Show Assigned Ward
-    |--------------------------------------------------------------------------
-    */
-
-    if ($role === "inspector") {
-        if (!tableExists($conn, "inspectors")) {
-            return "Not assigned";
-        }
-
-        $selectParts = [];
-        $joinParts = "";
-
-        if (columnExists($conn, "inspectors", "assigned_ward_no")) {
-            $selectParts[] = "i.assigned_ward_no";
-        } else {
-            $selectParts[] = "NULL AS assigned_ward_no";
-        }
-
-        if (columnExists($conn, "inspectors", "ward_id") && tableExists($conn, "wards")) {
-            $selectParts[] = "w.ward_no";
-            $selectParts[] = "w.ward_name";
-            $joinParts .= " LEFT JOIN wards w ON i.ward_id = w.ward_id ";
-        } elseif (columnExists($conn, "inspectors", "assigned_ward_id") && tableExists($conn, "wards")) {
-            $selectParts[] = "w.ward_no";
-            $selectParts[] = "w.ward_name";
-            $joinParts .= " LEFT JOIN wards w ON i.assigned_ward_id = w.ward_id ";
-        } else {
-            $selectParts[] = "NULL AS ward_no";
-            $selectParts[] = "NULL AS ward_name";
-        }
-
-        $selectSql = implode(", ", $selectParts);
-
-        $sql = "
-            SELECT {$selectSql}
-            FROM inspectors i
-            {$joinParts}
-            WHERE i.user_id = ?
-            LIMIT 1
-        ";
-
-        $stmt = mysqli_prepare($conn, $sql);
-
-        if (!$stmt) {
-            return "Not assigned";
-        }
-
-        mysqli_stmt_bind_param($stmt, "i", $userId);
-        mysqli_stmt_execute($stmt);
-
-        $result = mysqli_stmt_get_result($stmt);
-        $row = $result ? mysqli_fetch_assoc($result) : null;
-
-        mysqli_stmt_close($stmt);
-
-        if (!$row) {
-            return "Not assigned";
-        }
-
-        if (!empty($row["assigned_ward_no"])) {
-            return "Ward " . $row["assigned_ward_no"];
-        }
-
-        if (!empty($row["ward_no"])) {
-            $wardText = "Ward " . $row["ward_no"];
-
-            if (!empty($row["ward_name"])) {
-                $wardText .= " - " . $row["ward_name"];
-            }
-
-            return $wardText;
-        }
-
-        return "Not assigned";
-    }
-
-    return "Not assigned";
+    return $meta;
 }
 
 /*
@@ -353,15 +301,10 @@ if (isset($_SESSION["user_management_error"])) {
 |--------------------------------------------------------------------------
 | Delete User
 |--------------------------------------------------------------------------
-| Deletes from:
-| 1. related role table
-| 2. users table
-|--------------------------------------------------------------------------
 */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_user_id"])) {
-
-    $deleteUserId = (int) $_POST["delete_user_id"];
+    $deleteUserId = (int)$_POST["delete_user_id"];
 
     if ($deleteUserId <= 0) {
         setUserManagementFlash("error", "Invalid user selected.");
@@ -398,9 +341,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_user_id"])) {
         "inspector",
         "ward_officer",
         "team_leader",
-        "assistant_team_leader",
-        "maintenance_team",
-        "maintenance_member"
+        "assistant_team_leader"
     ];
 
     if (!in_array($deleteRole, $allowedDeleteRoles, true)) {
@@ -413,17 +354,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_user_id"])) {
         $deleteOwnSql = "";
 
         if ($deleteRole === "inspector") {
-            if (tableExists($conn, "inspectors") && columnExists($conn, "inspectors", "user_id")) {
-                $deleteOwnSql = "DELETE FROM inspectors WHERE user_id = ?";
-            }
+            $deleteOwnSql = "DELETE FROM inspectors WHERE user_id = ?";
         } elseif ($deleteRole === "ward_officer") {
-            if (tableExists($conn, "ward_officers") && columnExists($conn, "ward_officers", "user_id")) {
-                $deleteOwnSql = "DELETE FROM ward_officers WHERE user_id = ?";
-            }
-        } else {
-            if (tableExists($conn, "maintenance_team_members") && columnExists($conn, "maintenance_team_members", "user_id")) {
-                $deleteOwnSql = "DELETE FROM maintenance_team_members WHERE user_id = ?";
-            }
+            $deleteOwnSql = "DELETE FROM ward_officers WHERE user_id = ?";
+        } elseif (in_array($deleteRole, ["team_leader", "assistant_team_leader"], true)) {
+            $deleteOwnSql = "DELETE FROM maintenance_team_members WHERE user_id = ?";
         }
 
         if ($deleteOwnSql !== "") {
@@ -477,9 +412,7 @@ $managedRoles = [
     "ward_officer",
     "inspector",
     "team_leader",
-    "assistant_team_leader",
-    "maintenance_team",
-    "maintenance_member"
+    "assistant_team_leader"
 ];
 
 $roleListSql = "'" . implode("','", array_map(function ($role) use ($conn) {
@@ -487,7 +420,7 @@ $roleListSql = "'" . implode("','", array_map(function ($role) use ($conn) {
 }, $managedRoles)) . "'";
 
 $sql = "
-    SELECT 
+    SELECT
         user_id,
         user_name,
         user_mail,
@@ -509,7 +442,12 @@ if (!$result) {
 $users = [];
 
 while ($row = mysqli_fetch_assoc($result)) {
-    $row["assigned_info"] = getAssignedInfo($conn, (int)$row["user_id"], $row["user_role"]);
+    $meta = getUserManagementMeta($conn, (int)$row["user_id"], $row["user_role"]);
+
+    $row["employee_code"] = $meta["employee_code"];
+    $row["assigned_info"] = $meta["assigned_info"];
+    $row["edit_url"] = $meta["edit_url"];
+
     $users[] = $row;
 }
 
@@ -537,9 +475,9 @@ $inactiveUsers = 0;
 if ($countResult && mysqli_num_rows($countResult) > 0) {
     $countData = mysqli_fetch_assoc($countResult);
 
-    $totalUsers = (int) ($countData["total_users"] ?? 0);
-    $activeUsers = (int) ($countData["active_users"] ?? 0);
-    $inactiveUsers = (int) ($countData["inactive_users"] ?? 0);
+    $totalUsers = (int)($countData["total_users"] ?? 0);
+    $activeUsers = (int)($countData["active_users"] ?? 0);
+    $inactiveUsers = (int)($countData["inactive_users"] ?? 0);
 }
 ?>
 
@@ -559,6 +497,7 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/footer.css">
     <link rel="stylesheet" href="../../css/central/user-management.css">
+    <link rel="stylesheet" href="../../css/central/centralTextFix.css">
 </head>
 
 <body class="central">
@@ -632,6 +571,7 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
                     <div class="um-stat-icon users">
                         <i class="bi bi-people"></i>
                     </div>
+
                     <div>
                         <h2><?php echo $totalUsers; ?></h2>
                         <p>Total Users</p>
@@ -642,6 +582,7 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
                     <div class="um-stat-icon active">
                         <i class="bi bi-check-circle"></i>
                     </div>
+
                     <div>
                         <h2><?php echo $activeUsers; ?></h2>
                         <p>Active Users</p>
@@ -652,6 +593,7 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
                     <div class="um-stat-icon inactive">
                         <i class="bi bi-slash-circle"></i>
                     </div>
+
                     <div>
                         <h2><?php echo $inactiveUsers; ?></h2>
                         <p>Inactive Users</p>
@@ -663,7 +605,7 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
             <div class="um-filter-card">
                 <div class="um-search-box">
                     <i class="bi bi-search"></i>
-                    <input type="text" id="userSearchInput" placeholder="Search by name, email, role, assigned ward/team, or status...">
+                    <input type="text" id="userSearchInput" placeholder="Search by name, email, role, employee code, assigned ward/team, or status...">
                 </div>
 
                 <select id="roleFilter" class="um-filter">
@@ -672,15 +614,13 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
                     <option value="ward_officer">Ward Officer</option>
                     <option value="team_leader">Team Leader</option>
                     <option value="assistant_team_leader">Assistant Team Leader</option>
-                    <option value="maintenance_team">Maintenance Team</option>
-                    <option value="maintenance_member">Maintenance Member</option>
                 </select>
             </div>
 
             <div class="um-table-card">
                 <div class="um-table-header">
                     <h2>System Users</h2>
-                    <p>Role-wise users with assigned ward or team information.</p>
+                    <p>Role-wise users with employee code and assigned ward or team information.</p>
                 </div>
 
                 <div class="um-table-wrapper">
@@ -709,22 +649,26 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
                                     $loginAccessClass = ((int)$user["login_access"] === 1) ? "active" : "inactive";
                                     $loginAccessText = ((int)$user["login_access"] === 1) ? "Allowed" : "Blocked";
                                     $assignedInfo = $user["assigned_info"] ?? "Not assigned";
+                                    $employeeCode = $user["employee_code"] ?? "N/A";
+                                    $editUrl = $user["edit_url"] ?? "#";
                                 ?>
 
-                                <tr 
+                                <tr
                                     class="um-user-row"
                                     data-name="<?php echo strtolower(safeText($user["user_name"])); ?>"
                                     data-email="<?php echo strtolower(safeText($user["user_mail"])); ?>"
                                     data-role="<?php echo safeText($roleSlug); ?>"
                                     data-status="<?php echo strtolower(safeText($user["user_status"])); ?>"
                                     data-assigned="<?php echo strtolower(safeText($assignedInfo)); ?>"
+                                    data-employee-code="<?php echo strtolower(safeText($employeeCode)); ?>"
                                 >
                                     <td>
                                         <div class="um-user-cell">
                                             <div class="um-avatar"><?php echo safeText($initial); ?></div>
+
                                             <div>
                                                 <h4><?php echo safeText($user["user_name"]); ?></h4>
-                                                <p>User ID: <?php echo (int) $user["user_id"]; ?></p>
+                                                <p>Emp Code: <?php echo safeText($employeeCode); ?></p>
                                             </div>
                                         </div>
                                     </td>
@@ -744,13 +688,13 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
                                     </td>
 
                                     <td>
-                                        <span class="um-status-badge <?php echo $statusClass; ?>">
+                                        <span class="um-status-badge <?php echo safeText($statusClass); ?>">
                                             <?php echo safeText(formatStatusName($user["user_status"])); ?>
                                         </span>
                                     </td>
 
                                     <td>
-                                        <span class="um-status-badge <?php echo $loginAccessClass; ?>">
+                                        <span class="um-status-badge <?php echo safeText($loginAccessClass); ?>">
                                             <?php echo safeText($loginAccessText); ?>
                                         </span>
                                     </td>
@@ -759,9 +703,13 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
 
                                     <td>
                                         <div class="um-action-buttons">
-                                            <form 
-                                                method="POST" 
-                                                class="um-delete-form" 
+                                            <a href="<?php echo safeText($editUrl); ?>" class="um-icon-btn edit" title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form
+                                                method="POST"
+                                                class="um-delete-form"
                                                 onsubmit="return confirm('Are you sure you want to delete this user? This will delete the user from users table and related role table.');"
                                             >
                                                 <input type="hidden" name="delete_user_id" value="<?php echo (int)$user["user_id"]; ?>">

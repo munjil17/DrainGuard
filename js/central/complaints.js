@@ -96,8 +96,96 @@ document.addEventListener("DOMContentLoaded", function () {
         const element = document.getElementById(id);
 
         if (element) {
-            element.textContent = value && value.trim() !== "" ? value : "N/A";
+            const safeValue = String(value || "").trim();
+            element.textContent = safeValue !== "" ? safeValue : "N/A";
         }
+    }
+
+    function parseMedia(rawMedia) {
+        if (!rawMedia || rawMedia.trim() === "") {
+            return [];
+        }
+
+        try {
+            const media = JSON.parse(rawMedia);
+
+            if (Array.isArray(media)) {
+                return media;
+            }
+
+            return [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function createMediaElement(media) {
+        const item = document.createElement("div");
+        item.className = "cm-media-item";
+
+        const mediaType = String(media.type || "").toLowerCase();
+        const mediaPath = String(media.path || "").trim();
+        const originalName = String(media.original_name || "").trim();
+
+        if (mediaPath === "") {
+            return null;
+        }
+
+        if (mediaType === "video") {
+            const video = document.createElement("video");
+            video.src = mediaPath;
+            video.controls = true;
+            video.preload = "metadata";
+
+            item.appendChild(video);
+        } else {
+            const image = document.createElement("img");
+            image.src = mediaPath;
+            image.alt = originalName || "Complaint evidence";
+
+            item.appendChild(image);
+        }
+
+        const caption = document.createElement("div");
+        caption.className = "cm-media-caption";
+        caption.textContent = originalName || mediaPath.split("/").pop() || "Evidence file";
+
+        item.appendChild(caption);
+
+        return item;
+    }
+
+    function renderMedia(rawMedia) {
+        const mediaWrap = document.getElementById("modalMediaWrap");
+        const gallery = document.getElementById("modalMediaGallery");
+
+        if (!mediaWrap || !gallery) {
+            return;
+        }
+
+        gallery.innerHTML = "";
+
+        const mediaItems = parseMedia(rawMedia);
+
+        if (mediaItems.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "cm-media-empty";
+            empty.textContent = "No uploaded evidence found for this complaint.";
+
+            gallery.appendChild(empty);
+            mediaWrap.style.display = "block";
+            return;
+        }
+
+        mediaItems.forEach(function (media) {
+            const element = createMediaElement(media);
+
+            if (element) {
+                gallery.appendChild(element);
+            }
+        });
+
+        mediaWrap.style.display = "block";
     }
 
     function openModal(button) {
@@ -115,21 +203,11 @@ document.addEventListener("DOMContentLoaded", function () {
         setText("modalThana", button.dataset.thana);
         setText("modalWard", button.dataset.ward);
         setText("modalArea", button.dataset.area);
+        setText("modalDrain", button.dataset.drain);
         setText("modalAddress", button.dataset.address);
         setText("modalProblem", button.dataset.problem);
 
-        const imageWrap = document.getElementById("modalImageWrap");
-        const modalImage = document.getElementById("modalImage");
-
-        if (imageWrap && modalImage) {
-            if (button.dataset.image && button.dataset.image.trim() !== "") {
-                imageWrap.style.display = "block";
-                modalImage.src = button.dataset.image;
-            } else {
-                imageWrap.style.display = "none";
-                modalImage.src = "";
-            }
-        }
+        renderMedia(button.dataset.media || "[]");
 
         modal.classList.add("active");
         document.body.style.overflow = "hidden";
@@ -137,6 +215,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function closeModal() {
         if (!modal) return;
+
+        const gallery = document.getElementById("modalMediaGallery");
+
+        if (gallery) {
+            gallery.querySelectorAll("video").forEach(function (video) {
+                video.pause();
+                video.currentTime = 0;
+            });
+        }
 
         modal.classList.remove("active");
         document.body.style.overflow = "";

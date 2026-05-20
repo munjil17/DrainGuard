@@ -4,8 +4,13 @@
 ========================================================= */
 
 .ai-page {
-    padding: 24px;
-    background: #F8FAFC;
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 24px 28px 40px;
+    background:
+        radial-gradient(circle at top left, rgba(34, 230, 220, 0.08), transparent 32%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
+    overflow-x: hidden;
 }
 
 .ai-header-card,
@@ -14,6 +19,15 @@
     border: 1px solid #E2E8F0;
     border-radius: 14px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.ai-header-card,
+.ai-alert,
+.ai-form {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .ai-header-card {
@@ -29,7 +43,8 @@
 .ai-header-card h1 {
     margin: 0 0 8px;
     color: #020617;
-    font-size: 26px;
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height: 1.2;
     font-weight: 800;
 }
 
@@ -37,6 +52,7 @@
     margin: 0;
     color: #475569;
     font-size: 15px;
+    line-height: 1.5;
     font-weight: 500;
 }
 
@@ -54,7 +70,10 @@
 
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+
+    white-space: nowrap;
 }
 
 .ai-back-btn:hover {
@@ -65,7 +84,7 @@
 
 .ai-alert {
     min-height: 48px;
-    padding: 0 16px;
+    padding: 12px 16px;
     border-radius: 12px;
     margin-bottom: 18px;
 
@@ -74,6 +93,7 @@
     gap: 10px;
 
     font-size: 14px;
+    line-height: 1.45;
     font-weight: 700;
     transition: 0.25s ease;
 }
@@ -136,6 +156,7 @@
     margin: 0 0 6px;
     color: #020617;
     font-size: 18px;
+    line-height: 1.25;
     font-weight: 800;
 }
 
@@ -143,12 +164,13 @@
     margin: 0;
     color: #64748B;
     font-size: 13px;
+    line-height: 1.45;
     font-weight: 500;
 }
 
 .ai-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
 }
 
@@ -156,6 +178,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
 }
 
 .ai-field.full {
@@ -165,6 +188,7 @@
 .ai-field label {
     color: #0F172A;
     font-size: 14px;
+    line-height: 1.35;
     font-weight: 800;
 }
 
@@ -176,6 +200,7 @@
 .ai-field select,
 .ai-field textarea {
     width: 100%;
+    min-width: 0;
     border: 1px solid #CBD5E1;
     border-radius: 9px;
     background: #FFFFFF;
@@ -184,6 +209,8 @@
     color: #0F172A;
     font-size: 14px;
     font-weight: 500;
+
+    box-sizing: border-box;
 }
 
 .ai-field input,
@@ -202,6 +229,12 @@
 .ai-field textarea:focus {
     border-color: #22E6DC;
     box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.12);
+}
+
+.ai-field select:disabled {
+    background: #F1F5F9;
+    color: #94A3B8;
+    cursor: not-allowed;
 }
 
 .ai-field input::placeholder,
@@ -284,9 +317,21 @@
     background: linear-gradient(135deg, #14B8A6, #16A34A);
 }
 
+.ai-page *,
+.ai-card *,
+.ai-header-card * {
+    box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+    .ai-page {
+        padding: 22px 22px 38px;
+    }
+}
+
 @media (max-width: 992px) {
     .ai-page {
-        padding: 20px;
+        padding: 22px 18px 38px;
     }
 
     .ai-header-card {
@@ -311,7 +356,7 @@
 
 @media (max-width: 576px) {
     .ai-page {
-        padding: 16px;
+        padding: 18px 14px 36px;
     }
 
     .ai-header-card,
@@ -319,7 +364,81 @@
         padding: 20px;
     }
 
-    .ai-header-card h1 {
-        font-size: 23px;
+    .ai-back-btn {
+        width: 100%;
     }
+
+    .ai-section-title {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 400px) {
+    .ai-page {
+        padding: 16px 12px 32px;
+    }
+
+    .ai-header-card,
+    .ai-card {
+        padding: 18px;
+        border-radius: 12px;
+    }
+}
+/* =========================================================
+   FIX: Remove browser default password eye icon
+   Keep only custom Bootstrap eye button
+========================================================= */
+
+.ai-password-wrap {
+    position: relative;
+}
+
+.ai-password-wrap input[type="password"],
+.ai-password-wrap input[type="text"] {
+    padding-right: 48px !important;
+}
+
+/* Hide Microsoft Edge/Chrome native password reveal icon */
+.ai-password-wrap input::-ms-reveal,
+.ai-password-wrap input::-ms-clear {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Hide WebKit autofill/password UI artifacts when possible */
+.ai-password-wrap input::-webkit-credentials-auto-fill-button,
+.ai-password-wrap input::-webkit-contacts-auto-fill-button {
+    visibility: hidden !important;
+    display: none !important;
+    pointer-events: none !important;
+}
+
+/* Custom eye button position */
+.ai-password-toggle {
+    width: 42px !important;
+    height: 42px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #64748B !important;
+
+    position: absolute !important;
+    right: 2px !important;
+    top: 2px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+    z-index: 5 !important;
+}
+
+.ai-password-toggle i {
+    font-size: 16px !important;
+    line-height: 1 !important;
+}
+
+.ai-password-toggle:hover {
+    color: #0F766E !important;
 }

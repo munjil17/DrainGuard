@@ -6,27 +6,26 @@ require_once "../../auth/session_check.php";
 
 $activePage = "user-management";
 $pageTitle = "Add Team Member";
-$pageParent = "Central Control";
-$pageChild = "Add Team Member";
 
 $successMessage = "";
 $errorMessage = "";
 
 function safeText($value)
 {
-    return htmlspecialchars($value ?? "", ENT_QUOTES, "UTF-8");
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
 function generateEmployeeCode($role, $id)
 {
-    $cleanRole = preg_replace("/[^A-Za-z]/", "", $role);
-    $prefix = strtoupper(substr($cleanRole, 0, 3));
+    $prefixMap = [
+        "team_leader" => "TL",
+        "assistant_team_leader" => "ATL",
+        "worker" => "WRK"
+    ];
 
-    if ($prefix === "") {
-        $prefix = "MEM";
-    }
+    $prefix = $prefixMap[$role] ?? "MEM";
 
-    return $prefix . "-" . str_pad($id, 3, "0", STR_PAD_LEFT);
+    return $prefix . "-" . str_pad((string)$id, 4, "0", STR_PAD_LEFT);
 }
 
 function redirectAddTeamMember()
@@ -46,12 +45,6 @@ function setFlashMessage($type, $message)
     redirectAddTeamMember();
 }
 
-/*
-|--------------------------------------------------------------------------
-| Flash Messages
-|--------------------------------------------------------------------------
-*/
-
 if (isset($_SESSION["add_team_member_success"])) {
     $successMessage = $_SESSION["add_team_member_success"];
     unset($_SESSION["add_team_member_success"]);
@@ -66,7 +59,9 @@ if (isset($_SESSION["add_team_member_error"])) {
 |--------------------------------------------------------------------------
 | Fetch Maintenance Teams
 |--------------------------------------------------------------------------
-| skill_type removed from maintenance_teams.
+| Current maintenance_teams structure:
+| maintenance_team_id, team_name, city_cor_id, anchal_id,
+| availability_status, assistant_login_access
 |--------------------------------------------------------------------------
 */
 
@@ -76,13 +71,16 @@ $teamSql = "
     SELECT
         mt.maintenance_team_id,
         mt.team_name,
-        mt.assigned_thana_id,
+        mt.city_cor_id,
+        mt.anchal_id,
         mt.availability_status,
-        mt.assistant_login_access,
-        t.thana_name
+        cc.city_cor_name,
+        a.anchal_name
     FROM maintenance_teams mt
-    LEFT JOIN thanas t
-        ON mt.assigned_thana_id = t.thana_id
+    LEFT JOIN city_corporations cc
+        ON mt.city_cor_id = cc.city_cor_id
+    LEFT JOIN anchals a
+        ON mt.anchal_id = a.anchal_id
     ORDER BY mt.team_name ASC
 ";
 
@@ -103,7 +101,7 @@ if ($teamResult) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $maintenanceTeamId = trim($_POST["maintenance_team_id"] ?? "");
     $memberRole = trim($_POST["member_role"] ?? "");
-    $assistantLoginAccess = trim($_POST["assistant_login_access"] ?? "");
+    $loginAccess = trim($_POST["login_access"] ?? "");
 
     $fullName = trim($_POST["full_name"] ?? "");
     $phoneNumber = trim($_POST["phone_number"] ?? "");
@@ -124,7 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (
         $maintenanceTeamId === "" ||
         $memberRole === "" ||
-        $assistantLoginAccess === "" ||
+        $loginAccess === "" ||
         $fullName === "" ||
         $phoneNumber === "" ||
         $gmail === "" ||
@@ -153,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         setFlashMessage("error", "Invalid team member role selected.");
     }
 
-    if (!in_array($assistantLoginAccess, ["yes", "no"], true)) {
+    if (!in_array($loginAccess, ["yes", "no"], true)) {
         setFlashMessage("error", "Invalid login access selected.");
     }
 
@@ -174,11 +172,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     |
     | Assistant Team Leader:
     |   users insert, user_role = assistant_team_leader
-    |   login_access = yes -> login_access = 1, password required
-    |   login_access = no  -> login_access = 0, dummy password
+    |   login_access yes -> login_access = 1, password required
+    |   login_access no  -> login_access = 0, dummy password
     |
     | Worker:
-    |   no users insert
+    |   no users insert, user_id = NULL
     |--------------------------------------------------------------------------
     */
 
@@ -198,7 +196,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $shouldCreateUser = true;
         $userRoleForUsers = "assistant_team_leader";
 
-        if ($assistantLoginAccess === "yes") {
+        if ($loginAccess === "yes") {
             $shouldRequirePassword = true;
             $loginAccessValue = 1;
         } else {
@@ -235,7 +233,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     */
 
     if ($shouldCreateUser) {
-        $checkUserSql = "SELECT user_id FROM users WHERE user_mail = ? LIMIT 1";
+        $checkUserSql = "
+            SELECT user_id
+            FROM users
+            WHERE user_mail = ?
+            LIMIT 1
+        ";
+
         $checkUserStmt = mysqli_prepare($conn, $checkUserSql);
 
         if (!$checkUserStmt) {
@@ -322,33 +326,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         /*
         |--------------------------------------------------------------------------
-        | Step 2: Update assistant login access in maintenance_teams
-        |--------------------------------------------------------------------------
-        */
-
-        $updateTeamSql = "
-            UPDATE maintenance_teams
-            SET assistant_login_access = ?
-            WHERE maintenance_team_id = ?
-        ";
-
-        $updateTeamStmt = mysqli_prepare($conn, $updateTeamSql);
-
-        if (!$updateTeamStmt) {
-            throw new Exception("Team login access update preparation failed: " . mysqli_error($conn));
-        }
-
-        mysqli_stmt_bind_param($updateTeamStmt, "si", $assistantLoginAccess, $maintenanceTeamId);
-
-        if (!mysqli_stmt_execute($updateTeamStmt)) {
-            throw new Exception("Team login access update failed: " . mysqli_stmt_error($updateTeamStmt));
-        }
-
-        mysqli_stmt_close($updateTeamStmt);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Step 3: Prevent duplicate Team Leader / Assistant Team Leader
+        | Step 2: Prevent duplicate Team Leader / Assistant Team Leader
         |--------------------------------------------------------------------------
         */
 
@@ -389,7 +367,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         /*
         |--------------------------------------------------------------------------
-        | Step 4: Insert into users table if needed
+        | Step 3: Insert into users table if needed
         |--------------------------------------------------------------------------
         */
 
@@ -441,13 +419,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 throw new Exception("User insert failed: " . mysqli_stmt_error($insertUserStmt));
             }
 
-            $userId = mysqli_insert_id($conn);
+            $userId = (int)mysqli_insert_id($conn);
             mysqli_stmt_close($insertUserStmt);
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Step 5: Insert into maintenance_team_members table
+        | Step 4: Insert into maintenance_team_members table
         |--------------------------------------------------------------------------
         */
 
@@ -491,12 +469,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             throw new Exception("Member insert failed: " . mysqli_stmt_error($insertMemberStmt));
         }
 
-        $memberId = mysqli_insert_id($conn);
+        $memberId = (int)mysqli_insert_id($conn);
         mysqli_stmt_close($insertMemberStmt);
 
         /*
         |--------------------------------------------------------------------------
-        | Step 6: Generate Employee Code
+        | Step 5: Generate Employee Code
         |--------------------------------------------------------------------------
         */
 
@@ -549,6 +527,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/footer.css">
     <link rel="stylesheet" href="../../css/central/add-team-member.css">
+    <link rel="stylesheet" href="../../css/central/centralTextFix.css">
 </head>
 
 <body class="central">
@@ -615,15 +594,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     <option
                                         value="<?php echo (int)$team["maintenance_team_id"]; ?>"
                                         data-team-name="<?php echo safeText($team["team_name"]); ?>"
-                                        data-thana="<?php echo safeText($team["thana_name"] ?? "N/A"); ?>"
-                                        data-status="<?php echo safeText($team["availability_status"]); ?>"
-                                        data-assistant-access="<?php echo safeText($team["assistant_login_access"]); ?>"
+                                        data-city-corporation="<?php echo safeText($team["city_cor_name"] ?? "N/A"); ?>"
+                                        data-anchal="<?php echo safeText($team["anchal_name"] ?? "N/A"); ?>"
+                                        data-availability="<?php echo safeText($team["availability_status"] ?? "available"); ?>"
                                     >
                                         <?php echo safeText($team["team_name"]); ?>
                                         —
-                                        <?php echo safeText($team["thana_name"] ?? "No Thana"); ?>
+                                        <?php echo safeText($team["city_cor_name"] ?? "No City Corporation"); ?>
                                         —
-                                        <?php echo safeText(ucfirst($team["availability_status"])); ?>
+                                        <?php echo safeText($team["anchal_name"] ?? "No Anchal"); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -641,12 +620,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </div>
 
                         <div class="atm-field">
-                            <label for="assistant_login_access">Assistant Login Access <span>*</span></label>
+                            <label for="login_access">Login Access <span>*</span></label>
 
-                            <select id="assistant_login_access" name="assistant_login_access" required>
+                            <select id="login_access" name="login_access" required>
                                 <option value="no">No</option>
                                 <option value="yes">Yes</option>
                             </select>
+
+                            <small>Team Leader always gets login access. Worker never gets login access.</small>
                         </div>
 
                         <div class="atm-field">
@@ -659,41 +640,69 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </div>
 
                     </div>
+
+                    <div class="atm-team-preview" id="teamPreview">
+                        <div>
+                            <span>Team</span>
+                            <strong id="previewTeam">N/A</strong>
+                        </div>
+
+                        <div>
+                            <span>City Corporation</span>
+                            <strong id="previewCityCorporation">N/A</strong>
+                        </div>
+
+                        <div>
+                            <span>Anchal</span>
+                            <strong id="previewAnchal">N/A</strong>
+                        </div>
+
+                        <div>
+                            <span>Availability</span>
+                            <strong id="previewAvailability">N/A</strong>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="atm-card">
+                <div class="atm-card atm-member-card" id="memberInfoCard">
                     <div class="atm-section-title">
                         <div class="atm-section-icon">
                             <i class="bi bi-person-badge"></i>
                         </div>
 
                         <div>
-                            <h2>Member Information</h2>
-                            <p>Enter personal and contact information.</p>
+                            <h2 id="memberTitle">Member Information</h2>
+                            <p id="memberSubtitle">Enter personal and contact information.</p>
                         </div>
+                    </div>
+
+                    <div class="atm-note" id="roleNote">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Select team, role, and login access to continue.</span>
                     </div>
 
                     <div class="atm-grid">
 
                         <div class="atm-field">
                             <label for="full_name">Full Name <span>*</span></label>
-                            <input type="text" id="full_name" name="full_name" placeholder="Enter full name" required>
+                            <input type="text" id="full_name" name="full_name" placeholder="Enter full name">
                         </div>
 
                         <div class="atm-field">
                             <label for="phone_number">Phone Number <span>*</span></label>
-                            <input type="text" id="phone_number" name="phone_number" placeholder="01XXXXXXXXX" required>
+                            <input type="text" id="phone_number" name="phone_number" placeholder="01XXXXXXXXX">
                         </div>
 
                         <div class="atm-field">
                             <label for="gmail">Gmail <span>*</span></label>
-                            <input type="email" id="gmail" name="gmail" placeholder="example@gmail.com" required>
+                            <input type="email" id="gmail" name="gmail" placeholder="example@gmail.com">
                         </div>
 
                         <div class="atm-field">
                             <label for="gender">Gender <span>*</span></label>
 
-                            <select id="gender" name="gender" required>
+                            <select id="gender" name="gender">
                                 <option value="">Select gender</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
@@ -701,15 +710,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </select>
                         </div>
 
-                        <div class="atm-field atm-full">
+                        <div class="atm-field full">
                             <label for="address">Address <span>*</span></label>
-                            <textarea id="address" name="address" placeholder="Enter address" required></textarea>
+                            <textarea id="address" name="address" placeholder="Enter address"></textarea>
                         </div>
 
                     </div>
                 </div>
 
-                <div class="atm-card" id="loginAccessCard">
+                <div class="atm-card atm-login-card" id="loginAccessCard">
                     <div class="atm-section-title">
                         <div class="atm-section-icon">
                             <i class="bi bi-key"></i>
@@ -724,13 +733,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <div class="atm-grid">
 
                         <div class="atm-field">
-                            <label for="password">Password</label>
-                            <input type="password" id="password" name="password" placeholder="Minimum 6 characters">
+                            <label for="password">Password <span>*</span></label>
+
+                            <div class="atm-password-wrap">
+                                <input type="password" id="password" name="password" placeholder="Minimum 6 characters">
+
+                                <button type="button" class="atm-password-toggle" data-target="password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="atm-field">
-                            <label for="confirm_password">Confirm Password</label>
-                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password">
+                            <label for="confirm_password">Confirm Password <span>*</span></label>
+
+                            <div class="atm-password-wrap">
+                                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password">
+
+                                <button type="button" class="atm-password-toggle" data-target="confirm_password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                     </div>

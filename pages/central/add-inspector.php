@@ -10,15 +10,9 @@ $pageTitle = "Add Inspector";
 $successMessage = "";
 $errorMessage = "";
 
-/*
-|--------------------------------------------------------------------------
-| Helper Functions
-|--------------------------------------------------------------------------
-*/
-
 function safeText($value)
 {
-    return htmlspecialchars($value ?? "", ENT_QUOTES, "UTF-8");
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
 function generateEmployeeCode($designation, $id)
@@ -52,12 +46,6 @@ function setFlashMessage($type, $message)
     redirectAddInspector();
 }
 
-/*
-|--------------------------------------------------------------------------
-| Flash Message Read
-|--------------------------------------------------------------------------
-*/
-
 if (isset($_SESSION["add_inspector_success"])) {
     $successMessage = $_SESSION["add_inspector_success"];
     unset($_SESSION["add_inspector_success"]);
@@ -70,16 +58,42 @@ if (isset($_SESSION["add_inspector_error"])) {
 
 /*
 |--------------------------------------------------------------------------
-| Fetch Wards From wards Table
+| Fetch City Corporations
+|--------------------------------------------------------------------------
+*/
+
+$cityCorporations = [];
+
+$cityCorSql = "
+    SELECT city_cor_id, city_cor_name
+    FROM city_corporations
+    ORDER BY city_cor_name ASC
+";
+
+$cityCorResult = mysqli_query($conn, $cityCorSql);
+
+if ($cityCorResult) {
+    while ($row = mysqli_fetch_assoc($cityCorResult)) {
+        $cityCorporations[] = $row;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Fetch Wards With City Corporation
 |--------------------------------------------------------------------------
 */
 
 $wards = [];
 
 $wardSql = "
-    SELECT ward_id, ward_no
+    SELECT
+        ward_id,
+        city_cor_id,
+        ward_no,
+        ward_name
     FROM wards
-    ORDER BY ward_no ASC
+    ORDER BY city_cor_id ASC, ward_no ASC
 ";
 
 $wardResult = mysqli_query($conn, $wardSql);
@@ -89,6 +103,8 @@ if ($wardResult) {
         $wards[] = $row;
     }
 }
+
+$wardJson = json_encode($wards, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
 /*
 |--------------------------------------------------------------------------
@@ -103,7 +119,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $phoneNumber = trim($_POST["phone_number"] ?? "");
     $gender = trim($_POST["gender"] ?? "");
     $designation = trim($_POST["designation"] ?? "");
-    $assignedWardNo = trim($_POST["assigned_ward_no"] ?? "");
+    $cityCorId = (int)($_POST["city_cor_id"] ?? 0);
+    $assignedWardId = (int)($_POST["assigned_ward_id"] ?? 0);
     $officeAddress = trim($_POST["office_address"] ?? "");
     $address = trim($_POST["address"] ?? "");
     $loginAccess = trim($_POST["login_access"] ?? "");
@@ -111,19 +128,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $password = trim($_POST["password"] ?? "");
     $confirmPassword = trim($_POST["confirm_password"] ?? "");
 
-    /*
-    |--------------------------------------------------------------------------
-    | Basic Validation
-    |--------------------------------------------------------------------------
-    */
-
     if (
         $fullName === "" ||
         $email === "" ||
         $phoneNumber === "" ||
         $gender === "" ||
         $designation === "" ||
-        $assignedWardNo === "" ||
+        $cityCorId <= 0 ||
+        $assignedWardId <= 0 ||
         $officeAddress === "" ||
         $address === "" ||
         $loginAccess === ""
@@ -141,17 +153,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         setFlashMessage("error", "Invalid gender selected.");
     }
 
-    $allowedDesignation = ["Inspector", "QA Officer"];
+    $allowedDesignation = [
+        "Field Inspector",
+        "Senior Field Inspector",
+        "Drainage Inspection Officer",
+        "Quality Assurance Inspector",
+        "Inspection Supervisor",
+        "Zone Inspection Officer",
+        "Emergency Response Inspector"
+    ];
 
     if (!in_array($designation, $allowedDesignation, true)) {
         setFlashMessage("error", "Invalid designation selected.");
     }
-
-    if (!is_numeric($assignedWardNo) || (int)$assignedWardNo <= 0) {
-        setFlashMessage("error", "Invalid ward selected.");
-    }
-
-    $assignedWardNo = (int) $assignedWardNo;
 
     if (!in_array($loginAccess, ["yes", "no"], true)) {
         setFlashMessage("error", "Invalid login access value.");
@@ -159,9 +173,66 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     /*
     |--------------------------------------------------------------------------
-    | Password Validation Only If Login Access = Yes
+    | Validate City Corporation
     |--------------------------------------------------------------------------
     */
+
+    $checkCityCorSql = "
+        SELECT city_cor_id
+        FROM city_corporations
+        WHERE city_cor_id = ?
+        LIMIT 1
+    ";
+
+    $checkCityCorStmt = mysqli_prepare($conn, $checkCityCorSql);
+
+    if (!$checkCityCorStmt) {
+        setFlashMessage("error", "Database error while checking city corporation.");
+    }
+
+    mysqli_stmt_bind_param($checkCityCorStmt, "i", $cityCorId);
+    mysqli_stmt_execute($checkCityCorStmt);
+
+    $checkCityCorResult = mysqli_stmt_get_result($checkCityCorStmt);
+
+    if (!$checkCityCorResult || mysqli_num_rows($checkCityCorResult) !== 1) {
+        mysqli_stmt_close($checkCityCorStmt);
+        setFlashMessage("error", "Invalid city corporation selected.");
+    }
+
+    mysqli_stmt_close($checkCityCorStmt);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Ward Under Selected City Corporation
+    |--------------------------------------------------------------------------
+    */
+
+    $checkWardSql = "
+        SELECT ward_id
+        FROM wards
+        WHERE ward_id = ?
+        AND city_cor_id = ?
+        LIMIT 1
+    ";
+
+    $checkWardStmt = mysqli_prepare($conn, $checkWardSql);
+
+    if (!$checkWardStmt) {
+        setFlashMessage("error", "Database error while checking ward.");
+    }
+
+    mysqli_stmt_bind_param($checkWardStmt, "ii", $assignedWardId, $cityCorId);
+    mysqli_stmt_execute($checkWardStmt);
+
+    $checkWardResult = mysqli_stmt_get_result($checkWardStmt);
+
+    if (!$checkWardResult || mysqli_num_rows($checkWardResult) !== 1) {
+        mysqli_stmt_close($checkWardStmt);
+        setFlashMessage("error", "Invalid ward selected for this city corporation.");
+    }
+
+    mysqli_stmt_close($checkWardStmt);
 
     if ($loginAccess === "yes") {
         if ($password === "" || $confirmPassword === "") {
@@ -183,7 +254,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     |--------------------------------------------------------------------------
     */
 
-    $checkUserSql = "SELECT user_id FROM users WHERE user_mail = ? LIMIT 1";
+    $checkUserSql = "
+        SELECT user_id
+        FROM users
+        WHERE user_mail = ?
+        LIMIT 1
+    ";
+
     $checkUserStmt = mysqli_prepare($conn, $checkUserSql);
 
     if (!$checkUserStmt) {
@@ -195,7 +272,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $checkUserResult = mysqli_stmt_get_result($checkUserStmt);
 
-    if (mysqli_num_rows($checkUserResult) > 0) {
+    if ($checkUserResult && mysqli_num_rows($checkUserResult) > 0) {
         mysqli_stmt_close($checkUserStmt);
         setFlashMessage("error", "This email already exists in users table.");
     }
@@ -208,7 +285,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     |--------------------------------------------------------------------------
     */
 
-    $checkInspectorSql = "SELECT inspector_id FROM inspectors WHERE user_mail = ? LIMIT 1";
+    $checkInspectorSql = "
+        SELECT inspector_id
+        FROM inspectors
+        WHERE user_mail = ?
+        LIMIT 1
+    ";
+
     $checkInspectorStmt = mysqli_prepare($conn, $checkInspectorSql);
 
     if (!$checkInspectorStmt) {
@@ -220,28 +303,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $checkInspectorResult = mysqli_stmt_get_result($checkInspectorStmt);
 
-    if (mysqli_num_rows($checkInspectorResult) > 0) {
+    if ($checkInspectorResult && mysqli_num_rows($checkInspectorResult) > 0) {
         mysqli_stmt_close($checkInspectorStmt);
         setFlashMessage("error", "This email already exists in inspectors table.");
     }
 
     mysqli_stmt_close($checkInspectorStmt);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Insert Process
-    |--------------------------------------------------------------------------
-    */
-
     mysqli_begin_transaction($conn);
 
     try {
-        /*
-        |--------------------------------------------------------------------------
-        | Step 1: Insert Into users Table
-        |--------------------------------------------------------------------------
-        */
-
         $loginAccessValue = ($loginAccess === "yes") ? 1 : 0;
 
         if ($loginAccess === "yes") {
@@ -249,6 +320,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             $hashedPassword = password_hash("NO_LOGIN_ACCESS_" . time(), PASSWORD_DEFAULT);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Insert user
+        |--------------------------------------------------------------------------
+        */
 
         $insertUserSql = "
             INSERT INTO users (
@@ -283,18 +360,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             throw new Exception("User insert failed: " . mysqli_stmt_error($insertUserStmt));
         }
 
-        $userId = mysqli_insert_id($conn);
+        $userId = (int)mysqli_insert_id($conn);
         mysqli_stmt_close($insertUserStmt);
 
         /*
         |--------------------------------------------------------------------------
-        | Step 2: Insert Into inspectors Table
+        | Insert inspector
         |--------------------------------------------------------------------------
         */
 
         $insertInspectorSql = "
             INSERT INTO inspectors (
                 user_id,
+                city_cor_id,
+                assigned_ward_id,
                 user_mail,
                 full_name,
                 phone_number,
@@ -302,10 +381,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 address,
                 gender,
                 designation,
-                assigned_ward_no,
                 office_address
             )
-            VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)
         ";
 
         $insertInspectorStmt = mysqli_prepare($conn, $insertInspectorSql);
@@ -316,15 +394,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         mysqli_stmt_bind_param(
             $insertInspectorStmt,
-            "issssssis",
+            "iiisssssss",
             $userId,
+            $cityCorId,
+            $assignedWardId,
             $email,
             $fullName,
             $phoneNumber,
             $address,
             $gender,
             $designation,
-            $assignedWardNo,
             $officeAddress
         );
 
@@ -332,12 +411,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             throw new Exception("Inspector insert failed: " . mysqli_stmt_error($insertInspectorStmt));
         }
 
-        $inspectorId = mysqli_insert_id($conn);
+        $inspectorId = (int)mysqli_insert_id($conn);
         mysqli_stmt_close($insertInspectorStmt);
 
         /*
         |--------------------------------------------------------------------------
-        | Step 3: Generate Employee Code
+        | Generate and update employee code
         |--------------------------------------------------------------------------
         */
 
@@ -390,6 +469,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/footer.css">
     <link rel="stylesheet" href="../../css/central/add-inspector.css">
+    <link rel="stylesheet" href="../../css/central/centralTextFix.css">
 </head>
 
 <body class="central">
@@ -475,22 +555,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <label for="designation">Designation <span>*</span></label>
                             <select id="designation" name="designation" required>
                                 <option value="">Select designation</option>
-                                <option value="Inspector">Inspector</option>
-                                <option value="QA Officer">QA Officer</option>
+                                <option value="Field Inspector">Field Inspector</option>
+                                <option value="Senior Field Inspector">Senior Field Inspector</option>
+                                <option value="Drainage Inspection Officer">Drainage Inspection Officer</option>
+                                <option value="Quality Assurance Inspector">Quality Assurance Inspector</option>
+                                <option value="Inspection Supervisor">Inspection Supervisor</option>
+                                <option value="Zone Inspection Officer">Zone Inspection Officer</option>
+                                <option value="Emergency Response Inspector">Emergency Response Inspector</option>
                             </select>
                         </div>
 
                         <div class="ai-field">
-                            <label for="assigned_ward_no">Assigned Ward No <span>*</span></label>
+                            <label for="city_cor_id">City Corporation <span>*</span></label>
+                            <select id="city_cor_id" name="city_cor_id" required>
+                                <option value="">Select city corporation</option>
 
-                            <select id="assigned_ward_no" name="assigned_ward_no" required>
-                                <option value="">Select ward</option>
-
-                                <?php foreach ($wards as $ward): ?>
-                                    <option value="<?php echo (int)$ward["ward_no"]; ?>">
-                                        Ward <?php echo safeText($ward["ward_no"]); ?>
+                                <?php foreach ($cityCorporations as $cityCorporation): ?>
+                                    <option value="<?php echo (int)$cityCorporation["city_cor_id"]; ?>">
+                                        <?php echo safeText($cityCorporation["city_cor_name"]); ?>
                                     </option>
                                 <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="ai-field">
+                            <label for="assigned_ward_id">Assigned Ward <span>*</span></label>
+                            <select id="assigned_ward_id" name="assigned_ward_id" required disabled>
+                                <option value="">Select city corporation first</option>
                             </select>
                         </div>
 
@@ -572,6 +663,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 </div>
 
+<script>
+    window.DG_INSPECTOR_WARDS = <?php echo $wardJson ?: "[]"; ?>;
+</script>
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/add-inspector.js"></script>
 
