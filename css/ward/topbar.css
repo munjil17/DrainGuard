@@ -1,133 +1,217 @@
-.ward-main{
-    width:calc(100% - 250px);
-    margin-left:250px;
-    min-height:100vh;
-    background:#F8FAFC;
+/* ==========================================================================
+   Ward Main Layout
+   ========================================================================== */
+
+.ward-main {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    min-height: 100vh;
+    background: #F8FAFC;
+    overflow-x: hidden;
 }
 
-.ward-topbar{
-    height:76px;
-    padding:0 24px;
-    background:#ffffff;
-    border-bottom:1px solid #E5E7EB;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    position:sticky;
-    top:0;
-    z-index:900;
+/* ==========================================================================
+   Ward Topbar
+   ========================================================================== */
+
+.ward-topbar {
+    height: 76px;
+    padding: 0 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 900;
 }
 
-.topbar-left{
-    display:flex;
-    align-items:center;
-    gap:18px;
-    flex:1;
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1;
+    min-width: 0;
 }
 
-.mobile-toggle{
-    width:42px;
-    height:42px;
-    border:none;
-    border-radius:9px;
-    background:var(--accent-bg);
-    color:var(--primary-color);
-    font-size:22px;
-    display:none;
+.mobile-toggle {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 9px;
+    background: var(--accent-bg, #DBEAFE);
+    color: var(--primary-color, #1E40AF);
+    font-size: 22px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
 }
 
-.topbar-search{
-    width:min(580px,100%);
-    height:44px;
-    padding:0 14px;
-    border:1px solid #CBD5E1;
-    border-radius:8px;
-    display:flex;
-    align-items:center;
-    gap:12px;
+.mobile-toggle:hover {
+    background: var(--primary-color, #1E40AF);
+    color: #ffffff;
 }
 
-.topbar-search i{
-    color:#94A3B8;
-    font-size:18px;
+/* Search box removed from PHP.
+   These rules prevent old cached/search markup from showing if any old topbar is still loaded. */
+.topbar-search {
+    display: none !important;
 }
 
-.topbar-search input{
-    width:100%;
-    border:none;
-    outline:none;
-    font-size:14px;
-    font-weight:500;
-    color:#0F172A;
+.topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    flex-shrink: 0;
 }
 
-.topbar-right{
-    display:flex;
-    align-items:center;
-    gap:22px;
+.notification-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    color: #0F172A;
+    position: relative;
+    font-size: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
 }
 
-.notification-btn{
-    width:42px;
-    height:42px;
-    border:none;
-    background:transparent;
-    color:#0F172A;
-    position:relative;
-    font-size:20px;
+.notification-btn:hover {
+    color: var(--primary-color, #1E40AF);
 }
 
-.notification-btn span{
-    width:8px;
-    height:8px;
-    background:#EF4444;
-    border-radius:50%;
-    position:absolute;
-    top:10px;
-    right:9px;
+.notification-btn span {
+    width: 8px;
+    height: 8px;
+    background: #EF4444;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    right: 9px;
+    border: 1px solid #FFFFFF;
 }
 
-.topbar-user{
-    padding-left:22px;
-    border-left:1px solid #E5E7EB;
-    display:flex;
-    align-items:center;
-    gap:12px;
+.topbar-user {
+    min-height: 44px;
+    padding-left: 22px;
+    border-left: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
 
-.topbar-user h4{
-    font-size:14px;
-    font-weight:800;
-    color:#0F172A;
-    margin:0 0 3px;
+.topbar-user-info {
+    min-width: 0;
+    text-align: right;
 }
 
-.topbar-user p{
-    font-size:12px;
-    color:#64748B;
-    margin:0;
+.topbar-user h4 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
 }
 
-.topbar-avatar{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    background:var(--main-gradient);
-    color:#ffffff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+.topbar-user p {
+    font-size: 12px;
+    color: #64748B;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
 }
 
-@media(max-width:992px){
-    .ward-main{
-        width:100%;
-        margin-left:0;
+.topbar-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--main-gradient, linear-gradient(135deg, #1E40AF, #3B82F6));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.topbar-avatar i {
+    color: #ffffff;
+    font-size: 18px;
+}
+
+.topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* ==========================================================================
+   Tablet + Mobile
+   ========================================================================== */
+
+@media (max-width: 992px) {
+    .ward-main {
+        width: 100%;
+        margin-left: 0;
     }
 
-    .mobile-toggle{
-        display:flex;
-        align-items:center;
-        justify-content:center;
+    .ward-topbar {
+        padding: 0 16px;
+        gap: 12px;
+    }
+
+    .mobile-toggle {
+        display: flex;
+    }
+
+    .topbar-left {
+        gap: 12px;
+    }
+
+    .topbar-right {
+        gap: 12px;
+    }
+
+    .topbar-user {
+        padding-left: 12px;
+    }
+}
+
+/* ==========================================================================
+   Small Mobile
+   ========================================================================== */
+
+@media (max-width: 576px) {
+    .ward-topbar {
+        height: 68px;
+        padding: 0 12px;
+    }
+
+    .notification-btn {
+        display: none;
+    }
+
+    .topbar-user-info {
+        display: none;
+    }
+
+    .topbar-avatar,
+    .mobile-toggle {
+        width: 38px;
+        height: 38px;
     }
 }

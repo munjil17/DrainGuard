@@ -185,14 +185,19 @@ body.citizen {
 ========================================= */
 
 body.ward {
-    --primary-color: #7BAE9F;
-    --secondary-color: #5F8F86;
-    --accent-color: #466B64;
+    --primary-color: #6FA79B;
+    --secondary-color: #5A9186;
+    --accent-color: #406F66;
 
-    --accent-bg: rgba(123, 174, 159, 0.14);
-    --accent-border: #7BAE9F;
+    --accent-bg: rgba(111, 167, 155, 0.16);
+    --accent-border: #6FA79B;
 
-    --main-gradient: linear-gradient(135deg, #7BAE9F, #5F8F86);
+    --main-gradient: linear-gradient(135deg, #6FA79B, #5A9186);
+
+    --ward-primary: #6FA79B;
+    --ward-primary-dark: #5A9186;
+    --ward-primary-light: #E6F3F0;
+    --ward-primary-soft: rgba(111, 167, 155, 0.16);
 }
 
 
@@ -237,9 +242,15 @@ body.inspector {
     outline-offset: 3px;
 }
 
+/* Default selection safety */
 ::selection {
     background: var(--accent-bg);
-    color: var(--text-primary);
+    color: #0F172A;
+}
+
+::-moz-selection {
+    background: var(--accent-bg);
+    color: #0F172A;
 }
 
 
@@ -266,6 +277,8 @@ body.inspector {
 .w-min-0 {
     min-width: 0;
 }
+
+
 /* =========================================
    CITIZEN PANEL FORM TEXT VISIBILITY FIX
    Fixes pasted/copied text invisible issue

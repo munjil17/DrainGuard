@@ -76,11 +76,22 @@ document.addEventListener("DOMContentLoaded", function () {
             video.controls = true;
             video.preload = "metadata";
             item.appendChild(video);
-        } else {
+        } else if (mediaType === "image") {
             const image = document.createElement("img");
             image.src = mediaPath;
             image.alt = originalName || "Complaint evidence";
             item.appendChild(image);
+        } else {
+            const fileBox = document.createElement("div");
+            fileBox.className = "vq-media-empty";
+
+            const fileLink = document.createElement("a");
+            fileLink.href = mediaPath;
+            fileLink.target = "_blank";
+            fileLink.textContent = originalName || mediaPath.split("/").pop() || "Open file";
+
+            fileBox.appendChild(fileLink);
+            item.appendChild(fileBox);
         }
 
         const caption = document.createElement("div");
@@ -203,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     rejectButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
-            const confirmed = confirm("Reject this complaint? Status will become Rejected.");
+            const confirmed = confirm("Reject this complaint?");
 
             if (!confirmed) {
                 event.preventDefault();

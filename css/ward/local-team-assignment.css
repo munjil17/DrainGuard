@@ -1,0 +1,525 @@
+/* ==================================================
+   DRAINGUARD - WARD LOCAL TEAM ASSIGNMENT
+   Sidebar/topbar untouched
+   Form layout fixed like reference screenshot
+================================================== */
+
+.lta-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 30px 36px;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* ==================================================
+   HEADER
+================================================== */
+
+.lta-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 22px;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.lta-header h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+    font-weight: 800;
+    color: #020617;
+    letter-spacing: -0.03em;
+}
+
+.lta-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.lta-location-card {
+    min-height: 88px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.lta-location-card span {
+    margin-bottom: 6px;
+    color: #64748B;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.lta-location-card strong {
+    color: #6FA79B;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+/* ==================================================
+   ALERT
+================================================== */
+
+.lta-alert {
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+}
+
+.lta-success {
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #86EFAC;
+}
+
+.lta-error {
+    background: #FFE4E6;
+    color: #BE123C;
+    border: 1px solid #FDA4AF;
+}
+
+/* ==================================================
+   SUMMARY
+================================================== */
+
+.lta-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.lta-summary-card {
+    padding: 20px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.lta-summary-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.lta-summary-icon.pending,
+.lta-summary-icon.team {
+    background: #6FA79B;
+}
+
+.lta-summary-icon.high {
+    background: #E11D48;
+}
+
+.lta-summary-card h2 {
+    margin: 0 0 4px;
+    color: #020617;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.lta-summary-card p {
+    margin: 0;
+    color: #64748B;
+    font-size: 14px;
+}
+
+/* ==================================================
+   TOOLBAR
+================================================== */
+
+.lta-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding: 18px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.lta-search-box {
+    position: relative;
+    min-width: 0;
+}
+
+.lta-search-box i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7C89A6;
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.lta-search-box input,
+.lta-toolbar select {
+    width: 100%;
+    height: 54px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 14px;
+    background: #FFFFFF;
+    color: #020617;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.lta-search-box input {
+    padding: 0 18px 0 52px;
+}
+
+.lta-toolbar select {
+    padding: 0 14px;
+}
+
+.lta-search-box input:focus,
+.lta-toolbar select:focus {
+    border-color: #6FA79B;
+    box-shadow: 0 0 0 4px rgba(111, 167, 155, 0.14);
+}
+
+/* ==================================================
+   LIST
+================================================== */
+
+.lta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.lta-card {
+    padding: 26px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.lta-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.lta-code {
+    display: inline-flex;
+    margin-right: 10px;
+    color: #6FA79B;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.lta-priority,
+.lta-status {
+    display: inline-flex;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.lta-priority.low {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.lta-priority.medium {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.lta-priority.high {
+    background: #FFE4E6;
+    color: #BE123C;
+}
+
+.lta-status {
+    background: #D1FAE5;
+    color: #047857;
+}
+
+/* ==================================================
+   CARD BODY
+   Complaint info top
+   Assignment form below, full width
+================================================== */
+
+.lta-card-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.lta-complaint-info {
+    width: 100%;
+    min-width: 0;
+}
+
+.lta-complaint-info h2 {
+    margin: 0 0 8px;
+    color: #020617;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.lta-complaint-info p {
+    margin: 0 0 14px;
+    color: #334155;
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.lta-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: #334155;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.lta-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ==================================================
+   ASSIGNMENT FORM
+   Layout only changed; color stays from existing theme
+================================================== */
+
+.lta-assign-form {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+}
+
+.lta-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.lta-form-group {
+    margin-bottom: 14px;
+    min-width: 0;
+}
+
+.lta-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.lta-form-group select,
+.lta-form-group input,
+.lta-form-group textarea {
+    width: 100%;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    box-sizing: border-box;
+    transition: 0.22s ease;
+}
+
+.lta-form-group select,
+.lta-form-group input {
+    height: 52px;
+    padding: 0 16px;
+}
+
+.lta-form-group textarea {
+    min-height: 68px;
+    max-height: 120px;
+    resize: vertical;
+    padding: 16px;
+}
+
+.lta-form-group textarea::placeholder {
+    color: #94A3B8;
+    font-weight: 500;
+}
+
+.lta-form-group select:focus,
+.lta-form-group input:focus,
+.lta-form-group textarea:focus {
+    border-color: #6FA79B;
+    box-shadow: 0 0 0 4px rgba(111, 167, 155, 0.14);
+}
+
+.lta-assign-btn {
+    width: 100%;
+    height: 48px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 12px;
+    background: #6FA79B;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: 0.22s ease;
+    cursor: pointer;
+}
+
+.lta-assign-btn:hover {
+    background: #5A9186;
+    transform: translateY(-1px);
+}
+
+.lta-assign-btn:disabled {
+    background: #CBD5E1;
+    color: #FFFFFF;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ==================================================
+   EMPTY
+================================================== */
+
+.lta-empty {
+    padding: 60px 24px;
+    text-align: center;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.lta-empty i {
+    font-size: 46px;
+    color: #6FA79B;
+}
+
+.lta-empty h2 {
+    margin: 14px 0 8px;
+    color: #020617;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.lta-empty p {
+    margin: 0;
+    color: #64748B;
+}
+
+/* ==================================================
+   SAFETY
+================================================== */
+
+.lta-page *,
+.lta-card *,
+.lta-toolbar *,
+.lta-assign-form * {
+    box-sizing: border-box;
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 1200px) {
+    .lta-card-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .lta-page {
+        padding: 24px;
+    }
+
+    .lta-header {
+        grid-template-columns: 1fr;
+    }
+
+    .lta-location-card {
+        width: 100%;
+    }
+
+    .lta-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lta-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .lta-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .lta-page {
+        padding: 18px 14px;
+    }
+
+    .lta-header h1 {
+        font-size: 24px;
+    }
+
+    .lta-card {
+        padding: 20px;
+    }
+
+    .lta-card-top {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .lta-form-group select,
+    .lta-form-group input {
+        height: 48px;
+    }
+
+    .lta-assign-btn {
+        height: 48px;
+    }
+}

@@ -1,0 +1,380 @@
+/* ==================================================
+   DRAINGUARD - WARD IN PROGRESS CASES
+   Sidebar/topbar untouched
+================================================== */
+
+.ipc-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 30px 36px;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* HEADER */
+
+.ipc-header {
+    margin-bottom: 24px;
+}
+
+.ipc-header h1 {
+    margin: 0 0 8px;
+    color: #020617;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.ipc-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* ALERT */
+
+.ipc-alert {
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+}
+
+.ipc-error {
+    background: #FFE4E6;
+    color: #BE123C;
+    border: 1px solid #FDA4AF;
+}
+
+/* SUMMARY */
+
+.ipc-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.ipc-summary-card {
+    padding: 20px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ipc-summary-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.ipc-summary-icon.active {
+    background: #F97316;
+}
+
+.ipc-summary-icon.schedule {
+    background: #22C55E;
+}
+
+.ipc-summary-icon.delayed {
+    background: #EF4444;
+}
+
+.ipc-summary-card h2 {
+    margin: 0 0 4px;
+    color: #020617;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.ipc-summary-card p {
+    margin: 0;
+    color: #64748B;
+    font-size: 14px;
+}
+
+/* TOOLBAR */
+
+.ipc-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding: 18px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.ipc-search-box {
+    position: relative;
+    min-width: 0;
+}
+
+.ipc-search-box i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7C89A6;
+    font-size: 20px;
+    pointer-events: none;
+}
+
+.ipc-search-box input,
+.ipc-toolbar select {
+    width: 100%;
+    height: 54px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 14px;
+    background: #FFFFFF;
+    color: #020617;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.ipc-search-box input {
+    padding: 0 18px 0 52px;
+}
+
+.ipc-toolbar select {
+    padding: 0 14px;
+}
+
+.ipc-search-box input:focus,
+.ipc-toolbar select:focus {
+    border-color: #6FA79B;
+    box-shadow: 0 0 0 4px rgba(111, 167, 155, 0.14);
+}
+
+/* TABLE */
+
+.ipc-table-card {
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    overflow: hidden;
+}
+
+.ipc-table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.ipc-table {
+    width: 100%;
+    min-width: 1080px;
+    border-collapse: collapse;
+}
+
+.ipc-table thead {
+    background: #F8FAFC;
+}
+
+.ipc-table th {
+    padding: 17px 24px;
+    border-bottom: 1px solid #E2E8F0;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.ipc-table td {
+    padding: 18px 24px;
+    border-bottom: 1px solid #E2E8F0;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.ipc-table tbody tr {
+    transition: 0.2s ease;
+}
+
+.ipc-table tbody tr:hover {
+    background: #F8FAFC;
+}
+
+.ipc-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ipc-row.is-delayed {
+    background: #FEF2F2;
+}
+
+.ipc-row.is-delayed:hover {
+    background: #FEE2E2;
+}
+
+/* ID one line fix */
+
+.ipc-table th:first-child,
+.ipc-table td:first-child {
+    width: 210px;
+    min-width: 210px;
+    white-space: nowrap;
+}
+
+.ipc-code {
+    color: #06B6B8;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.ipc-issue {
+    display: block;
+    color: #020617;
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 0;
+}
+
+.ipc-table small {
+    display: none;
+}
+
+/* BADGES */
+
+.ipc-progress,
+.ipc-status {
+    min-height: 28px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ipc-progress.assigned {
+    background: #E0E7FF;
+    color: #4338CA;
+}
+
+.ipc-progress.started {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.ipc-progress.working {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+.ipc-progress.completed {
+    background: #CCFBF1;
+    color: #0F766E;
+}
+
+.ipc-status.on-schedule {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.ipc-status.delayed {
+    background: #FFE4E6;
+    color: #BE123C;
+}
+
+.ipc-status.no-deadline {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.ipc-status.completed {
+    background: #CCFBF1;
+    color: #0F766E;
+}
+
+/* EMPTY */
+
+.ipc-empty {
+    padding: 60px 24px;
+    text-align: center;
+}
+
+.ipc-empty i {
+    font-size: 46px;
+    color: #6FA79B;
+}
+
+.ipc-empty h2 {
+    margin: 14px 0 8px;
+    color: #020617;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.ipc-empty p {
+    margin: 0;
+    color: #64748B;
+}
+
+.ipc-hidden {
+    display: none !important;
+}
+
+/* SAFETY */
+
+.ipc-page *,
+.ipc-table-card *,
+.ipc-toolbar * {
+    box-sizing: border-box;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 992px) {
+    .ipc-page {
+        padding: 24px;
+    }
+
+    .ipc-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ipc-toolbar {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .ipc-page {
+        padding: 18px 14px;
+    }
+
+    .ipc-header h1 {
+        font-size: 24px;
+    }
+
+    .ipc-summary-card {
+        padding: 18px;
+    }
+}

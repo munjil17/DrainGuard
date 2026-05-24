@@ -55,7 +55,52 @@ function makeMediaPublicPath($path)
     $path = preg_replace("#^\./#", "", $path);
     $path = ltrim($path, "/");
 
+    if (str_starts_with($path, "assets/")) {
+        return "../../" . $path;
+    }
+
+    if (str_starts_with($path, "uploads/")) {
+        return "../../assets/" . $path;
+    }
+
+    if (!str_contains($path, "/")) {
+        return "../../assets/uploads/complaints/" . $path;
+    }
+
     return "../../" . $path;
+}
+
+function getEnumValues($conn, $table, $column)
+{
+    $table = mysqli_real_escape_string($conn, $table);
+    $column = mysqli_real_escape_string($conn, $column);
+
+    $result = mysqli_query($conn, "SHOW COLUMNS FROM `$table` LIKE '$column'");
+
+    if (!$result) {
+        return [];
+    }
+
+    $row = mysqli_fetch_assoc($result);
+
+    if (!$row || !isset($row["Type"])) {
+        return [];
+    }
+
+    preg_match_all("/'([^']+)'/", $row["Type"], $matches);
+
+    return $matches[1] ?? [];
+}
+
+function chooseAllowedStatus($allowedStatuses, $preferredStatuses)
+{
+    foreach ($preferredStatuses as $status) {
+        if (in_array($status, $allowedStatuses, true)) {
+            return $status;
+        }
+    }
+
+    return $preferredStatuses[0] ?? "submitted";
 }
 
 /*
@@ -107,9 +152,6 @@ if ($assignedWardId <= 0) {
 |--------------------------------------------------------------------------
 | ACTION: VERIFY / REJECT / DUPLICATE
 |--------------------------------------------------------------------------
-| No assignment_status enum dependency.
-| Only complaints.complaint_status is updated.
-|--------------------------------------------------------------------------
 */
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
@@ -121,22 +163,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
     if ($complaintId <= 0 || !in_array($action, $allowedActions, true)) {
         $errorMessage = "Invalid request.";
     } else {
-        $newStatus = "";
+        $allowedComplaintStatuses = getEnumValues($conn, "complaints", "complaint_status");
 
         if ($action === "verify") {
-            $newStatus = "verified";
-        }
-
-        if ($action === "reject") {
-            $newStatus = "rejected";
-        }
-
-        if ($action === "duplicate") {
             /*
-             * Keeping DB-safe behavior because you did not change enum.
-             * Duplicate is treated as rejected/removed from queue.
+             * Your DB currently has received in complaint_status enum.
+             * Use received as Ward Verified status.
              */
-            $newStatus = "rejected";
+            $newStatus = chooseAllowedStatus($allowedComplaintStatuses, [
+                "received",
+                "verified",
+                "ward_verified"
+            ]);
+        } elseif ($action === "reject") {
+            $newStatus = chooseAllowedStatus($allowedComplaintStatuses, [
+                "rejected",
+                "submitted"
+            ]);
+        } else {
+            $newStatus = chooseAllowedStatus($allowedComplaintStatuses, [
+                "duplicate",
+                "rejected",
+                "submitted"
+            ]);
         }
 
         mysqli_begin_transaction($conn);
@@ -225,10 +274,10 @@ if ($assignedWardId > 0) {
         SELECT
             c.complaint_id,
             c.complaint_code,
-            c.issue_type,
+            i.issue_name AS issue_type,
             c.address_description,
             c.problem_description,
-            c.urgency_level,
+            i.priority AS urgency_level,
             c.complaint_status,
             c.submitted_at,
             c.updated_at,
@@ -257,23 +306,26 @@ if ($assignedWardId > 0) {
         INNER JOIN locations l
             ON c.loc_id = l.loc_id
 
-        INNER JOIN areas a
+        LEFT JOIN areas a
             ON l.area_id = a.area_id
 
-        INNER JOIN thanas t
+        LEFT JOIN thanas t
             ON l.thana_id = t.thana_id
 
-        INNER JOIN city_corporations cc
+        LEFT JOIN city_corporations cc
             ON l.city_cor_id = cc.city_cor_id
+
+        LEFT JOIN issues i
+            ON c.issue_id = i.issue_id
 
         WHERE c.complaint_status = 'pending_verification'
         AND ca.ward_id = ?
 
         ORDER BY
             CASE
-                WHEN c.urgency_level = 'Critical' THEN 1
-                WHEN c.urgency_level = 'High' THEN 2
-                WHEN c.urgency_level = 'Medium' THEN 3
+                WHEN i.priority = 'High' THEN 1
+                WHEN i.priority = 'Medium' THEN 2
+                WHEN i.priority = 'Low' THEN 3
                 ELSE 4
             END,
             c.submitted_at DESC
@@ -352,7 +404,7 @@ $totalPending = count($verificationComplaints);
 $criticalCount = 0;
 
 foreach ($verificationComplaints as $item) {
-    if (strtolower((string)$item["urgency_level"]) === "critical") {
+    if (strtolower((string)$item["urgency_level"]) === "high") {
         $criticalCount++;
     }
 }
@@ -372,9 +424,10 @@ foreach ($verificationComplaints as $item) {
     <link rel="stylesheet" href="../../css/ward/topbar.css">
     <link rel="stylesheet" href="../../css/ward/footer.css">
     <link rel="stylesheet" href="../../css/ward/verification-queue.css">
+    <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
 </head>
 
-<body>
+<body class="ward">
 
 <div class="ward-layout">
 
@@ -429,7 +482,7 @@ foreach ($verificationComplaints as $item) {
                     </div>
                     <div>
                         <h2><?php echo $criticalCount; ?></h2>
-                        <p>Critical Issues</p>
+                        <p>High Priority Issues</p>
                     </div>
                 </div>
 
@@ -452,7 +505,6 @@ foreach ($verificationComplaints as $item) {
 
                 <select id="vqPriorityFilter">
                     <option value="all">All Priority</option>
-                    <option value="Critical">Critical</option>
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
@@ -467,8 +519,8 @@ foreach ($verificationComplaints as $item) {
                         <?php
                             $complaintId = (int)$complaint["complaint_id"];
                             $complaintCode = safeText($complaint["complaint_code"]);
-                            $issueType = safeText($complaint["issue_type"]);
-                            $rawProblem = (string)$complaint["problem_description"];
+                            $issueType = safeText($complaint["issue_type"] ?? "Unknown Issue");
+                            $rawProblem = (string)($complaint["problem_description"] ?? "");
                             $problem = safeText($rawProblem);
 
                             $shortProblemRaw = mb_strlen($rawProblem) > 95
@@ -477,7 +529,7 @@ foreach ($verificationComplaints as $item) {
 
                             $shortProblem = safeText($shortProblemRaw);
 
-                            $priority = safeText($complaint["urgency_level"]);
+                            $priority = safeText($complaint["urgency_level"] ?? "Low");
                             $wardText = wardDisplayName($complaint["ward_no"], $complaint["ward_name"]);
                             $areaText = safeText($complaint["area_name"]);
                             $thanaText = safeText($complaint["thana_name"]);

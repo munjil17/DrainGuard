@@ -1,0 +1,335 @@
+/* ==================================================
+   DRAINGUARD - WARD SETTINGS
+   Sidebar/topbar untouched
+   Cards centered
+================================================== */
+
+.ws-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 30px 36px 44px;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* HEADER */
+
+.ws-header {
+    width: 100%;
+    max-width: 768px;
+    margin: 0 auto 24px auto;
+}
+
+.ws-header h1 {
+    margin: 0 0 8px;
+    color: #020617;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.ws-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* ALERT */
+
+.ws-alert {
+    width: 100%;
+    max-width: 768px;
+    margin: 0 auto 20px auto;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+}
+
+.ws-success {
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #86EFAC;
+}
+
+.ws-error {
+    background: #FFE4E6;
+    color: #BE123C;
+    border: 1px solid #FDA4AF;
+}
+
+/* CARD */
+
+.ws-card {
+    width: 100%;
+    max-width: 768px;
+    margin: 0 auto 24px auto;
+    padding: 24px;
+    border-radius: 16px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.ws-card-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.ws-card-title h2 {
+    margin: 0;
+    color: #020617;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.ws-title-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.ws-title-icon.profile {
+    background: #DDFBFF;
+    color: #06B6B8;
+}
+
+.ws-title-icon.ward {
+    background: #F3E8FF;
+    color: #A855F7;
+}
+
+.ws-title-icon.password {
+    background: #FFF7ED;
+    color: #F97316;
+}
+
+.ws-title-icon.notify {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+/* PROFILE PHOTO */
+
+.ws-profile-photo-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px;
+    margin-bottom: 22px;
+    border-radius: 14px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+}
+
+.ws-profile-photo {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: #06B6B8;
+    color: #FFFFFF;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.ws-profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ws-profile-photo-row h3 {
+    margin: 0 0 4px;
+    color: #020617;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.ws-profile-photo-row p {
+    margin: 0;
+    color: #64748B;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* FORM */
+
+.ws-form-group {
+    margin-bottom: 18px;
+}
+
+.ws-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.ws-form-group input {
+    width: 100%;
+    height: 52px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 0 18px;
+    outline: none;
+    box-sizing: border-box;
+    transition: 0.22s ease;
+}
+
+.ws-form-group input:focus {
+    border-color: #06B6B8;
+    box-shadow: 0 0 0 3px rgba(6, 182, 184, 0.12);
+}
+
+.ws-form-group input[readonly] {
+    background: #F8FAFC;
+    color: #334155;
+    cursor: not-allowed;
+}
+
+/* BUTTONS */
+
+.ws-profile-btn,
+.ws-password-btn {
+    width: 100%;
+    height: 48px;
+    border: none;
+    border-radius: 12px;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.22s ease;
+}
+
+.ws-profile-btn {
+    background: #08BFC3;
+}
+
+.ws-profile-btn:hover {
+    background: #069DA1;
+    transform: translateY(-1px);
+}
+
+.ws-password-btn {
+    background: #FB923C;
+}
+
+.ws-password-btn:hover {
+    background: #F97316;
+    transform: translateY(-1px);
+}
+
+/* WARD AREA */
+
+.ws-area-box {
+    width: 100%;
+    min-height: 58px;
+    padding: 14px 16px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 12px;
+    background: #F8FAFC;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ws-area-box span {
+    display: inline-flex;
+    padding: 8px 12px;
+    border-radius: 9px;
+    background: #FFFFFF;
+    border: 1px solid #D7E2EF;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* NOTIFICATION */
+
+.ws-check-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ws-check-list label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #0F172A;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ws-check-list input[type="checkbox"] {
+    width: 19px;
+    height: 19px;
+    accent-color: #08BFC3;
+    cursor: pointer;
+}
+
+/* SAFETY */
+
+.ws-page *,
+.ws-card * {
+    box-sizing: border-box;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 992px) {
+    .ws-page {
+        padding: 24px;
+    }
+
+    .ws-card,
+    .ws-alert,
+    .ws-header {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .ws-page {
+        padding: 18px 14px 36px;
+    }
+
+    .ws-header h1 {
+        font-size: 24px;
+    }
+
+    .ws-card {
+        padding: 20px;
+    }
+
+    .ws-profile-photo-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ws-form-group input {
+        height: 50px;
+    }
+}

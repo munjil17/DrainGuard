@@ -1,36 +1,22 @@
 /* ==========================================================================
-   ১. লেআউট ও রেসপন্সিভ স্ট্রাকচার
+   Ward Sidebar Layout
    ========================================================================== */
+
 .ward-layout {
     min-height: 100vh;
     display: flex;
     background: #F8FAFC;
 }
 
-@media (min-width: 768px) {
-    .ward-sidebar {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        width: 250px;
-        height: 100vh; /* ফিক্সড ফুল হাইট */
-    }
-    
-    .main-content, main, .dashboard-wrapper { 
-        margin-left: 250px !important;
-        width: calc(100% - 250px) !important;
-    }
-}
-
 .ward-sidebar {
     width: 250px;
-    height: 100vh; /* স্ক্রিনের সমান হাইট */
+    height: 100vh;
     background: #08233D !important;
     color: #ffffff !important;
     display: flex;
     flex-direction: column;
     z-index: 1045;
-    overflow: hidden; /* মূল সাইডবারের ডিফল্ট ওভারফ্লো বন্ধ */
+    overflow: hidden;
     border: none !important;
 }
 
@@ -39,11 +25,29 @@
     border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
 
+@media (min-width: 768px) {
+    .ward-sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+    }
+
+    .main-content,
+    main,
+    .dashboard-wrapper {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+    }
+}
+
 /* ==========================================================================
-   ২. ব্র্যান্ডিং / লোগো সেকশন (উচ্চতা কমানো হয়েছে)
+   Brand
    ========================================================================== */
+
 .sidebar-brand {
-    height: 76px; /* ৮৮ পিক্সেল থেকে কমিয়ে ৭৬ করা হয়েছে */
+    height: 76px;
     padding: 12px 20px;
     display: flex;
     align-items: center;
@@ -53,7 +57,7 @@
 }
 
 .brand-icon {
-    width: 42px; /* ৪৮ থেকে কমিয়ে ৪২ করা হয়েছে */
+    width: 42px;
     height: 42px;
     border-radius: 10px;
     background: var(--main-gradient, #1E40AF);
@@ -81,6 +85,10 @@
     bottom: -2px;
 }
 
+.brand-text {
+    min-width: 0;
+}
+
 .brand-text h2 {
     margin: 0 0 2px;
     font-size: 16px;
@@ -98,10 +106,11 @@
 }
 
 /* ==========================================================================
-   ৩. রোল ও অ্যাক্সেস সেকশন (প্যাডিং কমানো হয়েছে)
+   Role Section
    ========================================================================== */
+
 .sidebar-role {
-    padding: 10px 20px; /* প্যাডিং কম করা হয়েছে */
+    padding: 10px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, .08);
     flex-shrink: 0;
 }
@@ -137,28 +146,34 @@
 }
 
 /* ==========================================================================
-   ৪. নেভিগেশন মেনু লিংক সমূহ (গ্যাপ কমানো এবং স্ক্রোল চালু করা হয়েছে)
+   Menu
    ========================================================================== */
+
 .sidebar-menu {
     flex: 1;
-    padding: 10px 14px; /* প্যাডিং ১৮ থেকে কমিয়ে ১০ করা হয়েছে */
-    overflow-y: auto; /* শুধু মেনু এরিয়াটি স্ক্রোল হবে */
+    padding: 10px 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: 2px; /* লিংকগুলোর গ্যাপ ৪ থেকে কমিয়ে ২ করা হয়েছে */
+    gap: 2px;
 }
 
-/* স্ক্রোলবারটি দেখতে যাতে খারাপ না লাগে তাই হাইড রাখা হয়েছে কিন্তু স্ক্রোল কাজ করবে */
 .sidebar-menu::-webkit-scrollbar {
     width: 4px;
 }
+
 .sidebar-menu::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
 
+.sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 .menu-link {
-    min-height: 36px; /* উচ্চতা ৪০ থেকে কমিয়ে ৩৬ করা হয়েছে */
+    min-height: 36px;
     padding: 0 12px;
     border-radius: 6px;
     display: flex;
@@ -184,6 +199,7 @@
 
 .menu-link span {
     line-height: 1.3;
+    white-space: normal;
 }
 
 .menu-link:hover,
@@ -198,12 +214,13 @@
 }
 
 /* ==========================================================================
-   ৫. ইউজার প্রোফাইল ও অ্যাকশন বাটন (সবসময় নিচে ফিক্সড থাকবে)
+   User Section
    ========================================================================== */
+
 .sidebar-user {
     padding: 12px 14px;
     border-top: 1px solid rgba(255, 255, 255, .08);
-    flex-shrink: 0; /* মেনু বড় হলেও এটি নিচে ফিক্সড থাকবে, ছোট হবে না */
+    flex-shrink: 0;
     background: #08233D;
 }
 
@@ -215,19 +232,29 @@
 }
 
 .user-avatar {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     background: var(--main-gradient, #1E40AF);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    overflow: hidden;
+    border: 1.5px solid rgba(255, 255, 255, 0.16);
 }
 
 .user-avatar i {
     font-size: 16px;
     color: #ffffff !important;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .user-info {
@@ -241,6 +268,9 @@
     font-weight: 800;
     line-height: 1.1;
     color: #ffffff !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-info p {
@@ -249,6 +279,9 @@
     font-weight: 500;
     color: #CBD5E1 !important;
     line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-actions {
@@ -288,4 +321,15 @@
 .logout-btn:hover {
     background: rgba(239, 68, 68, .25) !important;
     color: #ffffff !important;
+}
+.user-avatar {
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border-radius: 50%;
 }

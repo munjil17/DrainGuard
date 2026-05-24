@@ -1,0 +1,123 @@
+/* ==========================================================================
+   Ward Panel Text Visibility + Selection Fix
+   Use this after global.css and page-specific CSS
+   ========================================================================== */
+
+/* Fix selected/marked text visibility on white cards */
+body.ward ::selection {
+    background: rgba(111, 167, 155, 0.32) !important;
+    color: #0F172A !important;
+}
+
+body.ward ::-moz-selection {
+    background: rgba(111, 167, 155, 0.32) !important;
+    color: #0F172A !important;
+}
+
+/* Keep dashboard headings visible */
+body.ward .dashboard-hero h1,
+body.ward .dashboard-hero h2,
+body.ward .dashboard-hero h3,
+body.ward .ward-dashboard-page h1,
+body.ward .ward-dashboard-page h2,
+body.ward .ward-dashboard-page h3 {
+    color: #020617 !important;
+    -webkit-text-fill-color: #020617 !important;
+}
+
+/* Keep paragraph/body text visible */
+body.ward .dashboard-hero p,
+body.ward .ward-dashboard-page p,
+body.ward .kpi-card p,
+body.ward .complaint-info p {
+    color: #334155 !important;
+    -webkit-text-fill-color: #334155 !important;
+}
+
+/* KPI numbers must stay dark */
+body.ward .kpi-card h2 {
+    color: #020617 !important;
+    -webkit-text-fill-color: #020617 !important;
+}
+
+/* Topbar input text visibility */
+body.ward input,
+body.ward select,
+body.ward textarea {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    caret-color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+body.ward input::placeholder,
+body.ward textarea::placeholder {
+    color: #94A3B8 !important;
+    opacity: 1 !important;
+}
+
+/* Autofill text visibility */
+body.ward input:-webkit-autofill,
+body.ward input:-webkit-autofill:hover,
+body.ward input:-webkit-autofill:focus,
+body.ward textarea:-webkit-autofill,
+body.ward textarea:-webkit-autofill:hover,
+body.ward textarea:-webkit-autofill:focus,
+body.ward select:-webkit-autofill,
+body.ward select:-webkit-autofill:hover,
+body.ward select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0F172A !important;
+    -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    caret-color: #0F172A !important;
+    transition: background-color 9999s ease-in-out 0s !important;
+}
+
+/* Ward panel main color enforce */
+body.ward .menu-link:hover,
+body.ward .menu-link.active {
+    background: linear-gradient(135deg, #6FA79B, #5A9186) !important;
+    color: #FFFFFF !important;
+}
+
+body.ward .brand-icon,
+body.ward .user-avatar,
+body.ward .topbar-avatar {
+    background: linear-gradient(135deg, #6FA79B, #5A9186) !important;
+}
+
+body.ward .brand-text p,
+body.ward .sidebar-role small,
+body.ward .complaint-code,
+body.ward .panel-header a {
+    color: #6FA79B !important;
+}
+
+body.ward .sidebar-role-dot {
+    background: #6FA79B !important;
+}
+
+body.ward .verify-btn {
+    background: #6FA79B !important;
+    color: #FFFFFF !important;
+}
+
+body.ward .verify-btn:hover {
+    background: #5A9186 !important;
+    color: #FFFFFF !important;
+}
+
+body.ward .topbar-search:focus-within {
+    border-color: #6FA79B !important;
+    box-shadow: 0 0 0 3px rgba(111, 167, 155, 0.16) !important;
+}
+
+body.ward .mobile-toggle {
+    background: #E6F3F0 !important;
+    color: #6FA79B !important;
+}
+
+body.ward .mobile-toggle:hover {
+    background: #6FA79B !important;
+    color: #FFFFFF !important;
+}

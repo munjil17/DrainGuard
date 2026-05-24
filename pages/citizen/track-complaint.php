@@ -16,28 +16,57 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'citizen') {
 
 $userId = (int)($_SESSION['user_id'] ?? 0);
 $searchCode = trim($_GET['code'] ?? '');
+
 $complaint = null;
 $mediaFiles = [];
 $errorMessage = "";
 
-function safeText($value) {
+function safeText($value)
+{
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
-function normalizeComplaintStatus($status) {
+function dgStartsWith($string, $prefix)
+{
+    return substr($string, 0, strlen($prefix)) === $prefix;
+}
+
+function normalizeComplaintStatus($status)
+{
     $status = strtolower(trim((string)$status));
 
     $map = [
-        'assigned' => 'assigned_to_team',
+        'assigned' => 'team_assigned',
+        'assigned_to_team' => 'team_assigned',
+        'team_assigned' => 'team_assigned',
         'completed' => 'solved_by_team',
+        'completed_by_team' => 'solved_by_team',
+        'team_completed' => 'solved_by_team',
         'under_inspection' => 'inspector_verification',
-        'solved' => 'closed'
+        'pending_inspection' => 'inspector_verification',
+        'solved' => 'closed',
+        'resolved' => 'closed',
+        'ward_verified' => 'verified'
     ];
 
     return $map[$status] ?? $status;
 }
 
-function formatStatus($status) {
+function normalizeWorkStatus($status)
+{
+    $status = strtolower(trim((string)$status));
+
+    $map = [
+        'assigned' => 'team_assigned',
+        'started' => 'in_progress',
+        'completed' => 'solved_by_team'
+    ];
+
+    return $map[$status] ?? $status;
+}
+
+function formatStatus($status)
+{
     $status = normalizeComplaintStatus($status);
 
     $labels = [
@@ -45,27 +74,29 @@ function formatStatus($status) {
         'received' => 'Received',
         'pending_verification' => 'Pending Verification',
         'verified' => 'Verified',
-        'assigned_to_team' => 'Assigned to Team',
+        'team_assigned' => 'Assigned to Team',
         'in_progress' => 'In Progress',
         'solved_by_team' => 'Solved by Team',
         'inspector_verification' => 'Inspector Verification',
         'closed' => 'Closed / Solved',
         'rejected' => 'Rejected',
         'duplicate' => 'Duplicate',
-        'reopened' => 'Reopened'
+        'reopened' => 'Reopened',
+        'n/a' => 'N/A'
     ];
 
     return $labels[$status] ?? ucwords(str_replace('_', ' ', (string)$status));
 }
 
-function statusClass($status) {
+function statusClass($status)
+{
     $status = normalizeComplaintStatus($status);
 
     if ($status === 'submitted') return 'status-submitted';
     if ($status === 'received') return 'status-received';
     if ($status === 'pending_verification') return 'status-pending';
     if ($status === 'verified') return 'status-verified';
-    if ($status === 'assigned_to_team') return 'status-assigned';
+    if ($status === 'team_assigned') return 'status-assigned';
     if ($status === 'in_progress') return 'status-progress';
     if ($status === 'solved_by_team') return 'status-completed';
     if ($status === 'inspector_verification') return 'status-inspection';
@@ -77,7 +108,8 @@ function statusClass($status) {
     return 'status-submitted';
 }
 
-function formatFileSize($bytes) {
+function formatFileSize($bytes)
+{
     $bytes = (int)$bytes;
 
     if ($bytes >= 1024 * 1024) {
@@ -91,6 +123,43 @@ function formatFileSize($bytes) {
     return $bytes . " B";
 }
 
+function makeMediaPath($path)
+{
+    $path = trim((string)$path);
+
+    if ($path === '') {
+        return '';
+    }
+
+    $path = str_replace("\\", "/", $path);
+
+    if (preg_match('/^https?:\/\//i', $path)) {
+        return $path;
+    }
+
+    if (dgStartsWith($path, '../../')) {
+        return $path;
+    }
+
+    if (dgStartsWith($path, '/')) {
+        return $path;
+    }
+
+    if (dgStartsWith($path, 'assets/')) {
+        return '../../' . $path;
+    }
+
+    if (dgStartsWith($path, 'uploads/')) {
+        return '../../assets/' . $path;
+    }
+
+    if (!strpos($path, '/')) {
+        return '../../assets/uploads/complaints/' . $path;
+    }
+
+    return '../../' . ltrim($path, '/');
+}
+
 if ($searchCode !== '') {
     $sql = "
         SELECT
@@ -101,6 +170,7 @@ if ($searchCode !== '') {
             c.address_description,
             c.problem_description,
             c.complaint_status,
+            c.work_started_at,
             c.submitted_at,
             c.updated_at,
 
@@ -112,7 +182,22 @@ if ($searchCode !== '') {
             t.thana_name,
             w.ward_no,
             w.ward_name,
-            a.area_name
+            a.area_name,
+
+            ca.assignment_id,
+            ca.assignment_status,
+            ca.assigned_at,
+
+            mu.work_status,
+            mu.work_note,
+            mu.proof_file_path,
+            mu.proof_file_type,
+            mu.started_at,
+            mu.completed_at,
+            mu.delayed_at,
+            mu.delay_reason,
+            mu.created_at AS work_update_created_at,
+            mu.updated_at AS work_update_updated_at
 
         FROM complaints c
 
@@ -140,6 +225,34 @@ if ($searchCode !== '') {
         INNER JOIN areas a
             ON l.area_id = a.area_id
 
+        LEFT JOIN (
+            SELECT ca1.*
+            FROM complaint_assignments ca1
+            INNER JOIN (
+                SELECT
+                    complaint_id,
+                    MAX(assignment_id) AS latest_assignment_id
+                FROM complaint_assignments
+                GROUP BY complaint_id
+            ) latest_ca
+                ON ca1.assignment_id = latest_ca.latest_assignment_id
+        ) ca
+            ON c.complaint_id = ca.complaint_id
+
+        LEFT JOIN (
+            SELECT mu1.*
+            FROM maintenance_updates mu1
+            INNER JOIN (
+                SELECT
+                    complaint_id,
+                    MAX(update_id) AS latest_update_id
+                FROM maintenance_updates
+                GROUP BY complaint_id
+            ) latest_mu
+                ON mu1.update_id = latest_mu.latest_update_id
+        ) mu
+            ON c.complaint_id = mu.complaint_id
+
         WHERE c.complaint_code = ?
         AND c.user_id = ?
         LIMIT 1
@@ -155,18 +268,22 @@ if ($searchCode !== '') {
 
         if ($result && mysqli_num_rows($result) === 1) {
             $complaint = mysqli_fetch_assoc($result);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Master tracking status
+            |--------------------------------------------------------------------------
+            | Citizen tracking follows complaints.complaint_status only.
+            | Other tables are shown as supporting details.
+            |--------------------------------------------------------------------------
+            */
             $complaint['complaint_status'] = normalizeComplaintStatus($complaint['complaint_status']);
 
             /*
             |--------------------------------------------------------------------------
-            | Load Uploaded Evidence
-            |--------------------------------------------------------------------------
-            | complaint_media table columns:
-            | media_id, complaint_id, media_type, media_path, original_name,
-            | file_size, mime_type, uploaded_at
+            | Uploaded complaint media
             |--------------------------------------------------------------------------
             */
-
             $mediaSql = "
                 SELECT
                     media_id,
@@ -193,11 +310,33 @@ if ($searchCode !== '') {
                 $mediaResult = mysqli_stmt_get_result($mediaStmt);
 
                 while ($media = mysqli_fetch_assoc($mediaResult)) {
-                    $media['display_path'] = "../../" . ltrim($media['media_path'], "/");
+                    $media['display_path'] = makeMediaPath($media['media_path']);
                     $mediaFiles[] = $media;
                 }
 
                 mysqli_stmt_close($mediaStmt);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Maintenance proof fallback
+            |--------------------------------------------------------------------------
+            | If maintenance update has proof_file_path but not in complaint_media,
+            | show it separately in the same evidence card.
+            |--------------------------------------------------------------------------
+            */
+            if (!empty($complaint['proof_file_path'])) {
+                $mediaFiles[] = [
+                    'media_id' => 0,
+                    'complaint_id' => (int)$complaint['complaint_id'],
+                    'media_type' => $complaint['proof_file_type'] ?: 'image',
+                    'media_path' => $complaint['proof_file_path'],
+                    'display_path' => makeMediaPath($complaint['proof_file_path']),
+                    'original_name' => basename((string)$complaint['proof_file_path']),
+                    'file_size' => 0,
+                    'mime_type' => '',
+                    'uploaded_at' => $complaint['work_update_created_at'] ?? null
+                ];
             }
         } else {
             $errorMessage = "No complaint found with this Complaint ID.";
@@ -211,7 +350,7 @@ if ($searchCode !== '') {
 
 /*
 |--------------------------------------------------------------------------
-| Final Tracking Workflow
+| Tracking Workflow
 |--------------------------------------------------------------------------
 */
 
@@ -220,7 +359,7 @@ $statusOrder = [
     'received',
     'pending_verification',
     'verified',
-    'assigned_to_team',
+    'team_assigned',
     'in_progress',
     'solved_by_team',
     'inspector_verification',
@@ -270,7 +409,7 @@ $timelineSteps = [
         'description' => 'Ward officer verified the problem'
     ],
     [
-        'key' => 'assigned_to_team',
+        'key' => 'team_assigned',
         'title' => 'Assigned to Team',
         'description' => 'Maintenance team has been assigned'
     ],
@@ -311,95 +450,6 @@ $timelineSteps = [
     <link rel="stylesheet" href="../../css/citizen/topbar.css">
     <link rel="stylesheet" href="../../css/citizen/track-complaint.css">
     <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
-
-    <style>
-        .tc-media-card {
-            margin-top: 22px;
-            padding: 22px;
-            border-radius: 18px;
-            background: #FFFFFF;
-            border: 1px solid #DDE6F0;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
-        }
-
-        .tc-media-card h2 {
-            margin: 0 0 16px;
-            font-size: 20px;
-            font-weight: 800;
-            color: #0F172A;
-        }
-
-        .tc-media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 14px;
-        }
-
-        .tc-media-item {
-            border: 1px solid #DDE6F0;
-            border-radius: 14px;
-            background: #F8FAFC;
-            padding: 10px;
-            overflow: hidden;
-        }
-
-        .tc-media-preview {
-            display: block;
-            width: 100%;
-            height: 160px;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #E2E8F0;
-        }
-
-        .tc-media-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .tc-media-video {
-            width: 100%;
-            max-height: 240px;
-            border-radius: 12px;
-            background: #020617;
-            display: block;
-        }
-
-        .tc-media-link {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            margin-top: 9px;
-            font-size: 13px;
-            font-weight: 800;
-            color: #0891B2;
-            text-decoration: none;
-            word-break: break-word;
-        }
-
-        .tc-media-link:hover {
-            color: #0E7490;
-        }
-
-        .tc-media-meta {
-            display: block;
-            margin-top: 4px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748B;
-        }
-
-        .tc-media-empty {
-            padding: 18px;
-            border-radius: 14px;
-            background: #F8FAFC;
-            border: 1px dashed #CBD5E1;
-            color: #64748B;
-            font-weight: 700;
-        }
-    </style>
 </head>
 
 <body class="citizen">
@@ -426,7 +476,7 @@ $timelineSteps = [
                         type="text"
                         name="code"
                         value="<?php echo safeText($searchCode); ?>"
-                        placeholder="Enter Complaint ID, e.g. DG-20260514-67727"
+                        placeholder="Enter Complaint ID, e.g. DG-20260523-81881"
                         required
                     >
                 </div>
@@ -441,6 +491,14 @@ $timelineSteps = [
                 <div class="tc-alert tc-error">
                     <i class="bi bi-exclamation-circle"></i>
                     <?php echo safeText($errorMessage); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($searchCode === '' && !$complaint): ?>
+                <div class="tc-empty-card">
+                    <i class="bi bi-search"></i>
+                    <h2>Track your complaint</h2>
+                    <p>Enter your complaint ID to view current progress, timeline, location, and uploaded evidence.</p>
                 </div>
             <?php endif; ?>
 
@@ -615,6 +673,29 @@ $timelineSteps = [
                                 ?>
                             </strong>
                         </div>
+
+                        <div>
+                            <span>Assignment Status</span>
+                            <strong>
+                                <?php
+                                    $assignmentStatus = $complaint['assignment_status'] ?? 'N/A';
+                                    echo safeText(formatStatus(normalizeComplaintStatus($assignmentStatus)));
+                                ?>
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Maintenance Status</span>
+                            <strong>
+                                <?php
+                                    $workStatus = !empty($complaint['work_status'])
+                                        ? normalizeWorkStatus($complaint['work_status'])
+                                        : 'N/A';
+
+                                    echo safeText(formatStatus($workStatus));
+                                ?>
+                            </strong>
+                        </div>
                     </div>
 
                     <div class="tc-description-block">
@@ -628,6 +709,71 @@ $timelineSteps = [
                     </div>
                 </div>
 
+                <?php if (!empty($complaint['work_status']) || !empty($complaint['work_note']) || !empty($complaint['delay_reason'])): ?>
+                    <div class="tc-work-update-card">
+                        <h2>Maintenance Update</h2>
+
+                        <div class="tc-work-grid">
+                            <div>
+                                <span>Work Status</span>
+                                <strong>
+                                    <?php
+                                        $workStatus = normalizeWorkStatus($complaint['work_status'] ?? 'N/A');
+                                        echo safeText(formatStatus($workStatus));
+                                    ?>
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Started At</span>
+                                <strong>
+                                    <?php
+                                        echo !empty($complaint['started_at'])
+                                            ? safeText(date("M d, Y h:i A", strtotime($complaint['started_at'])))
+                                            : "N/A";
+                                    ?>
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Completed At</span>
+                                <strong>
+                                    <?php
+                                        echo !empty($complaint['completed_at'])
+                                            ? safeText(date("M d, Y h:i A", strtotime($complaint['completed_at'])))
+                                            : "N/A";
+                                    ?>
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Delayed At</span>
+                                <strong>
+                                    <?php
+                                        echo !empty($complaint['delayed_at'])
+                                            ? safeText(date("M d, Y h:i A", strtotime($complaint['delayed_at'])))
+                                            : "N/A";
+                                    ?>
+                                </strong>
+                            </div>
+                        </div>
+
+                        <?php if (!empty($complaint['work_note'])): ?>
+                            <div class="tc-work-note">
+                                <span>Work Note</span>
+                                <p><?php echo safeText($complaint['work_note']); ?></p>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($complaint['delay_reason'])): ?>
+                            <div class="tc-work-note">
+                                <span>Delay Reason</span>
+                                <p><?php echo safeText($complaint['delay_reason']); ?></p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
                 <div class="tc-media-card">
                     <h2>Uploaded Evidence</h2>
 
@@ -639,12 +785,13 @@ $timelineSteps = [
                                     $mediaPath = $media['display_path'];
                                     $originalName = $media['original_name'] ?: 'Evidence file';
                                     $fileSize = formatFileSize($media['file_size'] ?? 0);
+                                    $mimeType = $media['mime_type'] ?? '';
                                 ?>
 
                                 <div class="tc-media-item">
                                     <?php if ($mediaType === 'video'): ?>
                                         <video controls class="tc-media-video">
-                                            <source src="<?php echo safeText($mediaPath); ?>" type="<?php echo safeText($media['mime_type'] ?? 'video/mp4'); ?>">
+                                            <source src="<?php echo safeText($mediaPath); ?>" type="<?php echo safeText($mimeType ?: 'video/mp4'); ?>">
                                             Your browser does not support the video tag.
                                         </video>
 
@@ -664,7 +811,10 @@ $timelineSteps = [
                                     <?php endif; ?>
 
                                     <small class="tc-media-meta">
-                                        <?php echo safeText(strtoupper($mediaType)); ?> · <?php echo safeText($fileSize); ?>
+                                        <?php echo safeText(strtoupper($mediaType)); ?>
+                                        <?php if ((int)($media['file_size'] ?? 0) > 0): ?>
+                                            · <?php echo safeText($fileSize); ?>
+                                        <?php endif; ?>
                                     </small>
                                 </div>
                             <?php endforeach; ?>

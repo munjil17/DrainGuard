@@ -1,0 +1,258 @@
+/* ==================================================
+   DRAINGUARD - WARD PROFILE
+   Reference-card style
+================================================== */
+
+.wp-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 30px 36px 44px;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* ALERT */
+
+.wp-alert {
+    width: 100%;
+    max-width: 570px;
+    margin: 0 auto 18px auto;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+}
+
+.wp-success {
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #86EFAC;
+}
+
+.wp-error {
+    background: #FFE4E6;
+    color: #BE123C;
+    border: 1px solid #FDA4AF;
+}
+
+/* CARD */
+
+.wp-profile-card {
+    width: 100%;
+    max-width: 570px;
+    margin: 0 auto;
+    padding: 22px;
+    border-radius: 16px;
+    background: #FFFFFF;
+    border: 1px solid #D7E2EF;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+}
+
+/* TOP */
+
+.wp-top {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.wp-avatar-wrap {
+    position: relative;
+    width: 74px;
+    height: 74px;
+    flex-shrink: 0;
+}
+
+.wp-avatar {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: #08BFC3;
+    color: #FFFFFF;
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(8, 191, 195, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.wp-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wp-camera-btn {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 31px;
+    height: 31px;
+    border: 3px solid #FFFFFF;
+    border-radius: 50%;
+    background: #0F172A;
+    color: #FFFFFF;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wp-camera-btn:hover {
+    background: #020617;
+}
+
+.wp-name-box {
+    min-width: 0;
+}
+
+.wp-name-box h1 {
+    margin: 0 0 4px;
+    color: #020617;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.wp-name-box p {
+    margin: 0 0 8px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+.wp-name-box span {
+    display: inline-flex;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: #DDFBFF;
+    color: #008A8E;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+/* DIVIDER */
+
+.wp-divider {
+    width: 100%;
+    height: 1px;
+    margin: 22px 0 16px;
+    background: #D7E2EF;
+}
+
+/* INFO GRID */
+
+.wp-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.wp-info-box {
+    min-height: 68px;
+    padding: 14px;
+    border-radius: 10px;
+    background: #F8FAFC;
+    border: 1px solid #D7E2EF;
+}
+
+.wp-info-box.wp-info-wide {
+    grid-column: 1 / -1;
+}
+
+.wp-info-box span {
+    display: block;
+    margin-bottom: 8px;
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.wp-info-box strong {
+    display: block;
+    color: #020617;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* BUTTON */
+
+.wp-edit-btn {
+    width: fit-content;
+    min-width: 126px;
+    height: 40px;
+    margin-top: 18px;
+    padding: 0 14px;
+    border-radius: 9px;
+    background: #08BFC3;
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.22s ease;
+}
+
+.wp-edit-btn:hover {
+    background: #069DA1;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+/* SAFETY */
+
+.wp-page *,
+.wp-profile-card * {
+    box-sizing: border-box;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+    .wp-page {
+        padding: 24px;
+    }
+
+    .wp-profile-card,
+    .wp-alert {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .wp-page {
+        padding: 18px 14px 36px;
+    }
+
+    .wp-profile-card {
+        padding: 18px;
+    }
+
+    .wp-top {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .wp-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wp-info-box.wp-info-wide {
+        grid-column: auto;
+    }
+
+    .wp-edit-btn {
+        width: 100%;
+    }
+}

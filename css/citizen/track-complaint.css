@@ -1,6 +1,5 @@
 /* ==================================================
    DRAINGUARD - CITIZEN TRACK COMPLAINT
-   Responsive only fix
    Sidebar/topbar untouched
 ================================================== */
 
@@ -31,6 +30,7 @@
 .tc-card,
 .tc-details-card,
 .tc-media-card,
+.tc-work-update-card,
 .tc-empty-card {
     width: 100%;
     max-width: 1180px;
@@ -130,12 +130,10 @@
     font-size: 16px;
     font-weight: 800;
     cursor: pointer;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-
     transition: 0.22s ease;
 }
 
@@ -169,6 +167,12 @@
     background: #FEF3C7;
     color: #B45309;
     border: 1px solid #FCD34D;
+}
+
+.tc-duplicate {
+    background: #F1F5F9;
+    color: #334155;
+    border: 1px solid #CBD5E1;
 }
 
 /* ==================================================
@@ -302,7 +306,8 @@
 
 .tc-card,
 .tc-details-card,
-.tc-media-card {
+.tc-media-card,
+.tc-work-update-card {
     margin-bottom: 24px;
     padding: clamp(20px, 2.2vw, 26px);
     border-radius: 18px;
@@ -318,7 +323,8 @@
 
 .tc-card-header h2,
 .tc-details-card h2,
-.tc-media-card h2 {
+.tc-media-card h2,
+.tc-work-update-card h2 {
     margin: 0 0 6px;
     font-size: clamp(20px, 2vw, 24px);
     font-weight: 800;
@@ -393,11 +399,9 @@
     border-radius: 50%;
     background: #CBD5E1;
     color: #FFFFFF;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     font-size: 22px;
     z-index: 2;
     border: 5px solid #FFFFFF;
@@ -461,14 +465,20 @@
    DETAILS
 ================================================== */
 
-.tc-details-grid {
+.tc-details-grid,
+.tc-work-grid {
     margin-top: 18px;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
 }
 
-.tc-details-grid div {
+.tc-work-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tc-details-grid div,
+.tc-work-grid div {
     padding: 16px;
     border-radius: 14px;
     background: #F8FAFC;
@@ -476,7 +486,9 @@
     min-width: 0;
 }
 
-.tc-details-grid span {
+.tc-details-grid span,
+.tc-work-grid span,
+.tc-work-note span {
     display: block;
     margin-bottom: 7px;
     color: #64748B;
@@ -484,7 +496,8 @@
     font-weight: 700;
 }
 
-.tc-details-grid strong {
+.tc-details-grid strong,
+.tc-work-grid strong {
     display: block;
     color: #0F172A;
     font-size: 15px;
@@ -492,7 +505,8 @@
     overflow-wrap: anywhere;
 }
 
-.tc-description-block {
+.tc-description-block,
+.tc-work-note {
     margin-top: 18px;
 }
 
@@ -503,7 +517,8 @@
     font-weight: 800;
 }
 
-.tc-description-block p {
+.tc-description-block p,
+.tc-work-note p {
     margin: 0;
     padding: 16px;
     border-radius: 14px;
@@ -642,6 +657,7 @@
 .tc-card *,
 .tc-details-card *,
 .tc-media-card *,
+.tc-work-update-card *,
 .tc-empty-card * {
     box-sizing: border-box;
 }
@@ -663,6 +679,7 @@ body {
     .tc-card,
     .tc-details-card,
     .tc-media-card,
+    .tc-work-update-card,
     .tc-empty-card {
         max-width: 1120px;
     }
@@ -676,6 +693,7 @@ body {
     .tc-card,
     .tc-details-card,
     .tc-media-card,
+    .tc-work-update-card,
     .tc-empty-card {
         max-width: 1000px;
     }
@@ -708,13 +726,15 @@ body {
     }
 
     .tc-summary-card,
-    .tc-details-grid {
+    .tc-details-grid,
+    .tc-work-grid {
         grid-template-columns: 1fr;
     }
 
     .tc-card,
     .tc-details-card,
-    .tc-media-card {
+    .tc-media-card,
+    .tc-work-update-card {
         padding: 22px;
     }
 
@@ -788,7 +808,8 @@ body {
 
     .tc-card,
     .tc-details-card,
-    .tc-media-card {
+    .tc-media-card,
+    .tc-work-update-card {
         padding: 18px;
     }
 
