@@ -1,0 +1,287 @@
+/* ==================================================
+   DRAINGUARD - CENTRAL TEXT VISIBILITY FIX
+   Purpose:
+   - Fix invisible/light text in Central panel
+   - Fix table header/body text, KPI text, badges, form fields
+   - Safe for all Central pages
+================================================== */
+
+/* ===============================
+   GENERAL CENTRAL TEXT SAFETY
+================================ */
+
+body.central {
+    color: #0F172A;
+}
+
+body.central * {
+    text-shadow: none;
+}
+
+/* ===============================
+   FORM INPUT / SELECT / TEXTAREA FIX
+================================ */
+
+body.central input,
+body.central select,
+body.central textarea {
+    color: #0F172A !important;
+    background-color: #FFFFFF;
+    caret-color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+body.central input::placeholder,
+body.central textarea::placeholder {
+    color: #64748B !important;
+    opacity: 1 !important;
+}
+
+body.central input:focus,
+body.central select:focus,
+body.central textarea:focus {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+/* Disabled fields readable */
+body.central input:disabled,
+body.central select:disabled,
+body.central textarea:disabled {
+    color: #94A3B8 !important;
+    background-color: #F1F5F9 !important;
+    -webkit-text-fill-color: #94A3B8 !important;
+    opacity: 1 !important;
+}
+
+/* Chrome autofill fix */
+body.central input:-webkit-autofill,
+body.central input:-webkit-autofill:hover,
+body.central input:-webkit-autofill:focus,
+body.central textarea:-webkit-autofill,
+body.central textarea:-webkit-autofill:hover,
+body.central textarea:-webkit-autofill:focus,
+body.central select:-webkit-autofill,
+body.central select:-webkit-autofill:hover,
+body.central select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0F172A !important;
+    -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    caret-color: #0F172A !important;
+    transition: background-color 9999s ease-in-out 0s !important;
+}
+
+/* ===============================
+   TABLE TEXT FIX
+================================ */
+
+body.central table th,
+body.central table td {
+    color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+body.central table th {
+    font-weight: 800 !important;
+    background-color: #F8FAFC;
+}
+
+body.central table td span,
+body.central table td strong,
+body.central table td small,
+body.central table td a {
+    -webkit-text-fill-color: initial;
+}
+
+/* ===============================
+   CENTRAL DASHBOARD TEXT FIX
+================================ */
+
+body.central .cd-header-card h1,
+body.central .cd-panel-header h2,
+body.central .cd-kpi-card h2,
+body.central .cd-ward-card h3 {
+    color: #020617 !important;
+    -webkit-text-fill-color: #020617 !important;
+}
+
+body.central .cd-header-card p,
+body.central .cd-kpi-card p {
+    color: #475569 !important;
+    -webkit-text-fill-color: #475569 !important;
+}
+
+body.central .cd-panel-header a {
+    color: #0F766E !important;
+    -webkit-text-fill-color: #0F766E !important;
+}
+
+/* Red alert panel */
+body.central .cd-alert-header h2,
+body.central .cd-alert-item h3 {
+    color: #991B1B !important;
+    -webkit-text-fill-color: #991B1B !important;
+}
+
+body.central .cd-alert-header p,
+body.central .cd-alert-item p {
+    color: #B91C1C !important;
+    -webkit-text-fill-color: #B91C1C !important;
+}
+
+body.central .cd-alert-item span,
+body.central .cd-review-btn {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* Ward cards */
+body.central .cd-ward-card.stable,
+body.central .cd-ward-card.stable * {
+    color: #065F46 !important;
+    -webkit-text-fill-color: #065F46 !important;
+}
+
+body.central .cd-ward-card.warning,
+body.central .cd-ward-card.warning * {
+    color: #92400E !important;
+    -webkit-text-fill-color: #92400E !important;
+}
+
+body.central .cd-ward-card.danger,
+body.central .cd-ward-card.danger * {
+    color: #991B1B !important;
+    -webkit-text-fill-color: #991B1B !important;
+}
+
+/* ===============================
+   SIDEBAR / TOPBAR TEXT FIX
+================================ */
+
+body.central .dg-central-sidebar,
+body.central .dg-central-sidebar *,
+body.central .dg-central-menu-link,
+body.central .dg-central-menu-link *,
+body.central .dg-central-profile-btn,
+body.central .dg-central-profile-btn *,
+body.central .dg-central-logout-btn,
+body.central .dg-central-logout-btn * {
+    -webkit-text-fill-color: currentColor !important;
+}
+
+body.central .dg-central-brand-text h2,
+body.central .dg-central-sidebar-role strong,
+body.central .dg-central-user-info h4 {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+
+body.central .dg-central-brand-text p,
+body.central .dg-central-role-label small {
+    color: #22E6DC !important;
+    -webkit-text-fill-color: #22E6DC !important;
+}
+
+body.central .dg-central-user-info p {
+    color: #CBD5E1 !important;
+    -webkit-text-fill-color: #CBD5E1 !important;
+}
+
+body.central .central-topbar-user-info h4 {
+    color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+body.central .central-topbar-user-info p {
+    color: #64748B !important;
+    -webkit-text-fill-color: #64748B !important;
+}
+
+/* ===============================
+   BADGE / STATUS TEXT FIX
+================================ */
+
+body.central .status-submitted,
+body.central .status-pending,
+body.central .status-verified,
+body.central .status-assigned,
+body.central .status-progress,
+body.central .status-completed,
+body.central .status-inspection,
+body.central .status-solved,
+body.central .status-reopened,
+body.central .status-rejected,
+body.central .badge,
+body.central [class*="badge"],
+body.central [class*="status"],
+body.central [class*="urgency"] {
+    -webkit-text-fill-color: currentColor !important;
+    font-weight: 800;
+}
+
+/* Common statuses */
+body.central .status-submitted {
+    color: #1D4ED8 !important;
+}
+
+body.central .status-pending {
+    color: #B45309 !important;
+}
+
+body.central .status-verified,
+body.central .status-completed,
+body.central .status-solved {
+    color: #047857 !important;
+}
+
+body.central .status-assigned {
+    color: #4338CA !important;
+}
+
+body.central .status-progress {
+    color: #C2410C !important;
+}
+
+body.central .status-inspection {
+    color: #7E22CE !important;
+}
+
+body.central .status-reopened,
+body.central .status-rejected {
+    color: #BE123C !important;
+}
+
+/* ===============================
+   BUTTON TEXT FIX
+================================ */
+
+body.central button,
+body.central .btn,
+body.central a[class*="btn"] {
+    -webkit-text-fill-color: currentColor;
+}
+
+body.central .cd-review-btn,
+body.central .st-primary-btn,
+body.central .primary-btn,
+body.central .submit-btn,
+body.central .save-btn {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* ===============================
+   TEXT SELECTION FIX
+================================ */
+
+body.central ::selection {
+    background: rgba(34, 230, 220, 0.25) !important;
+    color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+body.central ::-moz-selection {
+    background: rgba(34, 230, 220, 0.25) !important;
+    color: #0F172A !important;
+}

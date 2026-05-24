@@ -1,0 +1,766 @@
+/* =========================================================
+   DRAINGUARD CENTRAL - WARD & AREA MANAGEMENT
+   Body content only. Sidebar/topbar untouched.
+========================================================= */
+
+.wa-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: clamp(22px, 2.5vw, 34px);
+    background:
+        radial-gradient(circle at top left, rgba(34, 230, 220, 0.10), transparent 32%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 48%, #F8FAFC 100%);
+    overflow-x: hidden;
+}
+
+.wa-header,
+.wa-alert,
+.wa-filter-card,
+.wa-empty-state,
+.wa-card {
+    width: 100%;
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.wa-header {
+    margin-bottom: 24px;
+}
+
+.wa-header h1 {
+    margin: 0 0 8px;
+    color: #020617;
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.wa-header p {
+    margin: 0;
+    color: #475569;
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+/* ALERT */
+
+.wa-alert {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 800;
+}
+
+.wa-success {
+    background: #DCFCE7;
+    color: #047857;
+    border: 1px solid #86EFAC;
+}
+
+.wa-error {
+    background: #FFE4E6;
+    color: #BE123C;
+    border: 1px solid #FDA4AF;
+}
+
+/* FILTER CARD */
+
+.wa-filter-card {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+    padding: 20px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+}
+
+.wa-field {
+    min-width: 0;
+}
+
+.wa-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #0F172A;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.wa-field select {
+    width: 100%;
+    height: 52px;
+    border: 1.6px solid #CBD5E1;
+    border-radius: 14px;
+    background: #FFFFFF;
+    color: #020617;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+    transition: 0.22s ease;
+}
+
+.wa-field select:focus {
+    border-color: #22E6DC;
+    box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.14);
+}
+
+.wa-field select:disabled {
+    background: #F1F5F9;
+    color: #94A3B8;
+    cursor: not-allowed;
+}
+
+/* EMPTY STATE */
+
+.wa-empty-state {
+    padding: 58px 24px;
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    text-align: center;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+.wa-empty-state i {
+    font-size: 44px;
+    color: #14B8A6;
+}
+
+.wa-empty-state h2 {
+    margin: 14px 0 8px;
+    color: #020617;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.wa-empty-state p {
+    margin: 0;
+    color: #64748B;
+    font-size: 15px;
+}
+
+/* =========================================================
+   WIDE WARD CARD
+========================================================= */
+
+.wa-card {
+    position: relative;
+    overflow: hidden;
+
+    width: 100%;
+    max-width: 1180px;
+    min-height: 420px;
+
+    margin-left: auto;
+    margin-right: auto;
+    padding: 28px 30px;
+
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, rgba(34, 230, 220, 0.10), rgba(22, 199, 132, 0.05)),
+        #FFFFFF;
+    border: 1px solid rgba(34, 230, 220, 0.30);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.09);
+}
+
+.wa-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    background: linear-gradient(180deg, #22E6DC, #16C784);
+}
+
+.wa-card[hidden] {
+    display: none !important;
+}
+
+/* Card internal grid makes the wide box useful */
+.wa-card-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 26px;
+    align-items: start;
+}
+
+.wa-card-main {
+    min-width: 0;
+}
+
+.wa-card-side {
+    min-width: 0;
+}
+
+/* If HTML does not have .wa-card-content-grid, this still keeps content wide */
+.wa-card-top,
+.wa-area-block,
+.wa-stats-grid,
+.wa-action-grid {
+    max-width: 100%;
+}
+
+/* HEADER INSIDE CARD */
+
+.wa-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.wa-card-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+}
+
+.wa-card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+    color: #FFFFFF;
+    box-shadow: 0 10px 24px rgba(34, 230, 220, 0.22);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wa-card-icon i {
+    font-size: 24px;
+}
+
+.wa-card-title h2 {
+    margin: 0 0 5px;
+    color: #08233D;
+    font-size: 26px;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.wa-card-title p {
+    margin: 0;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.wa-card-title p + p {
+    margin-top: 4px;
+}
+
+.wa-card-title p span {
+    color: #0F172A;
+    font-weight: 900;
+}
+
+.wa-edit-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: #41546D;
+    font-size: 20px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s ease;
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.wa-edit-btn:hover {
+    background: #EAF2F8;
+    color: #0F172A;
+}
+
+/* AREAS */
+
+.wa-area-block {
+    margin-bottom: 22px;
+}
+
+.wa-area-block h3 {
+    margin: 0 0 12px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.wa-area-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.wa-area-chip {
+    padding: 8px 15px;
+    border-radius: 999px;
+    background: #EAFBF9;
+    color: #0F766E;
+    border: 1px solid rgba(20, 184, 166, 0.22);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.wa-area-empty {
+    color: #64748B;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* STATS */
+
+.wa-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.wa-stats-grid > div {
+    min-height: 82px;
+    padding: 18px;
+    border-radius: 16px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.wa-stats-grid span {
+    display: block;
+    margin-bottom: 8px;
+    color: #64748B;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.wa-stats-grid strong {
+    display: block;
+    color: #08233D;
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+/* ACTION BUTTONS */
+
+.wa-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.wa-instruction-btn,
+.wa-inspection-btn {
+    min-height: 68px;
+    padding: 13px 16px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    text-align: left;
+    transition: 0.22s ease;
+}
+
+.wa-instruction-btn {
+    background: linear-gradient(135deg, #6FA89B, #4F8076);
+    color: #FFFFFF;
+    box-shadow: 0 12px 24px rgba(79, 128, 118, 0.24);
+}
+
+.wa-inspection-btn {
+    background: linear-gradient(135deg, #FF5B45, #F51F55);
+    color: #FFFFFF;
+    box-shadow: 0 12px 24px rgba(245, 31, 85, 0.24);
+}
+
+.wa-instruction-btn:hover,
+.wa-inspection-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.02);
+}
+
+.wa-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wa-btn-icon i {
+    font-size: 20px;
+}
+
+.wa-instruction-btn strong,
+.wa-inspection-btn strong {
+    display: block;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.15;
+}
+
+.wa-instruction-btn small,
+.wa-inspection-btn small {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+/* MODAL */
+
+.wa-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.56);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.wa-modal-overlay.show {
+    display: flex;
+}
+
+.wa-modal {
+    width: min(760px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 20px;
+    background: #FFFFFF;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.32);
+}
+
+.wa-instruction-modal {
+    width: min(820px, 100%);
+}
+
+.wa-modal-header {
+    padding: 24px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.wa-modal-header h2 {
+    margin: 0 0 6px;
+    color: #020617;
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.wa-modal-header p {
+    margin: 0;
+    color: #64748B;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.wa-modal-close {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 12px;
+    background: #F1F5F9;
+    color: #475569;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.wa-modal-body {
+    padding: 24px;
+}
+
+.wa-modal-section {
+    margin-bottom: 24px;
+}
+
+.wa-modal-section:last-child {
+    margin-bottom: 0;
+}
+
+.wa-modal-section h3 {
+    margin: 0 0 12px;
+    color: #0F172A;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+/* EDIT AREA LIST */
+
+.wa-edit-area-list {
+    display: grid;
+    gap: 10px;
+}
+
+.wa-edit-area-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 14px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+}
+
+.wa-edit-area-item strong {
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.wa-rename-btn {
+    width: 42px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #EAF2F8;
+    color: #41546D;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.wa-rename-btn:hover {
+    background: #DDFBFF;
+    color: #0891B2;
+}
+
+/* ADD FORM */
+
+.wa-add-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 140px;
+    gap: 12px;
+}
+
+.wa-add-form input[type="text"] {
+    width: 100%;
+    height: 50px;
+    border: 1.6px solid #CBD5E1;
+    border-radius: 13px;
+    padding: 0 14px;
+    outline: none;
+    color: #020617;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.wa-add-form input[type="text"]:focus {
+    border-color: #22E6DC;
+    box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.14);
+}
+
+.wa-add-form button {
+    height: 50px;
+    border: none;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* INSTRUCTION MODAL */
+
+.wa-instruction-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.wa-option-btn {
+    min-height: 58px;
+    padding: 12px 14px;
+    border: 1px solid #DDE6F0;
+    border-radius: 14px;
+    background: #F8FAFC;
+    color: #0F172A;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 800;
+    transition: 0.2s ease;
+}
+
+.wa-option-btn:hover {
+    border-color: #22E6DC;
+    background: #EAFBF9;
+}
+
+.wa-option-btn.active {
+    border-color: #0EA5E9;
+    background: #E0F2FE;
+    color: #075985;
+}
+
+.wa-priority-select {
+    width: 100%;
+    height: 48px;
+    border: 1.6px solid #CBD5E1;
+    border-radius: 13px;
+    padding: 0 14px;
+    outline: none;
+    color: #020617;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+#instructionMessage {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    border: 1.6px solid #CBD5E1;
+    border-radius: 13px;
+    padding: 14px;
+    outline: none;
+    color: #020617;
+    font-size: 14px;
+    line-height: 1.55;
+    font-weight: 600;
+}
+
+#instructionMessage:focus,
+.wa-priority-select:focus {
+    border-color: #22E6DC;
+    box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.14);
+}
+
+.wa-send-final-btn {
+    width: 100%;
+    height: 50px;
+    border: none;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #0F172A, #334155);
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* SAFETY */
+
+.wa-page *,
+.wa-modal * {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+    .wa-header,
+    .wa-alert,
+    .wa-filter-card,
+    .wa-empty-state,
+    .wa-card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 992px) {
+    .wa-page {
+        padding: 24px;
+    }
+
+    .wa-filter-card {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wa-card {
+        min-height: auto;
+    }
+
+    .wa-card-content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .wa-filter-card,
+    .wa-stats-grid,
+    .wa-add-form,
+    .wa-edit-area-item,
+    .wa-action-grid,
+    .wa-instruction-options {
+        grid-template-columns: 1fr;
+    }
+
+    .wa-modal-overlay {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wa-page {
+        padding: 18px 14px 34px;
+    }
+
+    .wa-card,
+    .wa-modal-body,
+    .wa-modal-header {
+        padding: 18px;
+    }
+
+    .wa-card-top {
+        gap: 12px;
+    }
+
+    .wa-card-title h2 {
+        font-size: 22px;
+    }
+}

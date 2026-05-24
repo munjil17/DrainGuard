@@ -1,0 +1,337 @@
+/* =========================================
+   GLOBAL FONT
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+
+/* =========================================
+   GLOBAL RESET
+========================================= */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    min-height: 100%;
+    max-width: 100%;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+    max-width: 100%;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+
+/* =========================================
+   RESPONSIVE MEDIA SAFETY
+========================================= */
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+iframe {
+    max-width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+}
+
+ul,
+ol {
+    list-style-position: inside;
+}
+
+
+/* =========================================
+   BOOTSTRAP / LAYOUT SAFETY
+========================================= */
+
+.container,
+.container-fluid {
+    min-width: 0;
+}
+
+.row {
+    min-width: 0;
+}
+
+[class*="col"] {
+    min-width: 0;
+}
+
+.card,
+.table,
+.form-control,
+.form-select,
+.btn {
+    min-width: 0;
+}
+
+
+/* =========================================
+   GLOBAL THEME VARIABLES
+========================================= */
+
+:root {
+    --background: #050816;
+    --content-bg: #0B1128;
+    --card-bg: #FFFFFF;
+
+    --text-primary: #F8FAFC;
+    --text-dark: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+
+    --border-color: #E2E8F0;
+
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --pending: #FBBF24;
+    --info: #38BDF8;
+
+    --primary-color: #63B3ED;
+    --secondary-color: #4F8FD3;
+    --accent-color: #2B6CB0;
+
+    --accent-bg: rgba(99, 179, 237, 0.14);
+    --accent-border: #63B3ED;
+
+    --main-gradient: linear-gradient(135deg, #63B3ED, #4F8FD3);
+
+    --shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 14px 34px rgba(15, 23, 42, 0.12);
+    --shadow-lg: 0 22px 55px rgba(15, 23, 42, 0.18);
+
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+
+    --transition-fast: 0.18s ease;
+    --transition-normal: 0.25s ease;
+}
+
+
+/* =========================================
+   CENTRAL CONTROL PANEL THEME
+========================================= */
+
+body.central {
+    --primary-color: #10B981;
+    --secondary-color: #34D399;
+    --accent-color: #047857;
+
+    --accent-bg: rgba(16, 185, 129, 0.14);
+    --accent-border: #10B981;
+
+    --main-gradient: linear-gradient(135deg, #10B981, #34D399);
+}
+
+
+/* =========================================
+   CITIZEN PANEL THEME
+========================================= */
+
+body.citizen {
+    --primary-color: #31F6E6;
+    --secondary-color: #3B82F6;
+    --accent-color: #2B6CB0;
+
+    --accent-bg: rgba(49, 246, 230, 0.14);
+    --accent-border: #31F6E6;
+
+    --main-gradient: linear-gradient(135deg, #31F6E6, #3B82F6);
+}
+
+
+/* =========================================
+   WARD OFFICER PANEL THEME
+========================================= */
+
+body.ward {
+    --primary-color: #7BAE9F;
+    --secondary-color: #5F8F86;
+    --accent-color: #466B64;
+
+    --accent-bg: rgba(123, 174, 159, 0.14);
+    --accent-border: #7BAE9F;
+
+    --main-gradient: linear-gradient(135deg, #7BAE9F, #5F8F86);
+}
+
+
+/* =========================================
+   MAINTENANCE PANEL THEME
+========================================= */
+
+body.maintenance {
+    --primary-color: #D4A017;
+    --secondary-color: #B8860B;
+    --accent-color: #8B6914;
+
+    --accent-bg: rgba(212, 160, 23, 0.14);
+    --accent-border: #D4A017;
+
+    --main-gradient: linear-gradient(135deg, #D4A017, #B8860B);
+}
+
+
+/* =========================================
+   INSPECTOR PANEL THEME
+========================================= */
+
+body.inspector {
+    --primary-color: #FF8A3D;
+    --secondary-color: #FFB36B;
+    --accent-color: #FF6B3D;
+
+    --accent-bg: rgba(255, 138, 61, 0.14);
+    --accent-border: #FF8A3D;
+
+    --main-gradient: linear-gradient(135deg, #FF8A3D, #FF6B3D);
+}
+
+
+/* =========================================
+   ACCESSIBILITY / FOCUS
+========================================= */
+
+:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 3px;
+}
+
+::selection {
+    background: var(--accent-bg);
+    color: var(--text-primary);
+}
+
+
+/* =========================================
+   UTILITY CLASSES
+========================================= */
+
+.text-muted-custom {
+    color: var(--text-muted);
+}
+
+.text-secondary-custom {
+    color: var(--text-secondary);
+}
+
+.bg-gradient-main {
+    background: var(--main-gradient);
+}
+
+.no-scroll-x {
+    overflow-x: hidden;
+}
+
+.w-min-0 {
+    min-width: 0;
+}
+/* =========================================
+   CITIZEN PANEL FORM TEXT VISIBILITY FIX
+   Fixes pasted/copied text invisible issue
+========================================= */
+
+body.citizen input,
+body.citizen select,
+body.citizen textarea {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    caret-color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+/* Placeholder visibility */
+body.citizen input::placeholder,
+body.citizen textarea::placeholder {
+    color: #64748B !important;
+    opacity: 1 !important;
+}
+
+/* Text selection visibility */
+body.citizen input::selection,
+body.citizen textarea::selection {
+    background: rgba(19, 184, 200, 0.25) !important;
+    color: #0F172A !important;
+}
+
+body.citizen input::-moz-selection,
+body.citizen textarea::-moz-selection {
+    background: rgba(19, 184, 200, 0.25) !important;
+    color: #0F172A !important;
+}
+
+/* Chrome autofill / browser-filled text visibility */
+body.citizen input:-webkit-autofill,
+body.citizen input:-webkit-autofill:hover,
+body.citizen input:-webkit-autofill:focus,
+body.citizen textarea:-webkit-autofill,
+body.citizen textarea:-webkit-autofill:hover,
+body.citizen textarea:-webkit-autofill:focus,
+body.citizen select:-webkit-autofill,
+body.citizen select:-webkit-autofill:hover,
+body.citizen select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0F172A !important;
+    -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    caret-color: #0F172A !important;
+    transition: background-color 9999s ease-in-out 0s !important;
+}
+
+/* Disabled dropdown readability */
+body.citizen select:disabled,
+body.citizen input:disabled,
+body.citizen textarea:disabled {
+    color: #94A3B8 !important;
+    background-color: #F1F5F9 !important;
+    -webkit-text-fill-color: #94A3B8 !important;
+    opacity: 1 !important;
+}
+
+/* Focus state must keep text dark */
+body.citizen input:focus,
+body.citizen select:focus,
+body.citizen textarea:focus {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    -webkit-text-fill-color: #0F172A !important;
+}

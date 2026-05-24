@@ -1,0 +1,429 @@
+/* =========================================================
+   DRAINGUARD CENTRAL SIDEBAR + LAYOUT
+   Reusable file. Do not duplicate these classes in page CSS.
+========================================================= */
+
+.dg-central-layout {
+    min-height: 100vh;
+    display: flex;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* =========================
+   Sidebar Shell
+========================= */
+
+.dg-central-sidebar {
+    width: 280px;
+    height: 100vh;
+    min-height: 100vh;
+    background: #08233D;
+    color: #FFFFFF;
+
+    position: fixed;
+    inset: 0 auto 0 0;
+
+    display: flex;
+    flex-direction: column;
+
+    z-index: 1100;
+    overflow: hidden;
+    transition: transform 0.25s ease;
+}
+
+.dg-central-main {
+    width: calc(100% - 280px);
+    min-height: 100vh;
+    margin-left: 280px;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* =========================
+   Brand
+========================= */
+
+.dg-central-sidebar-brand {
+    height: 100px;
+    padding: 20px 24px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.dg-central-brand-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+    flex-shrink: 0;
+}
+
+.dg-central-brand-icon i {
+    font-size: 27px;
+    color: #FFFFFF;
+}
+
+.dg-central-brand-icon::after {
+    content: "";
+
+    width: 12px;
+    height: 12px;
+
+    border: 2px solid #FFFFFF;
+    border-radius: 50%;
+
+    background: #16C784;
+
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+}
+
+.dg-central-brand-text {
+    min-width: 0;
+}
+
+.dg-central-brand-text h2 {
+    margin: 0 0 5px;
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.05;
+    white-space: nowrap;
+}
+
+.dg-central-brand-text p {
+    margin: 0;
+    color: #22E6DC;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* =========================
+   Role Area
+========================= */
+
+.dg-central-sidebar-role {
+    padding: 16px 20px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.dg-central-role-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dg-central-role-label span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22E6DC;
+    flex-shrink: 0;
+}
+
+.dg-central-role-label small {
+    color: #22E6DC;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+}
+
+.dg-central-sidebar-role strong {
+    display: block;
+    margin-top: 9px;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* =========================
+   Menu
+========================= */
+
+.dg-central-menu {
+    flex: 1;
+    padding: 18px 16px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dg-central-menu::-webkit-scrollbar {
+    width: 0;
+}
+
+.dg-central-menu-link {
+    min-height: 44px;
+    padding: 0 16px;
+
+    border-radius: 8px;
+
+    color: #E2E8F0;
+    text-decoration: none;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+
+    transition: 0.22s ease;
+}
+
+.dg-central-menu-link i {
+    width: 20px;
+    min-width: 20px;
+
+    font-size: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+}
+
+.dg-central-menu-link span {
+    flex: 1;
+    display: block;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dg-central-menu-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+}
+
+.dg-central-menu-link.active {
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+    color: #FFFFFF;
+    font-weight: 800;
+}
+
+/* =========================
+   Bottom User Area
+========================= */
+
+.dg-central-sidebar-user {
+    padding: 18px 20px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.dg-central-user-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.dg-central-user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.dg-central-user-avatar i {
+    font-size: 18px;
+    color: #FFFFFF;
+}
+
+.dg-central-user-avatar img,
+.dg-central-user-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+}
+
+.dg-central-user-avatar-initial {
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.dg-central-user-info {
+    min-width: 0;
+}
+
+.dg-central-user-info h4 {
+    margin: 0 0 4px;
+    color: #FFFFFF;
+
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.1;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dg-central-user-info p {
+    margin: 0;
+    color: #CBD5E1;
+
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.1;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dg-central-user-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.dg-central-profile-btn,
+.dg-central-logout-btn {
+    height: 38px;
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    transition: 0.2s ease;
+}
+
+.dg-central-profile-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+}
+
+.dg-central-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #FFFFFF;
+}
+
+.dg-central-logout-btn {
+    background: rgba(255, 90, 90, 0.16);
+    color: #FFB4B4;
+}
+
+.dg-central-logout-btn:hover {
+    background: rgba(255, 90, 90, 0.24);
+    color: #FFFFFF;
+}
+
+/* =========================
+   Mobile Overlay
+========================= */
+
+.dg-central-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(4px);
+    display: none;
+}
+
+.dg-central-sidebar-overlay.active {
+    display: block;
+}
+
+/* =========================
+   Safety
+========================= */
+
+.dg-central-layout *,
+.dg-central-sidebar * {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 992px) {
+    .dg-central-sidebar {
+        transform: translateX(-100%);
+        box-shadow: 18px 0 45px rgba(15, 23, 42, 0.25);
+    }
+
+    .dg-central-sidebar.active {
+        transform: translateX(0);
+    }
+
+    .dg-central-main {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .dg-central-sidebar {
+        width: 270px;
+    }
+
+    .dg-central-sidebar-brand {
+        padding: 18px 20px;
+    }
+
+    .dg-central-menu {
+        padding: 16px 14px;
+    }
+
+    .dg-central-menu-link {
+        padding: 0 14px;
+    }
+}

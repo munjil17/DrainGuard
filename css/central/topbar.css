@@ -1,0 +1,288 @@
+/* =========================================================
+   CENTRAL SHARED TOPBAR
+   Reusable topbar only.
+   Do not write sidebar/main layout rules here.
+========================================================= */
+
+.central-topbar {
+    height: 76px;
+    padding: 0 24px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E7EB;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    position: sticky;
+    top: 0;
+    z-index: 900;
+
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* =========================
+   Left Area
+========================= */
+
+.central-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    flex: 1;
+    min-width: 0;
+}
+
+.central-mobile-toggle {
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: rgba(34, 230, 220, 0.12);
+    color: #0F766E;
+
+    font-size: 22px;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    flex-shrink: 0;
+
+    transition: 0.2s ease;
+}
+
+.central-mobile-toggle:hover {
+    background: rgba(34, 230, 220, 0.18);
+}
+
+/* =========================
+   Right Area
+========================= */
+
+.central-topbar-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 22px;
+    flex-shrink: 0;
+    margin-left: auto;
+    min-width: 0;
+}
+
+/* =========================
+   Notification
+========================= */
+
+.central-notification-btn {
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: transparent;
+    color: #0F172A;
+
+    position: relative;
+
+    font-size: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    transition: 0.2s ease;
+    flex-shrink: 0;
+}
+
+.central-notification-btn:hover {
+    background: #F1F5F9;
+}
+
+.central-notification-btn span {
+    width: 8px;
+    height: 8px;
+
+    background: #EF4444;
+    border-radius: 50%;
+
+    position: absolute;
+    top: 10px;
+    right: 9px;
+}
+
+/* =========================
+   User Info
+========================= */
+
+.central-topbar-user {
+    padding-left: 22px;
+    border-left: 1px solid #E5E7EB;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 0;
+}
+
+.central-topbar-user-info {
+    text-align: right;
+    min-width: 0;
+}
+
+.central-topbar-user-info h4 {
+    margin: 0 0 4px;
+
+    color: #0F172A;
+
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.1;
+
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.central-topbar-user-info p {
+    margin: 0;
+
+    color: #64748B;
+
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.1;
+
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.central-topbar-avatar {
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+    color: #FFFFFF;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.central-topbar-avatar i {
+    font-size: 18px;
+}
+
+.central-topbar-avatar img,
+.central-topbar-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+}
+
+.central-topbar-avatar-initial {
+    width: 100%;
+    height: 100%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #FFFFFF;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* =========================
+   Safety
+========================= */
+
+.central-topbar,
+.central-topbar * {
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 992px) {
+    .central-mobile-toggle {
+        display: flex;
+    }
+
+    .central-topbar {
+        padding: 0 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .central-topbar {
+        height: 76px;
+        padding: 0 14px;
+
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .central-topbar-left {
+        flex: 1;
+    }
+
+    .central-topbar-right {
+        gap: 14px;
+    }
+
+    .central-topbar-user {
+        padding-left: 14px;
+    }
+
+    .central-topbar-user-info h4,
+    .central-topbar-user-info p {
+        max-width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .central-topbar {
+        padding: 0 12px;
+    }
+
+    .central-topbar-user-info {
+        display: none;
+    }
+
+    .central-topbar-right {
+        gap: 10px;
+    }
+
+    .central-notification-btn,
+    .central-topbar-avatar,
+    .central-mobile-toggle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .central-topbar-user {
+        padding-left: 10px;
+    }
+}

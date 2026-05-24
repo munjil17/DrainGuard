@@ -1,0 +1,471 @@
+.dashboard-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: clamp(14px, 2vw, 24px);
+    overflow-x: hidden;
+}
+
+.welcome-card,
+.panel,
+.kpi-card,
+.feedback-card {
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .06);
+    min-width: 0;
+}
+
+.welcome-card {
+    padding: clamp(20px, 2.4vw, 28px);
+    margin-bottom: 24px;
+}
+
+.welcome-card h1 {
+    font-size: clamp(22px, 2.2vw, 28px);
+    font-weight: 800;
+    color: #020617;
+    margin-bottom: 8px;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+}
+
+.welcome-card p {
+    font-size: 15px;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ========================================
+   KPI GRID - RESPONSIVE FOR ANY SCREEN
+======================================== */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+    width: 100%;
+    min-width: 0;
+}
+
+.kpi-card {
+    width: 100%;
+    min-width: 0;
+    padding: clamp(18px, 2vw, 22px);
+}
+
+.kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.kpi-icon.cyan {
+    background: #E0FDFB;
+    color: #06B6D4;
+}
+
+.kpi-icon.blue {
+    background: #EFF6FF;
+    color: #2563EB;
+}
+
+.kpi-icon.orange {
+    background: #FFF7ED;
+    color: #EA580C;
+}
+
+.kpi-icon.green {
+    background: #ECFDF5;
+    color: #16A34A;
+}
+
+.kpi-card h2 {
+    font-size: clamp(24px, 2.5vw, 30px);
+    font-weight: 800;
+    color: #020617;
+    margin-bottom: 6px;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+}
+
+.kpi-card p {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* ========================================
+   PANEL / TABLE
+======================================== */
+
+.panel {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: clamp(16px, 2vw, 20px) clamp(16px, 2vw, 24px);
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.panel-header h2 {
+    font-size: clamp(16px, 1.5vw, 18px);
+    font-weight: 800;
+    color: #020617;
+    margin: 0;
+    line-height: 1.25;
+    min-width: 0;
+    overflow-wrap: break-word;
+}
+
+.panel-header a {
+    color: #00A9B3;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+th {
+    padding: 14px 24px;
+    background: #F8FAFC;
+    color: #334155;
+    font-size: 12px;
+    text-transform: uppercase;
+    text-align: left;
+    letter-spacing: .5px;
+    white-space: nowrap;
+}
+
+td {
+    padding: 17px 24px;
+    font-size: 14px;
+    color: #0F172A;
+    border-top: 1px solid #E2E8F0;
+    white-space: nowrap;
+}
+
+.empty-table-cell {
+    text-align: center;
+    color: #64748B;
+    font-weight: 600;
+    white-space: normal;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-badge.progress {
+    background: #FFEDD5;
+    color: #EA580C;
+}
+
+.status-badge.verified {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+.status-badge.solved {
+    background: #DCFCE7;
+    color: #16A34A;
+}
+
+/* ========================================
+   LOWER DASHBOARD GRID
+======================================== */
+
+.dashboard-row {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+    gap: 24px;
+    width: 100%;
+    min-width: 0;
+}
+
+.track-panel {
+    padding: clamp(18px, 2vw, 24px);
+    min-width: 0;
+}
+
+.mini-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    min-width: 0;
+}
+
+.mini-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 10px;
+    background: #E0FDFB;
+    color: #06B6D4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mini-heading h2 {
+    font-size: clamp(16px, 1.5vw, 18px);
+    font-weight: 800;
+    color: #020617;
+    margin: 0;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+}
+
+.track-form {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.track-form input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    outline: none;
+}
+
+.track-form input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.track-form button {
+    width: 88px;
+    height: 44px;
+    border: none;
+    border-radius: 8px;
+    background: var(--main-gradient);
+    color: #ffffff;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.track-error {
+    display: none;
+    margin-top: 10px;
+    color: #EF4444;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.track-error.show {
+    display: block;
+}
+
+.feedback-card {
+    padding: clamp(18px, 2vw, 24px);
+    display: flex;
+    gap: 16px;
+    background: #ECFDF5;
+    border-color: #BBF7D0;
+    min-width: 0;
+}
+
+.feedback-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 10px;
+    background: #22C55E;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feedback-card > div:last-child {
+    min-width: 0;
+}
+
+.feedback-card h2 {
+    font-size: clamp(16px, 1.5vw, 18px);
+    font-weight: 800;
+    color: #064E3B;
+    margin-bottom: 14px;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+}
+
+.feedback-card p {
+    font-size: 14px;
+    color: #047857;
+    margin-bottom: 16px;
+    line-height: 1.55;
+}
+
+.feedback-card a {
+    color: #047857;
+    text-decoration: none;
+    font-weight: 800;
+}
+
+/* ========================================
+   RISK PANEL
+======================================== */
+
+.risk-panel {
+    margin-top: 24px;
+}
+
+.risk-grid {
+    padding: clamp(18px, 2vw, 22px) clamp(16px, 2vw, 24px);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+}
+
+.risk-item {
+    padding: 18px;
+    border-radius: 12px;
+    min-width: 0;
+}
+
+.risk-item h3 {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+}
+
+.risk-item p {
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0;
+}
+
+.risk-item.critical {
+    background: #FEF2F2;
+    color: #991B1B;
+}
+
+.risk-item.warning {
+    background: #FFFBEB;
+    color: #92400E;
+}
+
+.risk-item.stable {
+    background: #ECFDF5;
+    color: #065F46;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+    .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .panel-header a {
+        align-self: flex-start;
+    }
+
+    .track-form {
+        flex-direction: column;
+    }
+
+    .track-form button {
+        width: 100%;
+    }
+
+    .feedback-card {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-content {
+        padding: 14px;
+    }
+
+    .welcome-card {
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .kpi-grid,
+    .dashboard-row,
+    .risk-grid {
+        gap: 14px;
+    }
+
+    .kpi-card {
+        padding: 18px;
+    }
+
+    table {
+        min-width: 680px;
+    }
+
+    th,
+    td {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .feedback-card {
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 1600px) {
+    .dashboard-content {
+        padding: 32px;
+    }
+
+    .kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+}

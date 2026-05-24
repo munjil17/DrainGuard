@@ -1,0 +1,444 @@
+/* =========================================================
+   ADD INSPECTOR PAGE ONLY
+   Prefix: ai-
+========================================================= */
+
+.ai-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: 24px 28px 40px;
+    background:
+        radial-gradient(circle at top left, rgba(34, 230, 220, 0.08), transparent 32%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
+    overflow-x: hidden;
+}
+
+.ai-header-card,
+.ai-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.ai-header-card,
+.ai-alert,
+.ai-form {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.ai-header-card {
+    padding: 28px;
+    margin-bottom: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.ai-header-card h1 {
+    margin: 0 0 8px;
+    color: #020617;
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.ai-header-card p {
+    margin: 0;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.ai-back-btn {
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1px solid #CBD5E1;
+    background: #FFFFFF;
+
+    color: #0F766E;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 800;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    white-space: nowrap;
+}
+
+.ai-back-btn:hover {
+    background: #ECFDF5;
+    color: #0F766E;
+    border-color: #99F6E4;
+}
+
+.ai-alert {
+    min-height: 48px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 700;
+    transition: 0.25s ease;
+}
+
+.ai-alert.success {
+    background: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
+}
+
+.ai-alert.error {
+    background: #FEF2F2;
+    color: #B91C1C;
+    border: 1px solid #FCA5A5;
+}
+
+.ai-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ai-card {
+    padding: 24px;
+}
+
+.ai-login-card {
+    display: none;
+}
+
+.ai-login-card.show {
+    display: block;
+}
+
+.ai-section-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ai-section-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: #E0FDFB;
+    color: #0F766E;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.ai-section-title h2 {
+    margin: 0 0 6px;
+    color: #020617;
+    font-size: 18px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.ai-section-title p {
+    margin: 0;
+    color: #64748B;
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 500;
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.ai-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ai-field.full {
+    grid-column: 1 / -1;
+}
+
+.ai-field label {
+    color: #0F172A;
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 800;
+}
+
+.ai-field label span {
+    color: #DC2626;
+}
+
+.ai-field input,
+.ai-field select,
+.ai-field textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #CBD5E1;
+    border-radius: 9px;
+    background: #FFFFFF;
+    outline: none;
+
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 500;
+
+    box-sizing: border-box;
+}
+
+.ai-field input,
+.ai-field select {
+    height: 46px;
+    padding: 0 14px;
+}
+
+.ai-field textarea {
+    padding: 13px 14px;
+    resize: vertical;
+}
+
+.ai-field input:focus,
+.ai-field select:focus,
+.ai-field textarea:focus {
+    border-color: #22E6DC;
+    box-shadow: 0 0 0 4px rgba(34, 230, 220, 0.12);
+}
+
+.ai-field select:disabled {
+    background: #F1F5F9;
+    color: #94A3B8;
+    cursor: not-allowed;
+}
+
+.ai-field input::placeholder,
+.ai-field textarea::placeholder {
+    color: #94A3B8;
+}
+
+.ai-password-wrap {
+    position: relative;
+}
+
+.ai-password-wrap input {
+    padding-right: 46px;
+}
+
+.ai-password-toggle {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    color: #64748B;
+
+    position: absolute;
+    right: 2px;
+    top: 2px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+}
+
+.ai-password-toggle:hover {
+    color: #0F766E;
+}
+
+.ai-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.ai-cancel-btn,
+.ai-submit-btn {
+    min-height: 46px;
+    padding: 0 20px;
+    border-radius: 9px;
+    text-decoration: none;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ai-cancel-btn {
+    border: 1px solid #CBD5E1;
+    background: #FFFFFF;
+    color: #475569;
+}
+
+.ai-cancel-btn:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
+.ai-submit-btn {
+    border: none;
+    background: linear-gradient(135deg, #22E6DC, #16C784);
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.ai-submit-btn:hover {
+    background: linear-gradient(135deg, #14B8A6, #16A34A);
+}
+
+.ai-page *,
+.ai-card *,
+.ai-header-card * {
+    box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+    .ai-page {
+        padding: 22px 22px 38px;
+    }
+}
+
+@media (max-width: 992px) {
+    .ai-page {
+        padding: 22px 18px 38px;
+    }
+
+    .ai-header-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ai-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ai-cancel-btn,
+    .ai-submit-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .ai-page {
+        padding: 18px 14px 36px;
+    }
+
+    .ai-header-card,
+    .ai-card {
+        padding: 20px;
+    }
+
+    .ai-back-btn {
+        width: 100%;
+    }
+
+    .ai-section-title {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 400px) {
+    .ai-page {
+        padding: 16px 12px 32px;
+    }
+
+    .ai-header-card,
+    .ai-card {
+        padding: 18px;
+        border-radius: 12px;
+    }
+}
+/* =========================================================
+   FIX: Remove browser default password eye icon
+   Keep only custom Bootstrap eye button
+========================================================= */
+
+.ai-password-wrap {
+    position: relative;
+}
+
+.ai-password-wrap input[type="password"],
+.ai-password-wrap input[type="text"] {
+    padding-right: 48px !important;
+}
+
+/* Hide Microsoft Edge/Chrome native password reveal icon */
+.ai-password-wrap input::-ms-reveal,
+.ai-password-wrap input::-ms-clear {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Hide WebKit autofill/password UI artifacts when possible */
+.ai-password-wrap input::-webkit-credentials-auto-fill-button,
+.ai-password-wrap input::-webkit-contacts-auto-fill-button {
+    visibility: hidden !important;
+    display: none !important;
+    pointer-events: none !important;
+}
+
+/* Custom eye button position */
+.ai-password-toggle {
+    width: 42px !important;
+    height: 42px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #64748B !important;
+
+    position: absolute !important;
+    right: 2px !important;
+    top: 2px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    cursor: pointer !important;
+    z-index: 5 !important;
+}
+
+.ai-password-toggle i {
+    font-size: 16px !important;
+    line-height: 1 !important;
+}
+
+.ai-password-toggle:hover {
+    color: #0F766E !important;
+}

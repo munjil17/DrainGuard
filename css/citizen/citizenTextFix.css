@@ -1,0 +1,246 @@
+/* ==================================================
+   DRAINGUARD - CITIZEN TEXT VISIBILITY FIX
+   Purpose:
+   - Fix invisible/light text in Citizen panel
+   - Fix complaint ID/table header/badge/input text visibility
+   - Safe for all Citizen pages
+================================================== */
+
+/* ===============================
+   GENERAL CITIZEN TEXT SAFETY
+================================ */
+
+body.citizen {
+    color: #0F172A;
+}
+
+body.citizen * {
+    text-shadow: none;
+}
+
+/* ===============================
+   FORM INPUT / TEXTAREA / SELECT FIX
+================================ */
+
+body.citizen input,
+body.citizen select,
+body.citizen textarea {
+    color: #0F172A !important;
+    background-color: #FFFFFF;
+    caret-color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+body.citizen input::placeholder,
+body.citizen textarea::placeholder {
+    color: #64748B !important;
+    opacity: 1 !important;
+}
+
+body.citizen input:focus,
+body.citizen select:focus,
+body.citizen textarea:focus {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+/* Disabled fields readable */
+body.citizen input:disabled,
+body.citizen select:disabled,
+body.citizen textarea:disabled {
+    color: #94A3B8 !important;
+    background-color: #F1F5F9 !important;
+    -webkit-text-fill-color: #94A3B8 !important;
+    opacity: 1 !important;
+}
+
+/* Chrome autofill fix */
+body.citizen input:-webkit-autofill,
+body.citizen input:-webkit-autofill:hover,
+body.citizen input:-webkit-autofill:focus,
+body.citizen textarea:-webkit-autofill,
+body.citizen textarea:-webkit-autofill:hover,
+body.citizen textarea:-webkit-autofill:focus,
+body.citizen select:-webkit-autofill,
+body.citizen select:-webkit-autofill:hover,
+body.citizen select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0F172A !important;
+    -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+    caret-color: #0F172A !important;
+    transition: background-color 9999s ease-in-out 0s !important;
+}
+
+/* ===============================
+   TABLE HEADER FIX
+================================ */
+
+body.citizen table th,
+body.citizen .mc-table th,
+body.citizen .pb-table th {
+    color: #0F172A !important;
+    background-color: #F8FAFC !important;
+    -webkit-text-fill-color: #0F172A !important;
+    font-weight: 800 !important;
+}
+
+/* Table normal text */
+body.citizen table td,
+body.citizen table td span,
+body.citizen table td strong,
+body.citizen table td small,
+body.citizen table td a {
+    -webkit-text-fill-color: initial;
+}
+
+/* ===============================
+   COMPLAINT CODE FIX
+================================ */
+
+body.citizen .mc-code,
+body.citizen .mc-code a,
+body.citizen .mc-code span,
+body.citizen .mc-code strong,
+body.citizen .pb-complaint-code,
+body.citizen .pb-meta span:first-child,
+body.citizen .pb-meta span:first-child strong {
+    color: #0891B2 !important;
+    background: transparent !important;
+    -webkit-text-fill-color: #0891B2 !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+}
+
+body.citizen .pb-meta span:first-child i,
+body.citizen .mc-code i {
+    color: #0891B2 !important;
+    -webkit-text-fill-color: #0891B2 !important;
+}
+
+/* ===============================
+   PAGE CARD / META TEXT FIX
+================================ */
+
+body.citizen .pb-meta span,
+body.citizen .pb-support span,
+body.citizen .mc-issue small {
+    color: #64748B !important;
+    -webkit-text-fill-color: #64748B !important;
+}
+
+body.citizen .mc-issue strong,
+body.citizen .pb-card-top h3,
+body.citizen .mc-header h1,
+body.citizen .pb-header h1 {
+    color: #020617 !important;
+    -webkit-text-fill-color: #020617 !important;
+}
+
+/* ===============================
+   BADGE TEXT FIX
+================================ */
+
+body.citizen .mc-status,
+body.citizen .mc-urgency,
+body.citizen .pb-status,
+body.citizen .pb-urgency {
+    -webkit-text-fill-color: currentColor !important;
+    font-weight: 800 !important;
+}
+
+/* Status badges */
+body.citizen .status-submitted {
+    color: #1D4ED8 !important;
+    -webkit-text-fill-color: #1D4ED8 !important;
+}
+
+body.citizen .status-pending {
+    color: #B45309 !important;
+    -webkit-text-fill-color: #B45309 !important;
+}
+
+body.citizen .status-verified {
+    color: #047857 !important;
+    -webkit-text-fill-color: #047857 !important;
+}
+
+body.citizen .status-assigned {
+    color: #4338CA !important;
+    -webkit-text-fill-color: #4338CA !important;
+}
+
+body.citizen .status-progress {
+    color: #C2410C !important;
+    -webkit-text-fill-color: #C2410C !important;
+}
+
+body.citizen .status-completed,
+body.citizen .status-solved {
+    color: #15803D !important;
+    -webkit-text-fill-color: #15803D !important;
+}
+
+body.citizen .status-inspection {
+    color: #7E22CE !important;
+    -webkit-text-fill-color: #7E22CE !important;
+}
+
+body.citizen .status-reopened,
+body.citizen .status-rejected {
+    color: #BE123C !important;
+    -webkit-text-fill-color: #BE123C !important;
+}
+
+/* Urgency badges */
+body.citizen .urgency-low {
+    color: #15803D !important;
+    -webkit-text-fill-color: #15803D !important;
+}
+
+body.citizen .urgency-medium {
+    color: #B45309 !important;
+    -webkit-text-fill-color: #B45309 !important;
+}
+
+body.citizen .urgency-high {
+    color: #C2410C !important;
+    -webkit-text-fill-color: #C2410C !important;
+}
+
+body.citizen .urgency-critical {
+    color: #BE123C !important;
+    -webkit-text-fill-color: #BE123C !important;
+}
+
+/* ===============================
+   LINKS / BUTTON TEXT FIX
+================================ */
+
+body.citizen .mc-track-link,
+body.citizen .pb-track-btn {
+    color: #0891B2 !important;
+    -webkit-text-fill-color: #0891B2 !important;
+}
+
+body.citizen .pb-details-btn,
+body.citizen .pb-filter-btn,
+body.citizen .sc-submit-btn {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* ===============================
+   TEXT SELECTION FIX
+================================ */
+
+body.citizen ::selection {
+    background: rgba(19, 184, 200, 0.25) !important;
+    color: #0F172A !important;
+    -webkit-text-fill-color: #0F172A !important;
+}
+
+body.citizen ::-moz-selection {
+    background: rgba(19, 184, 200, 0.25) !important;
+    color: #0F172A !important;
+}

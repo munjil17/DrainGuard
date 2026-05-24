@@ -1,0 +1,347 @@
+/* ==================================================
+   DRAINGUARD - CITIZEN SETTINGS
+   Responsive only fix
+   Sidebar/topbar untouched
+================================================== */
+
+.citizen-main.main-content {
+    min-height: 100vh;
+    background: #F8FAFC;
+    overflow-x: hidden;
+}
+
+/* ==================================================
+   PAGE BODY
+================================================== */
+
+.st-page {
+    width: 100%;
+    min-height: calc(100vh - 76px);
+    padding: clamp(18px, 2.4vw, 30px) clamp(14px, 2.8vw, 36px) 44px;
+    background:
+        radial-gradient(circle at top left, rgba(32, 212, 217, 0.10), transparent 34%),
+        linear-gradient(135deg, #F8FAFC 0%, #EEF5FB 45%, #F8FAFC 100%);
+    overflow-x: hidden;
+}
+
+.st-header,
+.st-alert,
+.st-grid {
+    width: 100%;
+    max-width: 780px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ==================================================
+   HEADER
+================================================== */
+
+.st-header {
+    margin-bottom: 26px;
+}
+
+.st-header h1 {
+    margin: 0 0 8px;
+    font-size: clamp(24px, 2.4vw, 30px);
+    line-height: 1.2;
+    font-weight: 800;
+    color: #020617;
+    letter-spacing: -0.03em;
+}
+
+.st-header p {
+    margin: 0;
+    font-size: clamp(14px, 1.35vw, 16px);
+    line-height: 1.5;
+    color: #475569;
+}
+
+/* ==================================================
+   ALERT
+================================================== */
+
+.st-alert {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.st-success {
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #86EFAC;
+}
+
+.st-error {
+    background: #FFE4E6;
+    color: #BE123C;
+    border: 1px solid #FDA4AF;
+}
+
+/* ==================================================
+   GRID
+================================================== */
+
+.st-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+/* ==================================================
+   CARD
+================================================== */
+
+.st-card {
+    width: 100%;
+    min-width: 0;
+    padding: clamp(20px, 2.3vw, 28px);
+    border-radius: 18px;
+    background: #FFFFFF;
+    border: 1px solid #DDE6F0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    overflow: hidden;
+}
+
+.st-card h2 {
+    margin: 0 0 22px;
+    font-size: clamp(20px, 2vw, 22px);
+    line-height: 1.25;
+    font-weight: 800;
+    color: #020617;
+    overflow-wrap: anywhere;
+}
+
+/* ==================================================
+   FORM
+================================================== */
+
+.st-form-group {
+    margin-bottom: 20px;
+    min-width: 0;
+}
+
+.st-form-group label {
+    display: block;
+    margin-bottom: 9px;
+    font-size: 14px;
+    line-height: 1.35;
+    font-weight: 800;
+    color: #0F172A;
+    overflow-wrap: anywhere;
+}
+
+.st-form-group input {
+    width: 100%;
+    min-width: 0;
+    height: 56px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 14px;
+    padding: 0 18px;
+    background: #FFFFFF;
+    color: #020617;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+    transition: 0.22s ease;
+}
+
+.st-form-group input::placeholder {
+    color: #64748B;
+    opacity: 1;
+}
+
+.st-form-group input:focus {
+    border-color: #20D4D9;
+    box-shadow: 0 0 0 4px rgba(32, 212, 217, 0.12);
+}
+
+/* ==================================================
+   BUTTONS
+================================================== */
+
+.st-primary-btn,
+.st-warning-btn {
+    width: 100%;
+    min-width: 0;
+    height: 56px;
+    border: none;
+    border-radius: 14px;
+    color: #FFFFFF;
+    font-size: 16px;
+    line-height: 1.35;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.22s ease;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.st-primary-btn {
+    background: linear-gradient(135deg, #20D4D9, #35A6F7);
+}
+
+.st-primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(32, 212, 217, 0.22);
+}
+
+.st-warning-btn {
+    background: #F59E0B;
+}
+
+.st-warning-btn:hover {
+    background: #D97706;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(245, 158, 11, 0.22);
+}
+
+/* ==================================================
+   CHECKBOX
+================================================== */
+
+.st-check-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    cursor: pointer;
+    color: #0F172A;
+    font-size: 16px;
+    line-height: 1.45;
+    font-weight: 700;
+    min-width: 0;
+}
+
+.st-check-row input {
+    width: 22px;
+    height: 22px;
+    accent-color: #12BFC7;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.st-check-row span,
+.st-check-row label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.st-pref-btn {
+    margin-top: 8px;
+}
+
+/* ==================================================
+   SAFETY
+================================================== */
+
+.st-page *,
+.st-card * {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 1400px) {
+    .st-header,
+    .st-alert,
+    .st-grid {
+        max-width: 760px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .st-header,
+    .st-alert,
+    .st-grid {
+        max-width: 720px;
+    }
+}
+
+@media (max-width: 992px) {
+    .st-page {
+        padding: 24px;
+    }
+
+    .st-header,
+    .st-alert,
+    .st-grid {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .st-page {
+        padding: 22px 18px 40px;
+    }
+
+    .st-grid {
+        gap: 20px;
+    }
+
+    .st-card {
+        border-radius: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .st-page {
+        padding: 18px 14px 36px;
+    }
+
+    .st-card {
+        padding: 20px;
+    }
+
+    .st-form-group input,
+    .st-primary-btn,
+    .st-warning-btn {
+        height: 52px;
+        font-size: 14px;
+    }
+
+    .st-check-row {
+        align-items: flex-start;
+        font-size: 14px;
+        gap: 12px;
+    }
+
+    .st-check-row input {
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+    }
+}
+
+@media (max-width: 400px) {
+    .st-page {
+        padding: 16px 12px 32px;
+    }
+
+    .st-card {
+        padding: 18px;
+    }
+
+    .st-form-group input,
+    .st-primary-btn,
+    .st-warning-btn {
+        height: 50px;
+    }
+}
