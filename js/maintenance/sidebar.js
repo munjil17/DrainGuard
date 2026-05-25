@@ -1,19 +1,19 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
 
-    const sidebarLinks = document.querySelectorAll(".menu-link");
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener("click", function () {
+            document.body.classList.toggle("sidebar-open");
+        });
+    }
+
+    const sidebarLinks = document.querySelectorAll(".maintenance-sidebar .menu-link, .maintenance-sidebar .profile-btn");
 
     sidebarLinks.forEach(function (link) {
-
         link.addEventListener("click", function () {
-
-            sidebarLinks.forEach(function (item) {
-                item.classList.remove("active");
-            });
-
-            this.classList.add("active");
-
+            if (window.innerWidth <= 900) {
+                document.body.classList.remove("sidebar-open");
+            }
         });
-
     });
-
 });

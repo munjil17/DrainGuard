@@ -3,6 +3,54 @@ $userName = $_SESSION['user_name'] ?? 'Team Alpha';
 $userRoleLabel = $_SESSION['user_role_label'] ?? 'Maintenance Team';
 
 $activePage = $activePage ?? '';
+
+$sidebarProfileImage = '';
+
+if (isset($conn) && isset($_SESSION['user_id'])) {
+    $sidebarUserId = (int)$_SESSION['user_id'];
+
+    $profileSql = "
+        SELECT 
+            mtm.full_name,
+            mtm.role,
+            mtm.profile_image
+        FROM maintenance_team_members mtm
+        WHERE mtm.user_id = ?
+        LIMIT 1
+    ";
+
+    $profileStmt = mysqli_prepare($conn, $profileSql);
+
+    if ($profileStmt) {
+        mysqli_stmt_bind_param($profileStmt, "i", $sidebarUserId);
+        mysqli_stmt_execute($profileStmt);
+        $profileResult = mysqli_stmt_get_result($profileStmt);
+
+        if ($profileResult && mysqli_num_rows($profileResult) > 0) {
+            $profileRow = mysqli_fetch_assoc($profileResult);
+
+            if (!empty($profileRow['full_name'])) {
+                $userName = $profileRow['full_name'];
+            }
+
+            if (!empty($profileRow['role'])) {
+                if ($profileRow['role'] === 'team_leader') {
+                    $userRoleLabel = 'Team Leader';
+                } elseif ($profileRow['role'] === 'assistant_team_leader') {
+                    $userRoleLabel = 'Assistant Team Leader';
+                } elseif ($profileRow['role'] === 'worker') {
+                    $userRoleLabel = 'Worker';
+                }
+            }
+
+            if (!empty($profileRow['profile_image'])) {
+                $sidebarProfileImage = "../../" . $profileRow['profile_image'];
+            }
+        }
+
+        mysqli_stmt_close($profileStmt);
+    }
+}
 ?>
 
 <aside class="maintenance-sidebar">
@@ -81,12 +129,16 @@ $activePage = $activePage ?? '';
         <div class="user-profile-row">
 
             <div class="user-avatar">
-                <i class="bi bi-person"></i>
+                <?php if (!empty($sidebarProfileImage)): ?>
+                    <img src="<?php echo htmlspecialchars($sidebarProfileImage, ENT_QUOTES, 'UTF-8'); ?>" alt="Profile">
+                <?php else: ?>
+                    <i class="bi bi-person"></i>
+                <?php endif; ?>
             </div>
 
             <div class="user-info">
-                <h4><?php echo $userName; ?></h4>
-                <p><?php echo $userRoleLabel; ?></p>
+                <h4><?php echo htmlspecialchars($userName, ENT_QUOTES, 'UTF-8'); ?></h4>
+                <p><?php echo htmlspecialchars($userRoleLabel, ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
 
         </div>
