@@ -1,73 +1,301 @@
-.inspector-main{
-    flex:1;
-    margin-left:252px;
+.inspector-main {
+    flex: 1;
+    min-height: 100vh;
+    margin-left: 252px;
+    background: #F8FAFC;
+    width: calc(100% - 252px);
 }
 
-.topbar{
-    height:74px;
-    background:#ffffff;
-    border-bottom:1px solid #E2E8F0;
-    padding:0 22px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
+/* ================================
+   Inspector Topbar
+================================ */
+
+.topbar {
+    height: 74px;
+    background: #ffffff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 900;
 }
 
-.topbar-search{
-    width:520px;
-    height:46px;
-    border:1px solid #D7E0EA;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:0 16px;
+/* Search box removed */
+.topbar-search {
+    display: none !important;
 }
 
-.topbar-search input{
-    width:100%;
-    border:none;
-    outline:none;
-    background:none;
+/* ================================
+   Left Title Area
+================================ */
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
 }
 
-.topbar-right{
-    display:flex;
-    align-items:center;
-    gap:18px;
+.mobile-toggle {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border: none;
+    border-radius: 10px;
+    background: #F1F5F9;
+    color: #0F172A;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.22s ease;
 }
 
-.notification-btn{
-    width:42px;
-    height:42px;
-    border:none;
-    background:none;
-    position:relative;
+.mobile-toggle:hover,
+.mobile-toggle:focus,
+.mobile-toggle:focus-visible {
+    background: var(--primary-soft, rgba(255, 112, 67, 0.12));
+    color: var(--primary-color, #FF7043);
+    outline: none;
 }
 
-.notification-btn span{
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:#EF4444;
-    position:absolute;
-    top:8px;
-    right:8px;
+.mobile-toggle i {
+    font-size: 24px;
 }
 
-.topbar-user{
-    display:flex;
-    align-items:center;
-    gap:12px;
+.topbar-title {
+    min-width: 0;
 }
 
-.topbar-avatar{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    background:var(--main-gradient);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#ffffff;
+.topbar-title h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    max-width: 520px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-title p {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* ================================
+   Right Area
+================================ */
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-shrink: 0;
+}
+
+.notification-btn {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border: none;
+    border-radius: 12px;
+    background: #F8FAFC;
+    color: #334155;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.22s ease;
+}
+
+.notification-btn:hover,
+.notification-btn:focus,
+.notification-btn:focus-visible {
+    background: var(--primary-soft, rgba(255, 112, 67, 0.12));
+    color: var(--primary-color, #FF7043);
+    outline: none;
+}
+
+.notification-btn i {
+    font-size: 19px;
+}
+
+.notification-btn span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #EF4444;
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    box-shadow: 0 0 0 3px #ffffff;
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    padding: 6px 8px 6px 12px;
+    border-radius: 14px;
+    transition: 0.22s ease;
+}
+
+.topbar-user:hover,
+.topbar-user:focus,
+.topbar-user:focus-visible {
+    background: #F8FAFC;
+    outline: none;
+}
+
+.topbar-user-info {
+    text-align: right;
+    min-width: 0;
+}
+
+.topbar-user-info h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 3px 0;
+    line-height: 1.2;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-user-info p {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.2;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-avatar {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 50%;
+    background: var(--main-gradient, linear-gradient(135deg, #FF8A3D, #FF5E62));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    overflow: hidden;
+    border: 2px solid rgba(255, 112, 67, 0.18);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.topbar-avatar i {
+    font-size: 20px;
+}
+
+.topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+    display: block;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 991px) {
+    .inspector-main {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .mobile-toggle {
+        display: flex;
+    }
+
+    .topbar {
+        padding: 0 16px;
+    }
+
+    .topbar-title h3 {
+        max-width: 360px;
+    }
+}
+
+@media (max-width: 767px) {
+    .topbar-title h3 {
+        max-width: 260px;
+    }
+
+    .topbar-right {
+        gap: 12px;
+    }
+
+    .topbar-user {
+        padding: 4px;
+    }
+}
+
+@media (max-width: 575px) {
+    .topbar {
+        height: auto;
+        min-height: 74px;
+        padding: 12px 14px;
+    }
+
+    .topbar-title h3 {
+        font-size: 17px;
+        max-width: 190px;
+    }
+
+    .topbar-title p {
+        display: none;
+    }
+
+    .topbar-user-info {
+        display: none;
+    }
+
+    .topbar-right {
+        gap: 10px;
+    }
+
+    .notification-btn,
+    .topbar-avatar,
+    .mobile-toggle {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+    }
+}
+
+@media (max-width: 380px) {
+    .topbar {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .topbar-title h3 {
+        max-width: 150px;
+    }
+
+    .topbar-right {
+        gap: 8px;
+    }
 }

@@ -1,0 +1,651 @@
+:root {
+    --ward-focus: var(--primary-color, #3B82F6);
+    --ward-focus-gradient: var(--main-gradient, linear-gradient(135deg, #1E40AF, #3B82F6));
+    --ward-focus-dark: var(--primary-dark, var(--primary-color, #1D4ED8));
+    --ward-focus-soft: color-mix(in srgb, var(--primary-color, #3B82F6) 14%, transparent);
+    --ward-focus-glow: color-mix(in srgb, var(--primary-color, #3B82F6) 22%, transparent);
+    --ward-focus-bg: color-mix(in srgb, var(--primary-color, #3B82F6) 10%, transparent);
+}
+
+/* ================================
+   Ward Citizen Objections Page
+================================ */
+
+.ward-objections-page {
+    padding: 28px 24px 36px;
+    background: #F8FAFC;
+    min-height: calc(100vh - 76px);
+}
+
+.page-heading {
+    margin-bottom: 24px;
+}
+
+.page-heading h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #020617;
+    margin: 0 0 10px 0;
+}
+
+.page-heading p {
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    margin: 0;
+}
+
+/* ================================
+   Alerts
+================================ */
+
+.page-success-alert,
+.page-error-alert {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.page-success-alert {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.28);
+    color: #047857;
+}
+
+.page-error-alert {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #B91C1C;
+}
+
+/* ================================
+   Status Alert
+================================ */
+
+.status-alert {
+    min-height: 98px;
+    border: 1px solid var(--ward-focus-glow);
+    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--ward-focus) 12%, transparent),
+        color-mix(in srgb, var(--ward-focus) 6%, transparent)
+    );
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.status-alert-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 10px;
+    background: var(--ward-focus-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 22px var(--ward-focus-glow);
+}
+
+.status-alert-icon i {
+    font-size: 22px;
+}
+
+.status-alert h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--ward-focus-dark);
+    margin: 0 0 6px 0;
+}
+
+.status-alert p {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ward-focus);
+    margin: 0;
+}
+
+/* ================================
+   Filter Card
+================================ */
+
+.filter-card {
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 260px 260px;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.filter-control {
+    width: 100%;
+    height: 44px;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #020617;
+    padding: 0 16px;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    transition: 0.22s ease;
+}
+
+.filter-control:hover {
+    border-color: color-mix(in srgb, var(--ward-focus) 45%, transparent);
+}
+
+.filter-control:focus,
+.filter-control:focus-visible {
+    border-color: var(--ward-focus);
+    box-shadow: 0 0 0 4px var(--ward-focus-soft);
+    outline: none;
+}
+
+.sort-control {
+    border-color: var(--ward-focus);
+}
+
+/* ================================
+   Objection List
+================================ */
+
+.objection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.objection-card {
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    padding: 24px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: 0.22s ease;
+}
+
+.objection-card.objection-card-show {
+    animation: objectionFadeIn 0.35s ease forwards;
+}
+
+.objection-card:hover {
+    border-color: color-mix(in srgb, var(--ward-focus) 38%, transparent);
+    box-shadow: 0 14px 30px color-mix(in srgb, var(--ward-focus) 12%, transparent);
+}
+
+.objection-top {
+    margin-bottom: 16px;
+}
+
+.case-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.case-code {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ward-focus);
+}
+
+.priority-badge,
+.status-badge {
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.status-badge {
+    background: var(--ward-focus-bg);
+    color: var(--ward-focus-dark);
+}
+
+.priority-high {
+    background: rgba(239, 68, 68, 0.13);
+    color: #DC2626;
+}
+
+.priority-medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #B45309;
+}
+
+.priority-low {
+    background: rgba(34, 197, 94, 0.13);
+    color: #15803D;
+}
+
+.objection-card h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #020617;
+    margin: 0 0 8px 0;
+}
+
+.location-line {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748B;
+    margin: 0;
+}
+
+/* ================================
+   Info Grid
+================================ */
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.info-grid div {
+    background: #F8FAFC;
+    border: 1px solid #EEF2F7;
+    border-radius: 10px;
+    padding: 13px;
+}
+
+.info-grid span,
+.reason-box span {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 7px;
+}
+
+.info-grid strong {
+    font-size: 14px;
+    font-weight: 800;
+    color: #020617;
+    word-break: break-word;
+}
+
+/* ================================
+   Reason Box
+================================ */
+
+.reason-box {
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.reason-box p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    line-height: 1.65;
+    margin: 0;
+}
+
+.citizen-reason {
+    background: color-mix(in srgb, var(--ward-focus) 8%, #ffffff);
+    border: 1px solid color-mix(in srgb, var(--ward-focus) 18%, transparent);
+}
+
+.citizen-reason span {
+    color: var(--ward-focus-dark);
+}
+
+/* ================================
+   Media
+================================ */
+
+.media-grid-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.media-section {
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.media-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #1E293B;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 14px 0;
+}
+
+.media-section h4 i {
+    color: var(--ward-focus);
+}
+
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.media-box,
+.empty-media {
+    height: 160px;
+    border-radius: 8px;
+    border: 1px solid #CBD5E1;
+    background: #E2E8F0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-box {
+    transition: 0.22s ease;
+}
+
+.media-box:hover,
+.media-box:focus,
+.media-box:focus-visible {
+    border-color: var(--ward-focus);
+    box-shadow: 0 0 0 4px var(--ward-focus-soft);
+    outline: none;
+}
+
+.media-box img,
+.media-box video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.empty-media {
+    color: #64748B;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    grid-column: 1 / -1;
+}
+
+.empty-media i {
+    font-size: 30px;
+}
+
+/* ================================
+   Actions
+================================ */
+
+.objection-actions {
+    border-top: 1px solid #E2E8F0;
+    padding-top: 18px;
+}
+
+.note-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.ward-note-input {
+    width: 100%;
+    border: 2px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #020617;
+    outline: none;
+    resize: vertical;
+    min-height: 92px;
+    margin-bottom: 14px;
+    transition: 0.22s ease;
+}
+
+.ward-note-input:hover {
+    border-color: color-mix(in srgb, var(--ward-focus) 45%, transparent);
+}
+
+.ward-note-input:focus,
+.ward-note-input:focus-visible {
+    border-color: var(--ward-focus);
+    box-shadow: 0 0 0 4px var(--ward-focus-soft);
+    outline: none;
+}
+
+.action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.action-btn {
+    min-height: 48px;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: 0.22s ease;
+}
+
+.forward-btn {
+    background: var(--ward-focus-gradient);
+}
+
+.forward-btn:hover {
+    filter: brightness(0.94);
+}
+
+.reject-btn {
+    background: #475569;
+}
+
+.reject-btn:hover {
+    background: #334155;
+}
+
+.action-btn:focus,
+.action-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--ward-focus-soft);
+}
+
+/* ================================
+   Empty State
+================================ */
+
+.empty-state {
+    min-height: 280px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px dashed #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 28px;
+}
+
+.empty-state i {
+    font-size: 42px;
+    color: var(--ward-focus);
+    margin-bottom: 14px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #020617;
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748B;
+    margin: 0;
+}
+
+/* ================================
+   Pagination
+================================ */
+
+.pagination-wrap {
+    margin-top: 22px;
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.page-btn,
+.page-number {
+    min-height: 38px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #0F172A;
+    padding: 0 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 800;
+    transition: 0.22s ease;
+}
+
+.page-number {
+    width: 38px;
+    padding: 0;
+}
+
+.page-btn:hover,
+.page-number:hover,
+.page-number.active,
+.page-btn:focus,
+.page-btn:focus-visible,
+.page-number:focus,
+.page-number:focus-visible {
+    background: var(--ward-focus-gradient);
+    border-color: var(--ward-focus);
+    color: #ffffff;
+    outline: none;
+    box-shadow: 0 0 0 4px var(--ward-focus-soft);
+}
+
+.page-btn.disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ================================
+   Animation
+================================ */
+
+@keyframes objectionFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 1199px) {
+    .filter-card {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .media-grid-wrap {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .ward-objections-page {
+        padding: 22px 16px 32px;
+    }
+
+    .filter-card,
+    .info-grid,
+    .media-grid,
+    .action-row {
+        grid-template-columns: 1fr;
+    }
+
+    .objection-card {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 575px) {
+    .pagination-wrap {
+        justify-content: center;
+    }
+
+    .page-btn {
+        flex: 1;
+    }
+
+    .page-numbers {
+        width: 100%;
+        justify-content: center;
+        order: -1;
+    }
+}

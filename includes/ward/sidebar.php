@@ -147,6 +147,10 @@ if (isset($conn) && $conn && isset($_SESSION["user_id"])) {
             <i class="bi bi-clock-history"></i>
             <span>In Progress Cases</span>
         </a>
+        <a href="citizen-objections.php" class="menu-link <?php echo ($activePage === 'citizen-objections') ? 'active' : ''; ?>">
+    <i class="bi bi-chat-left-text"></i>
+    <span>Citizen Objections</span>
+</a>
 
         <a href="reopened-disputed.php" class="menu-link <?php echo ($activePage === 'reopened-disputed') ? 'active' : ''; ?>">
             <i class="bi bi-exclamation-triangle"></i>

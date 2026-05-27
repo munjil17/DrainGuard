@@ -1,0 +1,456 @@
+:root {
+    --inspector-focus: #FF7043;
+    --inspector-focus-dark: #E85D32;
+    --inspector-focus-soft: rgba(255, 112, 67, 0.14);
+    --inspector-focus-glow: rgba(255, 112, 67, 0.22);
+    --inspector-focus-bg: rgba(255, 112, 67, 0.10);
+}
+
+/* ================================
+   Solved by Team Cases Page
+================================ */
+
+.solved-cases-page {
+    padding: 28px 24px 36px;
+    background: #F8FAFC;
+    min-height: calc(100vh - 74px);
+}
+
+.page-heading {
+    margin-bottom: 24px;
+}
+
+.page-heading h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #020617;
+    margin: 0 0 10px 0;
+}
+
+.page-heading p {
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    margin: 0;
+}
+
+/* ================================
+   Alerts
+================================ */
+
+.page-error-alert {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #B91C1C;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.status-alert {
+    min-height: 98px;
+    border: 1px solid var(--inspector-focus-glow);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 112, 67, 0.12), rgba(255, 112, 67, 0.06));
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.status-alert-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--inspector-focus), var(--inspector-focus-dark));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 22px rgba(255, 112, 67, 0.24);
+}
+
+.status-alert-icon i {
+    font-size: 22px;
+}
+
+.status-alert h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #9A3412;
+    margin: 0 0 6px 0;
+}
+
+.status-alert p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #C2410C;
+    margin: 0;
+}
+
+/* ================================
+   Filter Card
+================================ */
+
+.filter-card {
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.filter-control {
+    width: 100%;
+    height: 44px;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #020617;
+    padding: 0 16px;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    transition: 0.22s ease;
+}
+
+.filter-control:hover {
+    border-color: rgba(255, 112, 67, 0.45);
+}
+
+.filter-control:focus,
+.filter-control:focus-visible {
+    border-color: var(--inspector-focus);
+    box-shadow: 0 0 0 4px var(--inspector-focus-soft);
+    outline: none;
+}
+
+.sort-control {
+    border-color: var(--inspector-focus);
+}
+
+/* ================================
+   Cases List
+================================ */
+
+.cases-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.case-card {
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 16px;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.case-card.solved-case-show {
+    animation: solvedCaseFadeIn 0.35s ease forwards;
+}
+
+.case-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 112, 67, 0.40);
+    box-shadow: 0 14px 30px rgba(255, 112, 67, 0.12);
+}
+
+.case-thumb {
+    width: 96px;
+    height: 96px;
+    border-radius: 8px;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.case-thumb img,
+.case-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.case-thumb i {
+    font-size: 30px;
+    color: #94A3B8;
+}
+
+.case-content {
+    min-width: 0;
+}
+
+.case-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.case-code {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--inspector-focus);
+}
+
+.status-badge {
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: var(--inspector-focus-bg);
+    color: #C2410C;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.waiting-badge {
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(245, 158, 11, 0.18);
+    color: #B45309;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.priority-badge {
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.priority-high {
+    background: rgba(239, 68, 68, 0.13);
+    color: #DC2626;
+}
+
+.priority-medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #B45309;
+}
+
+.priority-low {
+    background: rgba(34, 197, 94, 0.13);
+    color: #15803D;
+}
+
+.case-content h3 {
+    font-size: 19px;
+    font-weight: 800;
+    color: #020617;
+    margin: 0 0 12px 0;
+}
+
+.case-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 28px;
+    margin-bottom: 14px;
+}
+
+.case-info-grid p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    margin: 0;
+}
+
+.case-info-grid strong {
+    font-weight: 800;
+    color: #020617;
+}
+
+.proof-count {
+    color: #009A54 !important;
+}
+
+.completion-note {
+    background: #F8FAFC;
+    border: 1px solid #EEF2F7;
+    border-radius: 8px;
+    padding: 14px 12px;
+    margin-bottom: 14px;
+}
+
+.completion-note span {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: #334155;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.completion-note p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1E293B;
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* ================================
+   Review Button
+================================ */
+
+.review-form {
+    width: 100%;
+}
+
+.review-btn {
+    min-height: 40px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    background: var(--inspector-focus);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 800;
+    transition: 0.22s ease;
+    cursor: pointer;
+}
+
+.review-btn:hover {
+    background: var(--inspector-focus-dark);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 22px rgba(255, 112, 67, 0.22);
+}
+
+.review-btn:focus,
+.review-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--inspector-focus-soft), 0 12px 22px rgba(255, 112, 67, 0.18);
+}
+
+.review-btn:active {
+    transform: translateY(0);
+}
+
+/* ================================
+   Empty State
+================================ */
+
+.empty-state {
+    min-height: 280px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px dashed #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 28px;
+}
+
+.empty-state i {
+    font-size: 42px;
+    color: var(--inspector-focus);
+    margin-bottom: 14px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #020617;
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748B;
+    margin: 0;
+}
+
+/* ================================
+   Animation
+================================ */
+
+@keyframes solvedCaseFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 1199px) {
+    .filter-card {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .solved-cases-page {
+        padding: 22px 16px 32px;
+    }
+
+    .filter-card {
+        grid-template-columns: 1fr;
+    }
+
+    .case-card {
+        grid-template-columns: 1fr;
+    }
+
+    .case-thumb {
+        width: 100%;
+        height: 180px;
+    }
+
+    .case-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575px) {
+    .page-heading h1 {
+        font-size: 22px;
+    }
+
+    .status-alert {
+        align-items: flex-start;
+    }
+
+    .case-card {
+        padding: 16px;
+    }
+}

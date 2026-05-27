@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const ratingInput = form.querySelector(".rating-input");
         const actionInput = form.querySelector(".action-type");
         const actionButtons = form.querySelectorAll(".fr-actions button");
+        const textarea = form.querySelector('textarea[name="feedback_text"]');
 
         stars.forEach(function (star) {
             star.addEventListener("click", function () {
@@ -38,21 +39,49 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         form.addEventListener("submit", function (event) {
-            const actionType = actionInput?.value || "feedback";
+            const clickedButton = event.submitter;
+            const actionType = clickedButton?.dataset.action || actionInput?.value || "feedback";
             const ratingValue = Number(ratingInput?.value || 0);
+            const textValue = textarea ? textarea.value.trim() : "";
 
-            if (actionType === "feedback" && ratingValue < 1) {
-                event.preventDefault();
-                alert("Please select a rating before submitting feedback.");
-                return;
+            if (actionInput) {
+                actionInput.value = actionType;
             }
 
-            if (actionType === "false_completion") {
-                const confirmReport = confirm("Are you sure you want to report false completion and reopen this complaint?");
+            if (actionType === "feedback") {
+                if (ratingValue < 1) {
+                    event.preventDefault();
+                    alert("Please select a rating before submitting feedback.");
+                    return;
+                }
+
+                if (textValue.length < 5) {
+                    event.preventDefault();
+                    alert("Please write a short feedback message.");
+                    return;
+                }
+            }
+
+            if (actionType === "citizen_objection") {
+                if (textValue.length < 10) {
+                    event.preventDefault();
+                    alert("Please clearly explain why the problem is still not solved.");
+                    return;
+                }
+
+                const confirmReport = confirm(
+                    "Submit this objection to Ward Officer? The complaint will be marked as disputed until reviewed."
+                );
 
                 if (!confirmReport) {
                     event.preventDefault();
+                    return;
                 }
+            }
+
+            if (clickedButton) {
+                clickedButton.innerHTML = "Processing...";
+                clickedButton.style.pointerEvents = "none";
             }
         });
     });
