@@ -189,17 +189,18 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                 >
 
                 <div class="form-group">
-                    <label for="loginEmailInput">Gmail Address</label>
+                    <label for="loginEmailInput">Email Address</label>
 
                     <div class="input-box <?php echo !empty($emailError) ? 'input-error' : ''; ?>">
                         <i class="bi bi-envelope"></i>
 
+                        <!-- autocomplete="username" better for password managers -->
                         <input
                             type="email"
                             name="email_or_phone"
                             id="loginEmailInput"
-                            placeholder="example@gmail.com"
-                            autocomplete="email"
+                            placeholder="example@email.com"
+                            autocomplete="username"
                             required
                         >
                     </div>
@@ -245,7 +246,8 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                         <span>Remember me</span>
                     </label>
 
-                    <a href="../hash.php">Forgot Password?</a>
+                    <!-- Forgot password link updated -->
+                    <a href="forgot_password.php">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="submit-btn" id="submitBtn">
@@ -260,7 +262,7 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     style="display: <?php echo safeText($showCitizenSignup); ?>;"
                 >
                     <span>New citizen user?</span>
-                    <a href="/DrainGuard/auth/citizen_signup.php">Create Citizen Account</a>
+                   <a href="../citizenRegistration/citizen_signup.php">Citizen Sign Up</a>
                 </div>
 
             </form>

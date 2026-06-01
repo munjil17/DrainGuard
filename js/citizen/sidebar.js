@@ -1,69 +1,73 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const mobileToggle = document.getElementById("mobileToggle");
-    const sidebar = document.getElementById("sidebar");
+// C:\xampp\htdocs\DrainGuard\js\citizen\sidebar.js
 
-    if (!mobileToggle || !sidebar) {
-        return;
-    }
+(function () {
+    'use strict';
 
-    let overlay = document.querySelector(".sidebar-overlay");
+    /* ── ELEMENTS ──────────────────────────────── */
+    const sidebar      = document.getElementById('sidebar');
+    const overlay      = document.getElementById('sidebarOverlay');
+    const mobileToggle = document.getElementById('mobileToggle');
 
-    if (!overlay) {
-        overlay = document.createElement("div");
-        overlay.className = "sidebar-overlay";
-        document.body.appendChild(overlay);
-    }
+    if (!sidebar || !overlay || !mobileToggle) return;
 
+    /* ── OPEN SIDEBAR ──────────────────────────── */
     function openSidebar() {
-        sidebar.classList.add("active");
-        overlay.classList.add("active");
-        document.body.classList.add("sidebar-open");
-
-        mobileToggle.setAttribute("aria-expanded", "true");
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        document.body.classList.add('sidebar-open');
+        mobileToggle.setAttribute('aria-expanded', 'true');
+        mobileToggle.setAttribute('aria-label', 'Close sidebar');
     }
 
+    /* ── CLOSE SIDEBAR ─────────────────────────── */
     function closeSidebar() {
-        sidebar.classList.remove("active");
-        overlay.classList.remove("active");
-        document.body.classList.remove("sidebar-open");
-
-        mobileToggle.setAttribute("aria-expanded", "false");
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+        mobileToggle.setAttribute('aria-expanded', 'false');
+        mobileToggle.setAttribute('aria-label', 'Open sidebar');
     }
 
+    /* ── TOGGLE ────────────────────────────────── */
     function toggleSidebar() {
-        if (sidebar.classList.contains("active")) {
-            closeSidebar();
-        } else {
-            openSidebar();
-        }
+        sidebar.classList.contains('active') ? closeSidebar() : openSidebar();
     }
 
-    mobileToggle.setAttribute("aria-controls", "sidebar");
-    mobileToggle.setAttribute("aria-expanded", "false");
+    /* ── EVENTS ────────────────────────────────── */
 
-    mobileToggle.addEventListener("click", toggleSidebar);
+    // Hamburger button click
+    mobileToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleSidebar();
+    });
 
-    overlay.addEventListener("click", closeSidebar);
+    // Overlay click — close sidebar
+    overlay.addEventListener('click', closeSidebar);
 
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
+    // ESC key — close sidebar
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
             closeSidebar();
         }
     });
 
-    window.addEventListener("resize", function () {
+    // Window resize — auto close on desktop
+    window.addEventListener('resize', function () {
         if (window.innerWidth > 992) {
             closeSidebar();
         }
     });
 
-    const menuLinks = sidebar.querySelectorAll(".menu-link");
+    /* ── ACTIVE MENU HIGHLIGHT ─────────────────── */
+    // Current page URL থেকে active link highlight করে
+    const currentPath = window.location.pathname.split('/').pop();
 
-    menuLinks.forEach(function (link) {
-        link.addEventListener("click", function () {
-            if (window.innerWidth <= 992) {
-                closeSidebar();
-            }
-        });
+    document.querySelectorAll('.menu-link').forEach(function (link) {
+        const linkPath = link.getAttribute('href');
+        if (linkPath && linkPath === currentPath) {
+            link.classList.add('active');
+            link.setAttribute('aria-current', 'page');
+        }
     });
-});
+
+})();

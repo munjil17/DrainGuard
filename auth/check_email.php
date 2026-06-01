@@ -25,12 +25,14 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 /*
 |--------------------------------------------------------------------------
-| Gmail-only validation
-| Remove this block if you want to allow all email providers.
+| Fake Domain Block
 |--------------------------------------------------------------------------
 */
-if (!preg_match("/^[a-zA-Z0-9._%+-]+@gmail\.com$/", $email)) {
-    echo "invalid_gmail";
+$blockedDomains = ['example.com', 'test.com', 'localhost', 'fake.com'];
+$domain = substr(strrchr($email, "@"), 1);
+
+if (in_array($domain, $blockedDomains)) {
+    echo "blocked_domain";
     exit();
 }
 
@@ -77,11 +79,7 @@ if ($selectedRole !== "") {
 |--------------------------------------------------------------------------
 | Query Build
 |--------------------------------------------------------------------------
-| If selected role comes from JS, check email + role.
-| If no role is sent, check email only.
-|--------------------------------------------------------------------------
 */
-
 if (!empty($allowedRoles)) {
     $placeholders = implode(",", array_fill(0, count($allowedRoles), "?"));
 
@@ -140,6 +138,11 @@ if (!$result || mysqli_num_rows($result) !== 1) {
 $user = mysqli_fetch_assoc($result);
 mysqli_stmt_close($stmt);
 
+/*
+|--------------------------------------------------------------------------
+| Account Status Validation
+|--------------------------------------------------------------------------
+*/
 $userStatus = strtolower(trim($user["user_status"] ?? ""));
 
 if ($userStatus !== "active") {

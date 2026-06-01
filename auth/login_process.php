@@ -12,7 +12,6 @@ require_once "../config.php";
 | Allow POST Request Only
 |--------------------------------------------------------------------------
 */
-
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     redirect_to("auth/login.php");
 }
@@ -22,10 +21,10 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 | Collect Form Data
 |--------------------------------------------------------------------------
 */
-
 $email = strtolower(trim($_POST["email_or_phone"] ?? $_POST["email"] ?? ""));
 $password = trim($_POST["password"] ?? "");
 $role = trim($_POST["selected_role"] ?? $_POST["role"] ?? "citizen");
+$rememberMe = isset($_POST["remember_me"]);
 
 $_SESSION["selected_role"] = $role;
 
@@ -40,7 +39,6 @@ unset(
 | Empty Field Validation
 |--------------------------------------------------------------------------
 */
-
 if ($email === "" || $password === "" || $role === "") {
     $_SESSION["email_error"] = "Please fill up all required fields.";
     redirect_to("auth/login.php");
@@ -48,67 +46,40 @@ if ($email === "" || $password === "" || $role === "") {
 
 /*
 |--------------------------------------------------------------------------
-| Email Validation
+| Email Validation & Fake Domain Block
 |--------------------------------------------------------------------------
 */
-
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $_SESSION["email_error"] = "Invalid email format.";
     redirect_to("auth/login.php");
 }
 
-/*
-|--------------------------------------------------------------------------
-| Optional Gmail Validation
-| Keep this only if your project allows Gmail only.
-|--------------------------------------------------------------------------
-*/
+// Block fake / test domains
+$blockedDomains = ['example.com', 'test.com', 'localhost', 'fake.com'];
+$domain = substr(strrchr($email, "@"), 1);
 
-if (!preg_match("/^[a-zA-Z0-9._%+-]+@gmail\.com$/", $email)) {
-    $_SESSION["email_error"] = "Only Gmail addresses are allowed.";
+if (in_array($domain, $blockedDomains)) {
+    $_SESSION["email_error"] = "This email domain is not allowed for security reasons.";
     redirect_to("auth/login.php");
 }
 
 /*
 |--------------------------------------------------------------------------
-| Role Mapping: Frontend Role → Database Role
-|--------------------------------------------------------------------------
-| Frontend role values usually:
-| citizen, central, ward, maintenance, inspector
-|
-| Database role values may be:
-| citizen
-| central_officer
-| ward_officer
-| maintenance_team
-| maintenance_member
-| team_leader
-| assistant_team_leader
-| inspector
+| Role Mapping
 |--------------------------------------------------------------------------
 */
-
 $roleMap = [
-    "citizen" => ["citizen"],
-
-    "central" => ["central_officer"],
-    "central_officer" => ["central_officer"],
-
-    "ward" => ["ward_officer"],
-    "ward_officer" => ["ward_officer"],
-
-    "maintenance" => [
-        "maintenance_team",
-        "maintenance_member",
-        "team_leader",
-        "assistant_team_leader"
-    ],
-    "maintenance_team" => ["maintenance_team"],
-    "maintenance_member" => ["maintenance_member"],
-    "team_leader" => ["team_leader"],
+    "citizen"               => ["citizen"],
+    "central"               => ["central_officer"],
+    "central_officer"       => ["central_officer"],
+    "ward"                  => ["ward_officer"],
+    "ward_officer"          => ["ward_officer"],
+    "maintenance"           => ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"],
+    "maintenance_team"      => ["maintenance_team"],
+    "maintenance_member"    => ["maintenance_member"],
+    "team_leader"           => ["team_leader"],
     "assistant_team_leader" => ["assistant_team_leader"],
-
-    "inspector" => ["inspector"]
+    "inspector"             => ["inspector"]
 ];
 
 $allowedRoles = $roleMap[$role] ?? [];
@@ -123,7 +94,6 @@ if (empty($allowedRoles)) {
 | Fetch User From Database
 |--------------------------------------------------------------------------
 */
-
 $rolePlaceholders = implode(",", array_fill(0, count($allowedRoles), "?"));
 
 $sql = "
@@ -144,7 +114,7 @@ $sql = "
 $stmt = mysqli_prepare($conn, $sql);
 
 if (!$stmt) {
-    $_SESSION["email_error"] = "Login query failed. SQL Error: " . mysqli_error($conn);
+    $_SESSION["email_error"] = "System error during login.";
     redirect_to("auth/login.php");
 }
 
@@ -158,8 +128,7 @@ $result = mysqli_stmt_get_result($stmt);
 
 if (!$result || mysqli_num_rows($result) !== 1) {
     mysqli_stmt_close($stmt);
-
-    $_SESSION["email_error"] = "Invalid Gmail or selected role.";
+    $_SESSION["email_error"] = "Invalid email or role.";
     redirect_to("auth/login.php");
 }
 
@@ -168,37 +137,24 @@ mysqli_stmt_close($stmt);
 
 /*
 |--------------------------------------------------------------------------
-| Account Status Check
+| Account & Access Check
 |--------------------------------------------------------------------------
 */
-
-$userStatus = strtolower(trim($user["user_status"] ?? ""));
-
-if ($userStatus !== "active") {
-    $_SESSION["email_error"] = "Your account is inactive. Contact central control.";
+if (strtolower(trim($user["user_status"] ?? "")) !== "active") {
+    $_SESSION["email_error"] = "Your account is inactive. Please contact support.";
     redirect_to("auth/login.php");
 }
-
-/*
-|--------------------------------------------------------------------------
-| Login Access Check
-|--------------------------------------------------------------------------
-| login_access = 1 means allowed
-| login_access = 0 means blocked
-|--------------------------------------------------------------------------
-*/
 
 if (isset($user["login_access"]) && (int)$user["login_access"] !== 1) {
-    $_SESSION["email_error"] = "Your login access is disabled.";
+    $_SESSION["email_error"] = "Your login access has been disabled.";
     redirect_to("auth/login.php");
 }
 
 /*
 |--------------------------------------------------------------------------
-| Password Check
+| Password Check (Secure password_verify)
 |--------------------------------------------------------------------------
 */
-
 if (!password_verify($password, $user["user_password"])) {
     $_SESSION["password_error"] = "Incorrect password.";
     redirect_to("auth/login.php");
@@ -209,7 +165,6 @@ if (!password_verify($password, $user["user_password"])) {
 | Secure Session Regeneration
 |--------------------------------------------------------------------------
 */
-
 session_regenerate_id(true);
 
 /*
@@ -217,13 +172,6 @@ session_regenerate_id(true);
 | Set Login Session
 |--------------------------------------------------------------------------
 */
-
-unset(
-    $_SESSION["email_error"],
-    $_SESSION["password_error"],
-    $_SESSION["login_error"]
-);
-
 $_SESSION["user_id"] = (int)$user["user_id"];
 $_SESSION["user_name"] = $user["user_name"];
 $_SESSION["user_email"] = $user["user_mail"];
@@ -231,56 +179,58 @@ $_SESSION["user_role"] = $user["user_role"];
 $_SESSION["selected_role"] = $role;
 $_SESSION["logged_in"] = true;
 
-/*
-|--------------------------------------------------------------------------
-| User Role Label
-|--------------------------------------------------------------------------
-*/
-
-$roleLabels = [
-    "citizen" => "Public Portal",
-    "central_officer" => "Central Command",
-    "ward_officer" => "Ward Operations",
-    "maintenance_team" => "Maintenance Team",
-    "maintenance_member" => "Maintenance Member",
-    "team_leader" => "Maintenance Team Leader",
-    "assistant_team_leader" => "Assistant Team Leader",
-    "inspector" => "Quality Control"
-];
-
-$_SESSION["user_role_label"] = $roleLabels[$user["user_role"]] ?? "User";
+// Role label remove (কারণ আমরা sidebar/topbar-এ static করে দিয়েছি)
+unset($_SESSION["user_role_label"]);
 
 /*
 |--------------------------------------------------------------------------
-| Update Last Active Time
-| Safe check: only runs if last_active column exists.
+| Update Last Active Time (Direct Query, No Info Schema)
 |--------------------------------------------------------------------------
 */
+$updateLastActiveSql = "UPDATE users SET last_active = NOW() WHERE user_id = ?";
+$updateLastActiveStmt = mysqli_prepare($conn, $updateLastActiveSql);
+if ($updateLastActiveStmt) {
+    mysqli_stmt_bind_param($updateLastActiveStmt, "i", $user["user_id"]);
+    mysqli_stmt_execute($updateLastActiveStmt);
+    mysqli_stmt_close($updateLastActiveStmt);
+}
 
-$columnCheckSql = "
-    SELECT COUNT(*) AS total
-    FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'users'
-    AND COLUMN_NAME = 'last_active'
-";
+/*
+|--------------------------------------------------------------------------
+| Secure "Remember Me" Implementation
+|--------------------------------------------------------------------------
+*/
+if ($rememberMe) {
+    $selector = bin2hex(random_bytes(16));
+    $validator = bin2hex(random_bytes(32));
+    $hashed_validator = hash('sha256', $validator);
+    
+    // Cookie valid for 30 days
+    $expires = time() + (86400 * 30);
+    $expires_date = date('Y-m-d H:i:s', $expires);
 
-$columnCheckResult = mysqli_query($conn, $columnCheckSql);
-$columnCheckRow = $columnCheckResult ? mysqli_fetch_assoc($columnCheckResult) : null;
+    $tokenSql = "INSERT INTO remember_tokens (user_id, selector, hashed_validator, expires_at) VALUES (?, ?, ?, ?)";
+    $tokenStmt = mysqli_prepare($conn, $tokenSql);
 
-if (($columnCheckRow["total"] ?? 0) > 0) {
-    $updateLastActiveSql = "
-        UPDATE users 
-        SET last_active = NOW() 
-        WHERE user_id = ?
-    ";
+    if ($tokenStmt) {
+        mysqli_stmt_bind_param($tokenStmt, "isss", $user["user_id"], $selector, $hashed_validator, $expires_date);
+        mysqli_stmt_execute($tokenStmt);
+        mysqli_stmt_close($tokenStmt);
 
-    $updateLastActiveStmt = mysqli_prepare($conn, $updateLastActiveSql);
-
-    if ($updateLastActiveStmt) {
-        mysqli_stmt_bind_param($updateLastActiveStmt, "i", $user["user_id"]);
-        mysqli_stmt_execute($updateLastActiveStmt);
-        mysqli_stmt_close($updateLastActiveStmt);
+        // Set secure cookie
+        $cookieValue = $selector . ':' . $validator;
+        setcookie(
+            'remember_me', 
+            $cookieValue, 
+            [
+                'expires' => $expires,
+                'path' => '/',
+                'domain' => '', 
+                'secure' => isset($_SERVER['HTTPS']), 
+                'httponly' => true, 
+                'samesite' => 'Lax'
+            ]
+        );
     }
 }
 
@@ -289,21 +239,6 @@ if (($columnCheckRow["total"] ?? 0) > 0) {
 | Redirect By Role
 |--------------------------------------------------------------------------
 */
-
-$redirectMap = [
-    "citizen" => "pages/citizen/dashboard.php",
-    "central_officer" => "pages/central/dashboard.php",
-    "ward_officer" => "pages/ward/dashboard.php",
-
-    "maintenance_team" => "pages/maintenance/dashboard.php",
-    "maintenance_member" => "pages/maintenance/dashboard.php",
-    "team_leader" => "pages/maintenance/dashboard.php",
-    "assistant_team_leader" => "pages/maintenance/dashboard.php",
-
-    "inspector" => "pages/inspector/dashboard.php"
-];
-
-$redirectUrl = $redirectMap[$user["user_role"]] ?? "auth/login.php";
-
+$redirectUrl = get_role_dashboard($user["user_role"]);
 redirect_to($redirectUrl);
 ?>

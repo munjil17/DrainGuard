@@ -18,23 +18,50 @@ function pb_status_class($status)
 {
     $status = strtolower(trim((string)$status));
 
-    if ($status === "submitted") return "status-submitted";
-    if ($status === "pending_verification") return "status-pending";
-    if ($status === "verified") return "status-verified";
-    if ($status === "assigned") return "status-assigned";
-    if ($status === "in_progress") return "status-progress";
-    if ($status === "completed") return "status-completed";
-    if ($status === "under_inspection") return "status-inspection";
-    if ($status === "solved") return "status-solved";
-    if ($status === "reopened") return "status-reopened";
-    if ($status === "rejected") return "status-rejected";
+    $classes = [
+        "submitted" => "status-submitted",
+        "received" => "status-received",
+        "pending_verification" => "status-pending-verification",
+        "verified_by_ward" => "status-verified-by-ward",
+        "rejected_by_central" => "status-rejected-by-central",
+        "rejected_by_ward" => "status-rejected-by-ward",
+        "duplicate" => "status-duplicate",
+        "team_assigned" => "status-team-assigned",
+        "in_progress" => "status-in-progress",
+        "solved_by_team" => "status-solved-by-team",
+        "inspector_verification" => "status-inspector-verification",
+        "closed" => "status-closed",
+        "reopened" => "status-reopened",
+        "disputed" => "status-disputed",
+        "final_rejected" => "status-final-rejected"
+    ];
 
-    return "status-submitted";
+    return $classes[$status] ?? "status-submitted";
 }
 
 function pb_format_status($status)
 {
-    return ucwords(str_replace("_", " ", (string)$status));
+    $status = strtolower(trim((string)$status));
+
+    $labels = [
+        "submitted" => "Submitted",
+        "received" => "Received",
+        "pending_verification" => "Pending Verification",
+        "verified_by_ward" => "Verified by Ward Officer",
+        "rejected_by_central" => "Rejected by Central Officer",
+        "rejected_by_ward" => "Rejected by Ward Officer",
+        "duplicate" => "Duplicate",
+        "team_assigned" => "Assigned to Team",
+        "in_progress" => "In Progress",
+        "solved_by_team" => "Solved by Team",
+        "inspector_verification" => "Inspector Verification",
+        "closed" => "Closed / Solved",
+        "reopened" => "Reopened",
+        "disputed" => "Disputed",
+        "final_rejected" => "Final Rejected"
+    ];
+
+    return $labels[$status] ?? ucwords(str_replace("_", " ", $status));
 }
 
 function pb_short_text($text, $limit = 150)
@@ -49,16 +76,6 @@ function pb_short_text($text, $limit = 150)
 }
 
 $complaints = [];
-
-/*
-|--------------------------------------------------------------------------
-| Fetch public complaints
-|--------------------------------------------------------------------------
-| issue_type and urgency_level are removed from complaints table.
-| issue_name comes from issues table.
-| affected_area_name comes from affected_areas table.
-|--------------------------------------------------------------------------
-*/
 
 $sql = "
     SELECT
@@ -120,7 +137,12 @@ $sql = "
     INNER JOIN areas a
         ON l.area_id = a.area_id
 
-    WHERE c.complaint_status NOT IN ('rejected')
+    WHERE c.complaint_status NOT IN (
+        'rejected_by_central',
+        'rejected_by_ward',
+        'duplicate',
+        'final_rejected'
+    )
 
     ORDER BY c.submitted_at DESC
 ";
@@ -135,16 +157,6 @@ while ($row = mysqli_fetch_assoc($result)) {
     $row["media"] = [];
     $complaints[(int)$row["complaint_id"]] = $row;
 }
-
-/*
-|--------------------------------------------------------------------------
-| Load complaint media
-|--------------------------------------------------------------------------
-| Your complaint_media table uses:
-| media_id, complaint_id, media_type, media_path, original_name,
-| file_size, mime_type, uploaded_at
-|--------------------------------------------------------------------------
-*/
 
 if (!empty($complaints)) {
     $complaintIds = array_keys($complaints);
@@ -187,12 +199,6 @@ if (!empty($complaints)) {
 
 $complaints = array_values($complaints);
 
-/*
-|--------------------------------------------------------------------------
-| Ward filter options
-|--------------------------------------------------------------------------
-*/
-
 $wardOptions = [];
 
 foreach ($complaints as $complaint) {
@@ -209,12 +215,6 @@ foreach ($complaints as $complaint) {
 uasort($wardOptions, function ($a, $b) {
     return strcasecmp($a["label"], $b["label"]);
 });
-
-/*
-|--------------------------------------------------------------------------
-| Affected area filter options
-|--------------------------------------------------------------------------
-*/
 
 $affectedAreaOptions = [];
 
@@ -262,7 +262,7 @@ ksort($affectedAreaOptions);
             <div class="pb-header">
                 <div>
                     <h1>Public Complaint Board</h1>
-                    <p>View all public drainage complaints and their status</p>
+                    <p>View public drainage complaints and their current workflow status</p>
                 </div>
 
                 <div class="pb-count-card">
@@ -295,14 +295,16 @@ ksort($affectedAreaOptions);
                     <select id="statusFilter">
                         <option value="all">All Status</option>
                         <option value="submitted">Submitted</option>
+                        <option value="received">Received</option>
                         <option value="pending_verification">Pending Verification</option>
-                        <option value="verified">Verified</option>
-                        <option value="assigned">Assigned</option>
+                        <option value="verified_by_ward">Verified by Ward Officer</option>
+                        <option value="team_assigned">Assigned to Team</option>
                         <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="under_inspection">Under Inspection</option>
-                        <option value="solved">Solved</option>
+                        <option value="solved_by_team">Solved by Team</option>
+                        <option value="inspector_verification">Inspector Verification</option>
+                        <option value="closed">Closed / Solved</option>
                         <option value="reopened">Reopened</option>
+                        <option value="disputed">Disputed</option>
                     </select>
                 </div>
 
@@ -459,6 +461,14 @@ ksort($affectedAreaOptions);
                                             >
                                                 <i class="bi bi-geo-alt"></i>
                                                 Track
+                                            </a>
+
+                                            <a
+                                                href="track-complaint.php?code=<?php echo urlencode($complaintCode); ?>#discussion"
+                                                class="pb-track-btn"
+                                            >
+                                                <i class="bi bi-chat-dots"></i>
+                                                Join Discussion
                                             </a>
 
                                             <button

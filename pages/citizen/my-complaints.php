@@ -1,18 +1,13 @@
 <?php
-$activePage = 'my-complaints';
-$pageTitle = 'My Complaints';
-$pageParent = 'Citizen';
-$pageChild = 'My Complaints';
+$activePage = "my-complaints";
+$pageTitle = "My Complaints";
+$pageParent = "Citizen";
+$pageChild = "My Complaints";
 
 require_once "../../config.php";
-require_once "../../auth/session_check.php";
+require_login(["citizen"]);
 
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'citizen') {
-    header("Location: ../../index.php");
-    exit();
-}
-
-$userId = (int)($_SESSION['user_id'] ?? 0);
+$userId = (int)($_SESSION["user_id"] ?? 0);
 $complaints = [];
 
 $sql = "
@@ -26,6 +21,7 @@ $sql = "
         c.complaint_status,
         c.submitted_at,
         c.updated_at,
+        c.closed_at,
 
         i.issue_name,
         aa.affected_area_name,
@@ -66,44 +62,85 @@ $sql = "
 
 $stmt = mysqli_prepare($conn, $sql);
 
-if ($stmt) {
-    mysqli_stmt_bind_param($stmt, "i", $userId);
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-
-    while ($row = mysqli_fetch_assoc($result)) {
-        $complaints[] = $row;
-    }
-
-    mysqli_stmt_close($stmt);
-} else {
+if (!$stmt) {
     die("My complaints query failed: " . mysqli_error($conn));
 }
 
-function safeText($value) {
-    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+mysqli_stmt_bind_param($stmt, "i", $userId);
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
+
+while ($row = mysqli_fetch_assoc($result)) {
+    $complaints[] = $row;
 }
 
-function formatStatus($status) {
-    return ucwords(str_replace('_', ' ', (string)$status));
+mysqli_stmt_close($stmt);
+
+function safeText($value)
+{
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
-function statusClass($status) {
-    $status = strtolower((string)$status);
+function formatStatus($status)
+{
+    $status = strtolower(trim((string)$status));
 
-    if ($status === 'submitted') return 'status-submitted';
-    if ($status === 'pending_verification') return 'status-pending';
-    if ($status === 'verified') return 'status-verified';
-    if ($status === 'assigned') return 'status-assigned';
-    if ($status === 'in_progress') return 'status-progress';
-    if ($status === 'completed') return 'status-completed';
-    if ($status === 'under_inspection') return 'status-inspection';
-    if ($status === 'solved') return 'status-solved';
-    if ($status === 'reopened') return 'status-reopened';
-    if ($status === 'rejected') return 'status-rejected';
+    $labels = [
+        "submitted" => "Submitted",
+        "received" => "Received",
+        "pending_verification" => "Pending Verification",
+        "verified_by_ward" => "Verified by Ward Officer",
+        "rejected_by_central" => "Rejected by Central Officer",
+        "rejected_by_ward" => "Rejected by Ward Officer",
+        "duplicate" => "Duplicate",
+        "team_assigned" => "Assigned to Team",
+        "in_progress" => "In Progress",
+        "solved_by_team" => "Solved by Team",
+        "inspector_verification" => "Inspector Verification",
+        "closed" => "Closed / Solved",
+        "reopened" => "Reopened",
+        "disputed" => "Disputed",
+        "final_rejected" => "Final Rejected"
+    ];
 
-    return 'status-submitted';
+    return $labels[$status] ?? ucwords(str_replace("_", " ", $status));
+}
+
+function statusClass($status)
+{
+    $status = strtolower(trim((string)$status));
+
+    $classes = [
+        "submitted" => "status-submitted",
+        "received" => "status-received",
+        "pending_verification" => "status-pending-verification",
+        "verified_by_ward" => "status-verified-by-ward",
+        "rejected_by_central" => "status-rejected-by-central",
+        "rejected_by_ward" => "status-rejected-by-ward",
+        "duplicate" => "status-duplicate",
+        "team_assigned" => "status-team-assigned",
+        "in_progress" => "status-in-progress",
+        "solved_by_team" => "status-solved-by-team",
+        "inspector_verification" => "status-inspector-verification",
+        "closed" => "status-closed",
+        "reopened" => "status-reopened",
+        "disputed" => "status-disputed",
+        "final_rejected" => "status-final-rejected"
+    ];
+
+    return $classes[$status] ?? "status-submitted";
+}
+
+function shortText($text, $limit = 90)
+{
+    $text = trim((string)$text);
+
+    if (function_exists("mb_strimwidth")) {
+        return mb_strimwidth($text, 0, $limit, "...");
+    }
+
+    return strlen($text) > $limit ? substr($text, 0, $limit) . "..." : $text;
 }
 ?>
 
@@ -150,21 +187,30 @@ function statusClass($status) {
             <div class="mc-toolbar">
                 <div class="mc-search-box">
                     <i class="bi bi-search"></i>
-                    <input type="text" id="myComplaintSearch" placeholder="Search by complaint ID, issue, affected area, ward...">
+                    <input
+                        type="text"
+                        id="myComplaintSearch"
+                        placeholder="Search by complaint ID, issue, affected area, ward..."
+                    >
                 </div>
 
                 <select id="myStatusFilter">
                     <option value="all">All Status</option>
                     <option value="submitted">Submitted</option>
+                    <option value="received">Received</option>
                     <option value="pending_verification">Pending Verification</option>
-                    <option value="verified">Verified</option>
-                    <option value="assigned">Assigned</option>
+                    <option value="verified_by_ward">Verified by Ward Officer</option>
+                    <option value="rejected_by_central">Rejected by Central Officer</option>
+                    <option value="rejected_by_ward">Rejected by Ward Officer</option>
+                    <option value="duplicate">Duplicate</option>
+                    <option value="team_assigned">Assigned to Team</option>
                     <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="under_inspection">Under Inspection</option>
-                    <option value="solved">Solved</option>
+                    <option value="solved_by_team">Solved by Team</option>
+                    <option value="inspector_verification">Inspector Verification</option>
+                    <option value="closed">Closed / Solved</option>
                     <option value="reopened">Reopened</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="disputed">Disputed</option>
+                    <option value="final_rejected">Final Rejected</option>
                 </select>
             </div>
 
@@ -189,25 +235,32 @@ function statusClass($status) {
                             <tbody>
                                 <?php foreach ($complaints as $complaint): ?>
                                     <?php
-                                        $complaintCode = safeText($complaint['complaint_code']);
+                                        $complaintCode = safeText($complaint["complaint_code"]);
 
-                                        $issueName = safeText($complaint['issue_name'] ?? 'N/A');
-                                        $affectedAreaName = safeText($complaint['affected_area_name'] ?? 'N/A');
+                                        $issueName = safeText($complaint["issue_name"] ?? "N/A");
+                                        $affectedAreaName = safeText($complaint["affected_area_name"] ?? "N/A");
 
-                                        $statusRaw = (string)($complaint['complaint_status'] ?? 'submitted');
+                                        $statusRaw = (string)($complaint["complaint_status"] ?? "submitted");
                                         $status = safeText($statusRaw);
                                         $statusText = safeText(formatStatus($statusRaw));
 
-                                        $wardNo = safeText($complaint['ward_no'] ?? 'N/A');
-                                        $areaName = safeText($complaint['area_name'] ?? 'N/A');
-                                        $thanaName = safeText($complaint['thana_name'] ?? 'N/A');
+                                        $wardNo = safeText($complaint["ward_no"] ?? "N/A");
+                                        $wardName = safeText($complaint["ward_name"] ?? "");
+                                        $areaName = safeText($complaint["area_name"] ?? "N/A");
+                                        $thanaName = safeText($complaint["thana_name"] ?? "N/A");
 
                                         $locationText = "Ward " . $wardNo . ", " . $areaName;
+                                        if ($wardName !== "") {
+                                            $locationText = $wardName . ", " . $areaName;
+                                        }
+
                                         $locationSearchText = $locationText . " " . $thanaName;
 
-                                        $submittedDate = !empty($complaint['submitted_at'])
-                                            ? date("Y-m-d", strtotime($complaint['submitted_at']))
+                                        $submittedDate = !empty($complaint["submitted_at"])
+                                            ? date("Y-m-d", strtotime($complaint["submitted_at"]))
                                             : "N/A";
+
+                                        $problemShort = shortText($complaint["problem_description"] ?? "", 95);
                                     ?>
 
                                     <tr
@@ -224,7 +277,7 @@ function statusClass($status) {
                                         <td>
                                             <div class="mc-issue">
                                                 <strong><?php echo $issueName; ?></strong>
-                                                <small><?php echo safeText($complaint['problem_description'] ?? ''); ?></small>
+                                                <small><?php echo safeText($problemShort); ?></small>
                                             </div>
                                         </td>
 
@@ -245,7 +298,10 @@ function statusClass($status) {
                                         <td><?php echo safeText($submittedDate); ?></td>
 
                                         <td>
-                                            <a class="mc-track-link" href="track-complaint.php?code=<?php echo urlencode($complaintCode); ?>">
+                                            <a
+                                                class="mc-track-link"
+                                                href="track-complaint.php?code=<?php echo urlencode($complaintCode); ?>"
+                                            >
                                                 Track
                                                 <i class="bi bi-arrow-right"></i>
                                             </a>

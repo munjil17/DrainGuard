@@ -169,7 +169,6 @@
     overflow: hidden;
 }
 
-/* This prevents table from breaking small screens */
 .mc-table-wrap {
     width: 100%;
     max-width: 100%;
@@ -178,7 +177,6 @@
     -webkit-overflow-scrolling: touch;
 }
 
-/* Keep table readable on laptop/desktop, scroll-safe on mobile */
 .mc-table {
     width: 100%;
     min-width: 920px;
@@ -267,56 +265,83 @@
     white-space: nowrap;
 }
 
-/* Status badges */
+/* ===============================
+   FINAL STATUS COLORS
+================================ */
 
 .status-submitted {
     background: #DBEAFE;
     color: #1D4ED8;
 }
 
-.status-pending {
+.status-received {
+    background: #E0F2FE;
+    color: #0369A1;
+}
+
+.status-pending-verification {
     background: #FEF3C7;
     color: #B45309;
 }
 
-.status-verified {
+.status-verified-by-ward {
     background: #D1FAE5;
     color: #047857;
 }
 
-.status-assigned {
-    background: #E0E7FF;
-    color: #4338CA;
+.status-rejected-by-central {
+    background: #FEE2E2;
+    color: #B91C1C;
 }
 
-.status-progress {
+.status-rejected-by-ward {
+    background: #FFE4E6;
+    color: #BE123C;
+}
+
+.status-duplicate {
+    background: #E2E8F0;
+    color: #334155;
+}
+
+.status-team-assigned {
+    background: #EDE9FE;
+    color: #6D28D9;
+}
+
+.status-in-progress {
     background: #FFEDD5;
     color: #C2410C;
 }
 
-.status-completed {
+.status-solved-by-team {
     background: #CCFBF1;
     color: #0F766E;
 }
 
-.status-inspection {
-    background: #F3E8FF;
-    color: #7E22CE;
+.status-inspector-verification {
+    background: #E0E7FF;
+    color: #4338CA;
 }
 
-.status-solved {
+.status-closed {
     background: #DCFCE7;
     color: #15803D;
 }
 
 .status-reopened {
-    background: #FFE4E6;
-    color: #BE123C;
+    background: #FEF9C3;
+    color: #A16207;
 }
 
-.status-rejected {
-    background: #FEE2E2;
-    color: #B91C1C;
+.status-disputed {
+    background: #FCE7F3;
+    color: #BE185D;
+}
+
+.status-final-rejected {
+    background: #7F1D1D;
+    color: #FFFFFF;
 }
 
 /* Urgency badges */

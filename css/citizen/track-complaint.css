@@ -31,6 +31,8 @@
 .tc-details-card,
 .tc-media-card,
 .tc-work-update-card,
+.tc-decision-card,
+.tc-discussion-card,
 .tc-empty-card {
     width: 100%;
     max-width: 1180px;
@@ -219,16 +221,19 @@
 .tc-status,
 .status-submitted,
 .status-received,
-.status-pending,
-.status-verified,
-.status-assigned,
-.status-progress,
-.status-completed,
-.status-inspection,
-.status-solved,
+.status-pending-verification,
+.status-verified-by-ward,
+.status-rejected-by-central,
+.status-rejected-by-ward,
+.status-duplicate,
+.status-team-assigned,
+.status-in-progress,
+.status-solved-by-team,
+.status-inspector-verification,
+.status-closed,
 .status-reopened,
-.status-rejected,
-.status-duplicate {
+.status-disputed,
+.status-final-rejected {
     display: inline-flex !important;
     width: fit-content;
     max-width: 100%;
@@ -246,51 +251,26 @@
 }
 
 .status-received {
-    background: #DDFBFF;
-    color: #0891B2 !important;
+    background: #E0F2FE;
+    color: #0369A1 !important;
 }
 
-.status-pending {
+.status-pending-verification {
     background: #FEF3C7;
     color: #B45309 !important;
 }
 
-.status-verified {
+.status-verified-by-ward {
     background: #D1FAE5;
     color: #047857 !important;
 }
 
-.status-assigned {
-    background: #E0E7FF;
-    color: #4338CA !important;
+.status-rejected-by-central {
+    background: #FEE2E2;
+    color: #B91C1C !important;
 }
 
-.status-progress {
-    background: #FFEDD5;
-    color: #C2410C !important;
-}
-
-.status-completed {
-    background: #CCFBF1;
-    color: #0F766E !important;
-}
-
-.status-inspection {
-    background: #F3E8FF;
-    color: #7E22CE !important;
-}
-
-.status-solved {
-    background: #DCFCE7;
-    color: #15803D !important;
-}
-
-.status-reopened {
-    background: #F3E8FF;
-    color: #7E22CE !important;
-}
-
-.status-rejected {
+.status-rejected-by-ward {
     background: #FFE4E6;
     color: #BE123C !important;
 }
@@ -300,6 +280,46 @@
     color: #334155 !important;
 }
 
+.status-team-assigned {
+    background: #EDE9FE;
+    color: #6D28D9 !important;
+}
+
+.status-in-progress {
+    background: #FFEDD5;
+    color: #C2410C !important;
+}
+
+.status-solved-by-team {
+    background: #CCFBF1;
+    color: #0F766E !important;
+}
+
+.status-inspector-verification {
+    background: #E0E7FF;
+    color: #4338CA !important;
+}
+
+.status-closed {
+    background: #DCFCE7;
+    color: #15803D !important;
+}
+
+.status-reopened {
+    background: #FEF9C3;
+    color: #A16207 !important;
+}
+
+.status-disputed {
+    background: #FCE7F3;
+    color: #BE185D !important;
+}
+
+.status-final-rejected {
+    background: #7F1D1D;
+    color: #FFFFFF !important;
+}
+
 /* ==================================================
    CARD
 ================================================== */
@@ -307,7 +327,9 @@
 .tc-card,
 .tc-details-card,
 .tc-media-card,
-.tc-work-update-card {
+.tc-work-update-card,
+.tc-decision-card,
+.tc-discussion-card {
     margin-bottom: 24px;
     padding: clamp(20px, 2.2vw, 26px);
     border-radius: 18px;
@@ -324,7 +346,9 @@
 .tc-card-header h2,
 .tc-details-card h2,
 .tc-media-card h2,
-.tc-work-update-card h2 {
+.tc-work-update-card h2,
+.tc-decision-card h2,
+.tc-discussion-card h2 {
     margin: 0 0 6px;
     font-size: clamp(20px, 2vw, 24px);
     font-weight: 800;
@@ -332,7 +356,8 @@
     line-height: 1.25;
 }
 
-.tc-card-header p {
+.tc-card-header p,
+.tc-discussion-card p {
     margin: 0;
     color: #475569;
     font-size: 15px;
@@ -428,6 +453,24 @@
     box-shadow: 0 0 0 6px rgba(100, 116, 139, 0.14);
 }
 
+.tc-timeline-item.reopened .tc-timeline-icon {
+    background: #F59E0B;
+    color: #FFFFFF;
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.16);
+}
+
+.tc-timeline-item.disputed .tc-timeline-icon {
+    background: #DB2777;
+    color: #FFFFFF;
+    box-shadow: 0 0 0 6px rgba(219, 39, 119, 0.14);
+}
+
+.tc-timeline-item.closed .tc-timeline-icon {
+    background: #16C784;
+    color: #FFFFFF;
+    box-shadow: 0 0 0 6px rgba(22, 199, 132, 0.15);
+}
+
 .tc-timeline-icon i {
     font-size: 22px;
     line-height: 1;
@@ -461,12 +504,21 @@
     overflow-wrap: anywhere;
 }
 
+.tc-timeline-content small {
+    display: inline-block;
+    margin-top: 5px;
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 700;
+}
+
 /* ==================================================
-   DETAILS
+   DETAILS / DECISION
 ================================================== */
 
 .tc-details-grid,
-.tc-work-grid {
+.tc-work-grid,
+.tc-decision-grid {
     margin-top: 18px;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -477,8 +529,13 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.tc-decision-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .tc-details-grid div,
-.tc-work-grid div {
+.tc-work-grid div,
+.tc-decision-grid div {
     padding: 16px;
     border-radius: 14px;
     background: #F8FAFC;
@@ -488,7 +545,8 @@
 
 .tc-details-grid span,
 .tc-work-grid span,
-.tc-work-note span {
+.tc-work-note span,
+.tc-decision-grid span {
     display: block;
     margin-bottom: 7px;
     color: #64748B;
@@ -497,7 +555,8 @@
 }
 
 .tc-details-grid strong,
-.tc-work-grid strong {
+.tc-work-grid strong,
+.tc-decision-grid strong {
     display: block;
     color: #0F172A;
     font-size: 15px;
@@ -658,6 +717,8 @@
 .tc-details-card *,
 .tc-media-card *,
 .tc-work-update-card *,
+.tc-decision-card *,
+.tc-discussion-card *,
 .tc-empty-card * {
     box-sizing: border-box;
 }
@@ -680,6 +741,8 @@ body {
     .tc-details-card,
     .tc-media-card,
     .tc-work-update-card,
+    .tc-decision-card,
+    .tc-discussion-card,
     .tc-empty-card {
         max-width: 1120px;
     }
@@ -694,6 +757,8 @@ body {
     .tc-details-card,
     .tc-media-card,
     .tc-work-update-card,
+    .tc-decision-card,
+    .tc-discussion-card,
     .tc-empty-card {
         max-width: 1000px;
     }
@@ -701,7 +766,8 @@ body {
 
 @media (max-width: 1100px) {
     .tc-summary-card,
-    .tc-details-grid {
+    .tc-details-grid,
+    .tc-decision-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -727,14 +793,17 @@ body {
 
     .tc-summary-card,
     .tc-details-grid,
-    .tc-work-grid {
+    .tc-work-grid,
+    .tc-decision-grid {
         grid-template-columns: 1fr;
     }
 
     .tc-card,
     .tc-details-card,
     .tc-media-card,
-    .tc-work-update-card {
+    .tc-work-update-card,
+    .tc-decision-card,
+    .tc-discussion-card {
         padding: 22px;
     }
 
@@ -809,7 +878,9 @@ body {
     .tc-card,
     .tc-details-card,
     .tc-media-card,
-    .tc-work-update-card {
+    .tc-work-update-card,
+    .tc-decision-card,
+    .tc-discussion-card {
         padding: 18px;
     }
 

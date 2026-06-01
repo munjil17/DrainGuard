@@ -1,118 +1,197 @@
 <?php
-// C:\xampp\htdocs\DrainGuard\includes\citizen\topbar.php
 
-$topbarUserName = $_SESSION['user_name'] ?? 'Citizen User';
-$topbarRoleLabel = $_SESSION['user_role_label'] ?? 'Public Portal';
-$topbarUserId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
+$topbarUserName  = $_SESSION['citizen_full_name'] ?? $_SESSION['user_name'] ?? 'Citizen User';
+$topbarRoleLabel = 'Citizen';
+$topbarUserId    = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 
-$topbarPhotoPath = "";
-
-function citizen_safe_text_topbar($value)
-{
-    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+if (!function_exists('citizen_safe_topbar')) {
+    function citizen_safe_topbar($value)
+    {
+        return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+    }
 }
 
-function citizen_column_exists_topbar($conn, $tableName, $columnName)
-{
-    $sql = "
-        SELECT COUNT(*) AS total
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME = ?
-        AND COLUMN_NAME = ?
-    ";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
-    if (!$stmt) {
-        return false;
-    }
-
-    mysqli_stmt_bind_param($stmt, "ss", $tableName, $columnName);
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-    $row = $result ? mysqli_fetch_assoc($result) : null;
-
-    mysqli_stmt_close($stmt);
-
-    return ((int)($row['total'] ?? 0)) > 0;
-}
-
-function citizen_get_profile_photo_topbar($conn, $userId)
-{
-    if ($userId <= 0 || !$conn) {
-        return "";
-    }
-
-    $photoColumns = [
-        "profile_photo",
-        "profile_image",
-        "citizen_photo",
-        "citizen_image",
-        "photo",
-        "image"
-    ];
-
-    $foundPhotoColumn = "";
-
-    foreach ($photoColumns as $column) {
-        if (citizen_column_exists_topbar($conn, "citizens", $column)) {
-            $foundPhotoColumn = $column;
-            break;
+if (!function_exists('citizen_topbar_time_ago')) {
+    function citizen_topbar_time_ago($datetime)
+    {
+        if (empty($datetime)) {
+            return 'Just now';
         }
+
+        $timestamp = strtotime($datetime);
+
+        if (!$timestamp) {
+            return 'Just now';
+        }
+
+        $diff = time() - $timestamp;
+
+        if ($diff < 60) {
+            return 'Just now';
+        }
+
+        if ($diff < 3600) {
+            return floor($diff / 60) . ' min ago';
+        }
+
+        if ($diff < 86400) {
+            return floor($diff / 3600) . ' hr ago';
+        }
+
+        if ($diff < 604800) {
+            return floor($diff / 86400) . ' day ago';
+        }
+
+        return date('M d, Y', $timestamp);
     }
-
-    if ($foundPhotoColumn === "") {
-        return "";
-    }
-
-    $sql = "
-        SELECT `$foundPhotoColumn` AS profile_photo
-        FROM citizens
-        WHERE user_id = ?
-        LIMIT 1
-    ";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
-    if (!$stmt) {
-        return "";
-    }
-
-    mysqli_stmt_bind_param($stmt, "i", $userId);
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-    $photoPath = "";
-
-    if ($result && mysqli_num_rows($result) === 1) {
-        $row = mysqli_fetch_assoc($result);
-        $photoPath = trim((string)($row['profile_photo'] ?? ""));
-    }
-
-    mysqli_stmt_close($stmt);
-
-    return $photoPath;
 }
 
-/*
-|--------------------------------------------------------------------------
-| Topbar profile photo source
-|--------------------------------------------------------------------------
-| 1. First use session profile photo
-| 2. If session empty, fetch from citizens table
-|--------------------------------------------------------------------------
-*/
+if (!function_exists('citizen_notification_icon')) {
+    function citizen_notification_icon($type)
+    {
+        $type = strtolower(trim((string)$type));
+
+        if (
+            $type === 'complaint_accepted' ||
+            $type === 'complaint_rejected' ||
+            $type === 'complaint_status_updated'
+        ) {
+            return 'bi-signpost-split';
+        }
+
+        if (
+            $type === 'objection_submitted' ||
+            $type === 'objection_under_review' ||
+            $type === 'objection_reopened' ||
+            $type === 'objection_final_rejected'
+        ) {
+            return 'bi-exclamation-diamond';
+        }
+
+        if ($type === 'comment_reply') {
+            return 'bi-chat-dots';
+        }
+
+        return 'bi-bell';
+    }
+}
+
+if (!function_exists('citizen_notification_type_class')) {
+    function citizen_notification_type_class($type)
+    {
+        $type = strtolower(trim((string)$type));
+
+        if (
+            $type === 'complaint_accepted' ||
+            $type === 'complaint_rejected' ||
+            $type === 'complaint_status_updated'
+        ) {
+            return 'type-track';
+        }
+
+        if (
+            $type === 'objection_submitted' ||
+            $type === 'objection_under_review' ||
+            $type === 'objection_reopened' ||
+            $type === 'objection_final_rejected'
+        ) {
+            return 'type-objection';
+        }
+
+        if ($type === 'comment_reply') {
+            return 'type-reply';
+        }
+
+        return 'type-system';
+    }
+}
+
+$topbarPhotoPath = '';
 
 if (!empty($_SESSION['profile_photo'])) {
-    $topbarPhotoPath = "../../" . ltrim($_SESSION['profile_photo'], "/");
-} elseif ($topbarUserId > 0 && isset($conn)) {
-    $dbPhotoPath = citizen_get_profile_photo_topbar($conn, $topbarUserId);
+    $topbarPhotoPath = '../../' . ltrim($_SESSION['profile_photo'], '/');
+}
 
-    if ($dbPhotoPath !== "") {
-        $_SESSION['profile_photo'] = $dbPhotoPath;
-        $topbarPhotoPath = "../../" . ltrim($dbPhotoPath, "/");
+$citizenUnreadNotificationCount = 0;
+$citizenTopbarNotifications = [];
+
+if ($topbarUserId > 0 && isset($conn) && $conn instanceof mysqli) {
+    $unreadSql = "
+        SELECT COUNT(*) AS unread_total
+        FROM citizen_notifications
+        WHERE recipient_user_id = ?
+          AND is_read = 0
+          AND notification_type IN (
+              'complaint_accepted',
+              'complaint_rejected',
+              'complaint_status_updated',
+              'objection_submitted',
+              'objection_under_review',
+              'objection_reopened',
+              'objection_final_rejected',
+              'comment_reply'
+          )
+    ";
+
+    $unreadStmt = mysqli_prepare($conn, $unreadSql);
+
+    if ($unreadStmt) {
+        mysqli_stmt_bind_param($unreadStmt, "i", $topbarUserId);
+        mysqli_stmt_execute($unreadStmt);
+
+        $unreadResult = mysqli_stmt_get_result($unreadStmt);
+
+        if ($unreadResult) {
+            $unreadRow = mysqli_fetch_assoc($unreadResult);
+            $citizenUnreadNotificationCount = (int)($unreadRow['unread_total'] ?? 0);
+        }
+
+        mysqli_stmt_close($unreadStmt);
+    }
+
+    $notificationSql = "
+        SELECT
+            cn.notification_id,
+            cn.related_complaint_id,
+            cn.notification_type,
+            cn.notification_title,
+            cn.notification_message,
+            cn.is_read,
+            cn.created_at,
+            c.complaint_code
+        FROM citizen_notifications cn
+        LEFT JOIN complaints c
+            ON cn.related_complaint_id = c.complaint_id
+        WHERE cn.recipient_user_id = ?
+          AND cn.notification_type IN (
+              'complaint_accepted',
+              'complaint_rejected',
+              'complaint_status_updated',
+              'objection_submitted',
+              'objection_under_review',
+              'objection_reopened',
+              'objection_final_rejected',
+              'comment_reply'
+          )
+        ORDER BY cn.created_at DESC, cn.notification_id DESC
+        LIMIT 10
+    ";
+
+    $notificationStmt = mysqli_prepare($conn, $notificationSql);
+
+    if ($notificationStmt) {
+        mysqli_stmt_bind_param($notificationStmt, "i", $topbarUserId);
+        mysqli_stmt_execute($notificationStmt);
+
+        $notificationResult = mysqli_stmt_get_result($notificationStmt);
+
+        if ($notificationResult) {
+            while ($notificationRow = mysqli_fetch_assoc($notificationResult)) {
+                $citizenTopbarNotifications[] = $notificationRow;
+            }
+        }
+
+        mysqli_stmt_close($notificationStmt);
     }
 }
 ?>
@@ -120,10 +199,10 @@ if (!empty($_SESSION['profile_photo'])) {
 <header class="citizen-topbar">
 
     <div class="topbar-left">
-        <button 
-            class="mobile-toggle" 
-            id="mobileToggle" 
-            type="button" 
+        <button
+            class="mobile-toggle"
+            id="mobileToggle"
+            type="button"
             aria-label="Open sidebar"
             aria-controls="sidebar"
             aria-expanded="false"
@@ -132,14 +211,12 @@ if (!empty($_SESSION['profile_photo'])) {
         </button>
 
         <div class="topbar-page-title">
-            <h3><?php echo citizen_safe_text_topbar($pageTitle ?? 'Citizen Panel'); ?></h3>
-
+            <h3><?php echo citizen_safe_topbar($pageTitle ?? 'Citizen Panel'); ?></h3>
             <p>
-                <?php echo citizen_safe_text_topbar($pageParent ?? 'Citizen'); ?>
-
+                <?php echo citizen_safe_topbar($pageParent ?? 'Citizen'); ?>
                 <?php if (!empty($pageChild)): ?>
                     <span>/</span>
-                    <?php echo citizen_safe_text_topbar($pageChild); ?>
+                    <?php echo citizen_safe_topbar($pageChild); ?>
                 <?php endif; ?>
             </p>
         </div>
@@ -147,21 +224,103 @@ if (!empty($_SESSION['profile_photo'])) {
 
     <div class="topbar-right">
 
-        <button class="notification-btn" type="button" aria-label="Notifications">
-            <i class="bi bi-bell"></i>
-            <span></span>
-        </button>
+        <details class="topbar-notification">
+            <summary class="notification-btn" aria-label="Notifications">
+                <i class="bi bi-bell"></i>
+
+                <?php if ($citizenUnreadNotificationCount > 0): ?>
+                    <span class="notification-dot"></span>
+                    <em class="notification-count">
+                        <?php echo $citizenUnreadNotificationCount > 99 ? '99+' : (int)$citizenUnreadNotificationCount; ?>
+                    </em>
+                <?php endif; ?>
+            </summary>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <div>
+                        <h4>Notifications</h4>
+                        <p>
+                            <?php if ($citizenUnreadNotificationCount > 0): ?>
+                                <?php echo (int)$citizenUnreadNotificationCount; ?> unread notification(s)
+                            <?php else: ?>
+                                No unread notifications
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="notification-list">
+                    <?php if (count($citizenTopbarNotifications) > 0): ?>
+
+                        <?php foreach ($citizenTopbarNotifications as $notification): ?>
+                            <?php
+                                $notificationType = strtolower(trim((string)$notification['notification_type']));
+                                $notificationClass = citizen_notification_type_class($notificationType);
+                                $notificationIcon = citizen_notification_icon($notificationType);
+                                $isUnread = ((int)$notification['is_read'] === 0);
+
+                                $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
+
+                                if (!empty($notification['complaint_code'])) {
+                                    $notificationLink .= '&redirect=track';
+                                }
+                            ?>
+
+                            <a
+                                class="notification-item <?php echo $isUnread ? 'unread' : 'read'; ?> <?php echo citizen_safe_topbar($notificationClass); ?>"
+                                href="<?php echo citizen_safe_topbar($notificationLink); ?>"
+                            >
+                                <span class="notification-icon">
+                                    <i class="bi <?php echo citizen_safe_topbar($notificationIcon); ?>"></i>
+                                </span>
+
+                                <span class="notification-content">
+                                    <strong>
+                                        <?php echo citizen_safe_topbar($notification['notification_title'] ?? 'Notification'); ?>
+                                    </strong>
+
+                                    <small>
+                                        <?php echo citizen_safe_topbar($notification['notification_message'] ?? ''); ?>
+                                    </small>
+
+                                    <b>
+                                        <?php echo citizen_safe_topbar(citizen_topbar_time_ago($notification['created_at'] ?? null)); ?>
+                                    </b>
+                                </span>
+                            </a>
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <div class="notification-empty">
+                            <i class="bi bi-bell-slash"></i>
+                            <h5>No notifications yet</h5>
+                            <p>Track updates, objection status, and comment replies will appear here.</p>
+                        </div>
+
+                    <?php endif; ?>
+                </div>
+
+                <div class="notification-dropdown-footer">
+                    <a href="notifications.php">
+                        View All Notifications
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </details>
 
         <div class="topbar-user">
             <div>
-                <h4><?php echo citizen_safe_text_topbar($topbarUserName); ?></h4>
-                <p><?php echo citizen_safe_text_topbar($topbarRoleLabel); ?></p>
+                <h4><?php echo citizen_safe_topbar($topbarUserName); ?></h4>
+                <p><?php echo citizen_safe_topbar($topbarRoleLabel); ?></p>
             </div>
 
             <a href="profile.php" class="topbar-avatar" title="View Profile">
-                <?php if ($topbarPhotoPath !== ""): ?>
-                    <img 
-                        src="<?php echo citizen_safe_text_topbar($topbarPhotoPath); ?>" 
+                <?php if ($topbarPhotoPath !== ''): ?>
+                    <img
+                        src="<?php echo citizen_safe_topbar($topbarPhotoPath); ?>"
                         alt="Profile Photo"
                         loading="lazy"
                     >

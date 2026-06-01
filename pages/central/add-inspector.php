@@ -533,7 +533,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         <div class="ai-field">
                             <label for="email">Email <span>*</span></label>
-                            <input type="email" id="email" name="email" placeholder="example@gmail.com" required>
+                            <input type="email" id="email" name="email" placeholder="example@email.com" required>
                         </div>
 
                         <div class="ai-field">

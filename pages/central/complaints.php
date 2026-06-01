@@ -17,40 +17,92 @@ function safeText($value)
     return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
+function normalizeCentralStatus($status)
+{
+    $status = strtolower(trim((string)$status));
+
+    $map = [
+        "verified" => "verified_by_ward",
+        "ward_verified" => "verified_by_ward",
+        "assigned" => "team_assigned",
+        "assigned_to_team" => "team_assigned",
+        "completed" => "solved_by_team",
+        "team_completed" => "solved_by_team",
+        "under_inspection" => "inspector_verification",
+        "pending_inspection" => "inspector_verification",
+        "solved" => "closed",
+        "resolved" => "closed",
+        "rejected" => "rejected_by_central"
+    ];
+
+    return $map[$status] ?? $status;
+}
+
 function formatStatus($status)
 {
-    return ucwords(str_replace("_", " ", (string)$status));
+    $status = normalizeCentralStatus($status);
+
+    $labels = [
+        "submitted" => "Submitted",
+        "received" => "Received",
+        "pending_verification" => "Pending Verification",
+        "verified_by_ward" => "Verified by Ward Officer",
+        "team_assigned" => "Assigned to Team",
+        "in_progress" => "In Progress",
+        "solved_by_team" => "Solved by Team",
+        "inspector_verification" => "Inspector Verification",
+        "closed" => "Closed",
+        "rejected_by_central" => "Rejected by Central Officer",
+        "rejected_by_ward" => "Rejected by Ward Officer",
+        "duplicate" => "Duplicate",
+        "reopened" => "Reopened",
+        "disputed" => "Disputed",
+        "final_rejected" => "Final Rejected"
+    ];
+
+    return $labels[$status] ?? ucwords(str_replace("_", " ", $status));
 }
 
 function statusClass($status)
 {
-    $status = strtolower((string)$status);
+    $status = normalizeCentralStatus($status);
 
     if ($status === "submitted") return "status-submitted";
     if ($status === "received") return "status-received";
     if ($status === "pending_verification") return "status-pending";
-    if ($status === "verified") return "status-verified";
-    if ($status === "assigned_to_team") return "status-assigned";
+    if ($status === "verified_by_ward") return "status-verified";
+    if ($status === "team_assigned") return "status-assigned";
     if ($status === "in_progress") return "status-progress";
     if ($status === "solved_by_team") return "status-completed";
     if ($status === "inspector_verification") return "status-inspection";
     if ($status === "closed") return "status-solved";
-    if ($status === "rejected") return "status-rejected";
+    if ($status === "rejected_by_central" || $status === "rejected_by_ward") return "status-rejected";
+    if ($status === "duplicate") return "status-duplicate";
     if ($status === "reopened") return "status-reopened";
+    if ($status === "disputed") return "status-disputed";
+    if ($status === "final_rejected") return "status-final-rejected";
 
     return "status-submitted";
 }
 
 function urgencyClass($urgency)
 {
-    $urgency = strtolower((string)$urgency);
+    $urgency = strtolower(trim((string)$urgency));
 
     if ($urgency === "low") return "priority-low";
     if ($urgency === "medium") return "priority-medium";
     if ($urgency === "high") return "priority-high";
-    if ($urgency === "critical") return "priority-critical";
 
     return "priority-low";
+}
+
+function urgencyLabel($urgency)
+{
+    $urgency = strtolower(trim((string)$urgency));
+
+    if ($urgency === "high") return "High";
+    if ($urgency === "medium") return "Medium";
+    return "Low";
 }
 
 function makeMediaPublicPath($path)
@@ -139,6 +191,196 @@ function cm_column_exists($conn, $tableName, $columnName)
     return (int)$row["total"] > 0;
 }
 
+function cm_insert_status_log($conn, $complaintId, $oldStatus, $newStatus, $actionUserId, $remarks)
+{
+    if (!cm_table_exists($conn, "complaint_status_logs")) {
+        return true;
+    }
+
+    $sql = "
+        INSERT INTO complaint_status_logs (
+            complaint_id,
+            old_status,
+            new_status,
+            action_by_user_id,
+            action_by_role,
+            remarks,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, 'central_officer', ?, NOW())
+    ";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, "issis", $complaintId, $oldStatus, $newStatus, $actionUserId, $remarks);
+
+    $ok = mysqli_stmt_execute($stmt);
+
+    mysqli_stmt_close($stmt);
+
+    return $ok;
+}
+
+function cm_insert_decision($conn, $complaintId, $centralUserId, $reason)
+{
+    if (!cm_table_exists($conn, "complaint_decisions")) {
+        return true;
+    }
+
+    $hasDecidedByUser = cm_column_exists($conn, "complaint_decisions", "decided_by_user_id");
+    $hasDecidedByRole = cm_column_exists($conn, "complaint_decisions", "decided_by_role");
+
+    if ($hasDecidedByUser && $hasDecidedByRole) {
+        $sql = "
+            INSERT INTO complaint_decisions (
+                complaint_id,
+                decided_by_user_id,
+                decided_by_role,
+                decision_type,
+                reason,
+                reference_complaint_id,
+                created_at
+            )
+            VALUES (?, ?, 'central_officer', 'central_reject', ?, NULL, NOW())
+        ";
+
+        $stmt = mysqli_prepare($conn, $sql);
+
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "iis", $complaintId, $centralUserId, $reason);
+    } else {
+        $sql = "
+            INSERT INTO complaint_decisions (
+                complaint_id,
+                decision_type,
+                reason,
+                reference_complaint_id,
+                created_at
+            )
+            VALUES (?, 'central_reject', ?, NULL, NOW())
+        ";
+
+        $stmt = mysqli_prepare($conn, $sql);
+
+        if (!$stmt) {
+            return false;
+        }
+
+        mysqli_stmt_bind_param($stmt, "is", $complaintId, $reason);
+    }
+
+    $ok = mysqli_stmt_execute($stmt);
+
+    mysqli_stmt_close($stmt);
+
+    return $ok;
+}
+
+function cm_insert_citizen_notification($conn, $recipientUserId, $senderUserId, $complaintId, $type, $title, $message)
+{
+    if (!cm_table_exists($conn, "citizen_notifications")) {
+        return true;
+    }
+
+    $sql = "
+        INSERT INTO citizen_notifications (
+            recipient_user_id,
+            sender_user_id,
+            related_complaint_id,
+            notification_type,
+            notification_title,
+            notification_message,
+            is_read,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, 0, NOW())
+    ";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        return false;
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "iiisss",
+        $recipientUserId,
+        $senderUserId,
+        $complaintId,
+        $type,
+        $title,
+        $message
+    );
+
+    $ok = mysqli_stmt_execute($stmt);
+
+    mysqli_stmt_close($stmt);
+
+    return $ok;
+}
+
+function cm_mailer_files_ready()
+{
+    return file_exists("../../auth/PHPMailer/Exception.php")
+        && file_exists("../../auth/PHPMailer/PHPMailer.php")
+        && file_exists("../../auth/PHPMailer/SMTP.php");
+}
+
+function cm_send_citizen_mail($toEmail, $toName, $subject, $htmlBody, $plainBody)
+{
+    if (!cm_mailer_files_ready()) {
+        return false;
+    }
+
+    require_once "../../auth/PHPMailer/Exception.php";
+    require_once "../../auth/PHPMailer/PHPMailer.php";
+    require_once "../../auth/PHPMailer/SMTP.php";
+
+    try {
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+        $mail->isSMTP();
+        $mail->Host       = "smtp.gmail.com";
+        $mail->SMTPAuth   = true;
+
+        /*
+            এই দুইটা value তোমার working forgot_password.php থেকে copy করে বসাবে.
+            Placeholder থাকলে mail যাবে না, কিন্তু complaint action কাজ করবে.
+        */
+        $mail->Username   = "munjilislambd17@gmail.com";
+        $mail->Password   = "PASTE_YOUR_GMAIL_APP_PASSWORD_HERE";
+
+        if ($mail->Password === "PASTE_YOUR_GMAIL_APP_PASSWORD_HERE") {
+            return false;
+        }
+
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        $mail->setFrom($mail->Username, "DrainGuard Support");
+        $mail->addAddress($toEmail, $toName ?: "Citizen");
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $htmlBody;
+        $mail->AltBody = $plainBody;
+
+        $mail->send();
+
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
 if (isset($_SESSION["central_complaint_success"])) {
     $successMessage = $_SESSION["central_complaint_success"];
     unset($_SESSION["central_complaint_success"]);
@@ -158,17 +400,43 @@ if (isset($_SESSION["central_complaint_error"])) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $complaintId = (int)($_POST["complaint_id"] ?? 0);
     $action = trim($_POST["action"] ?? "");
+    $rejectReason = trim($_POST["reject_reason"] ?? "");
+    $centralUserId = (int)($_SESSION["user_id"] ?? 0);
 
     if ($complaintId <= 0 || !in_array($action, ["accept", "reject"], true)) {
         setComplaintFlash("error", "Invalid action.");
     }
 
-    $allowedCurrentStatuses = ["submitted", "reopened"];
+    if ($centralUserId <= 0) {
+        setComplaintFlash("error", "Invalid central officer session.");
+    }
+
+    if ($action === "reject") {
+        if ($rejectReason === "") {
+            setComplaintFlash("error", "Reject reason is required.");
+        }
+
+        if (mb_strlen($rejectReason) < 8) {
+            setComplaintFlash("error", "Reject reason must be at least 8 characters.");
+        }
+
+        if (mb_strlen($rejectReason) > 1000) {
+            setComplaintFlash("error", "Reject reason cannot exceed 1000 characters.");
+        }
+    }
 
     $checkSql = "
-        SELECT complaint_status
-        FROM complaints
-        WHERE complaint_id = ?
+        SELECT
+            c.complaint_id,
+            c.complaint_code,
+            c.user_id AS citizen_user_id,
+            c.complaint_status,
+            u.user_name,
+            u.user_mail
+        FROM complaints c
+        INNER JOIN users u
+            ON c.user_id = u.user_id
+        WHERE c.complaint_id = ?
         LIMIT 1
     ";
 
@@ -190,41 +458,156 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         setComplaintFlash("error", "Complaint not found.");
     }
 
-    $currentStatus = strtolower((string)$complaintRow["complaint_status"]);
+    $currentStatus = normalizeCentralStatus($complaintRow["complaint_status"]);
 
-    if (!in_array($currentStatus, $allowedCurrentStatuses, true)) {
-        setComplaintFlash("error", "Only submitted or reopened complaints can be accepted/rejected from this page.");
+    if ($currentStatus !== "submitted") {
+        setComplaintFlash("error", "Only submitted complaints can be accepted/rejected from this page.");
     }
 
-    $newStatus = ($action === "accept") ? "received" : "rejected";
+    $newStatus = ($action === "accept") ? "received" : "rejected_by_central";
 
-    $updateSql = "
-        UPDATE complaints
-        SET complaint_status = ?,
-            updated_at = NOW()
-        WHERE complaint_id = ?
-    ";
+    $complaintCode = (string)$complaintRow["complaint_code"];
+    $citizenUserId = (int)$complaintRow["citizen_user_id"];
+    $citizenName = (string)$complaintRow["user_name"];
+    $citizenEmail = (string)$complaintRow["user_mail"];
 
-    $updateStmt = mysqli_prepare($conn, $updateSql);
+    mysqli_begin_transaction($conn);
 
-    if (!$updateStmt) {
-        setComplaintFlash("error", "Complaint update query failed: " . mysqli_error($conn));
-    }
+    try {
+        $updateSql = "
+            UPDATE complaints
+            SET complaint_status = ?,
+                updated_at = NOW()
+            WHERE complaint_id = ?
+              AND complaint_status = 'submitted'
+        ";
 
-    mysqli_stmt_bind_param($updateStmt, "si", $newStatus, $complaintId);
+        $updateStmt = mysqli_prepare($conn, $updateSql);
 
-    if (!mysqli_stmt_execute($updateStmt)) {
+        if (!$updateStmt) {
+            throw new Exception("Complaint update query failed: " . mysqli_error($conn));
+        }
+
+        mysqli_stmt_bind_param($updateStmt, "si", $newStatus, $complaintId);
+
+        if (!mysqli_stmt_execute($updateStmt)) {
+            mysqli_stmt_close($updateStmt);
+            throw new Exception("Complaint update failed.");
+        }
+
+        if (mysqli_stmt_affected_rows($updateStmt) !== 1) {
+            mysqli_stmt_close($updateStmt);
+            throw new Exception("Complaint was already processed.");
+        }
+
         mysqli_stmt_close($updateStmt);
-        setComplaintFlash("error", "Complaint update failed.");
-    }
 
-    mysqli_stmt_close($updateStmt);
+        if ($action === "accept") {
+            if (!cm_insert_status_log(
+                $conn,
+                $complaintId,
+                $currentStatus,
+                $newStatus,
+                $centralUserId,
+                "Central officer accepted and received the complaint."
+            )) {
+                throw new Exception("Status log insert failed.");
+            }
+
+            if (!cm_insert_citizen_notification(
+                $conn,
+                $citizenUserId,
+                $centralUserId,
+                $complaintId,
+                "complaint_accepted",
+                "Complaint Accepted",
+                "Your complaint {$complaintCode} has been accepted by Central Officer and marked as Received."
+            )) {
+                throw new Exception("Citizen notification insert failed.");
+            }
+        }
+
+        if ($action === "reject") {
+            if (!cm_insert_decision($conn, $complaintId, $centralUserId, $rejectReason)) {
+                throw new Exception("Decision reason insert failed.");
+            }
+
+            if (!cm_insert_status_log(
+                $conn,
+                $complaintId,
+                $currentStatus,
+                $newStatus,
+                $centralUserId,
+                "Central officer rejected the complaint."
+            )) {
+                throw new Exception("Status log insert failed.");
+            }
+
+            if (!cm_insert_citizen_notification(
+                $conn,
+                $citizenUserId,
+                $centralUserId,
+                $complaintId,
+                "complaint_rejected",
+                "Complaint Rejected",
+                "Your complaint {$complaintCode} has been rejected by Central Officer. Please check the rejection reason."
+            )) {
+                throw new Exception("Citizen notification insert failed.");
+            }
+        }
+
+        mysqli_commit($conn);
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
+        setComplaintFlash("error", $e->getMessage());
+    }
 
     if ($action === "accept") {
-        setComplaintFlash("success", "Complaint accepted and marked as received.");
+        $mailSent = cm_send_citizen_mail(
+            $citizenEmail,
+            $citizenName,
+            "DrainGuard Complaint Accepted",
+            "
+                <h2>Complaint Accepted</h2>
+                <p>Dear " . safeText($citizenName) . ",</p>
+                <p>Your complaint <strong>" . safeText($complaintCode) . "</strong> has been accepted by Central Officer.</p>
+                <p>Current status: <strong>Received</strong></p>
+                <p>Regards,<br>DrainGuard Support</p>
+            ",
+            "Your complaint {$complaintCode} has been accepted by Central Officer. Current status: Received."
+        );
+
+        setComplaintFlash(
+            "success",
+            $mailSent
+                ? "Complaint accepted, status log saved, citizen notification inserted, and email sent."
+                : "Complaint accepted, status log saved, and citizen notification inserted. Email was not sent."
+        );
     }
 
-    setComplaintFlash("success", "Complaint rejected successfully.");
+    if ($action === "reject") {
+        $mailSent = cm_send_citizen_mail(
+            $citizenEmail,
+            $citizenName,
+            "DrainGuard Complaint Rejected by Central Officer",
+            "
+                <h2>Complaint Rejected</h2>
+                <p>Dear " . safeText($citizenName) . ",</p>
+                <p>Your complaint <strong>" . safeText($complaintCode) . "</strong> has been rejected by Central Officer.</p>
+                <p><strong>Reason:</strong><br>" . nl2br(safeText($rejectReason)) . "</p>
+                <p>Current status: <strong>Rejected by Central Officer</strong></p>
+                <p>Regards,<br>DrainGuard Support</p>
+            ",
+            "Your complaint {$complaintCode} has been rejected by Central Officer. Reason: {$rejectReason}"
+        );
+
+        setComplaintFlash(
+            "success",
+            $mailSent
+                ? "Complaint rejected, reason saved, status log saved, citizen notification inserted, and email sent."
+                : "Complaint rejected, reason saved, status log saved, and citizen notification inserted. Email was not sent."
+        );
+    }
 }
 
 /*
@@ -239,30 +622,56 @@ $complaints = [];
 |--------------------------------------------------------------------------
 | Dynamic table compatibility
 |--------------------------------------------------------------------------
-| Your complaints table now uses:
-| - complaints.issue_id
-| - complaints.affected_area_id
-|
-| So this page must not use:
-| - c.issue_type
-| - c.urgency_level
+| Priority calculation:
+| 1. Water Contamination = High
+| 2. issue priority High OR affected area priority High = High
+| 3. issue priority Medium OR affected area priority Medium = Medium
+| 4. otherwise Low
 |--------------------------------------------------------------------------
 */
 
 $issueJoin = "";
-$issueSelect = "'Unknown Issue' AS issue_type";
+$issueSelect = "
+    'Unknown Issue' AS issue_type,
+    'Low' AS issue_priority
+";
 
 if (
+    cm_table_exists($conn, "issues") &&
+    cm_column_exists($conn, "issues", "issue_id") &&
+    cm_column_exists($conn, "issues", "issue_name")
+) {
+    $issuePriorityColumn = cm_column_exists($conn, "issues", "priority")
+        ? "COALESCE(i.priority, 'Low')"
+        : "'Low'";
+
+    $issueJoin = "
+        LEFT JOIN issues i
+            ON c.issue_id = i.issue_id
+    ";
+
+    $issueSelect = "
+        COALESCE(i.issue_name, 'Unknown Issue') AS issue_type,
+        {$issuePriorityColumn} AS issue_priority
+    ";
+} elseif (
     cm_table_exists($conn, "issue_types") &&
     cm_column_exists($conn, "issue_types", "issue_id") &&
     cm_column_exists($conn, "issue_types", "issue_name")
 ) {
+    $issuePriorityColumn = cm_column_exists($conn, "issue_types", "priority")
+        ? "COALESCE(it.priority, 'Low')"
+        : "'Low'";
+
     $issueJoin = "
         LEFT JOIN issue_types it
             ON c.issue_id = it.issue_id
     ";
 
-    $issueSelect = "COALESCE(it.issue_name, 'Unknown Issue') AS issue_type";
+    $issueSelect = "
+        COALESCE(it.issue_name, 'Unknown Issue') AS issue_type,
+        {$issuePriorityColumn} AS issue_priority
+    ";
 }
 
 $affectedAreaTable = "";
@@ -274,7 +683,10 @@ if (cm_table_exists($conn, "affected_areas")) {
 }
 
 $affectedAreaJoin = "";
-$affectedAreaSelect = "'General Area' AS affected_area_name, 'Low' AS urgency_level";
+$affectedAreaSelect = "
+    'General Area' AS affected_area_name,
+    'Low' AS affected_area_priority
+";
 
 if (
     $affectedAreaTable !== "" &&
@@ -292,7 +704,7 @@ if (
 
     $affectedAreaSelect = "
         COALESCE(aa.affected_area_name, 'General Area') AS affected_area_name,
-        {$priorityColumn} AS urgency_level
+        {$priorityColumn} AS affected_area_priority
     ";
 }
 
@@ -368,6 +780,21 @@ $result = mysqli_query($conn, $sql);
 
 if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
+        $issueNameLower = strtolower(trim((string)($row["issue_type"] ?? "")));
+        $issuePriority = trim((string)($row["issue_priority"] ?? "Low"));
+        $affectedPriority = trim((string)($row["affected_area_priority"] ?? "Low"));
+
+        if ($issueNameLower === "water contamination") {
+            $row["urgency_level"] = "High";
+        } elseif ($issuePriority === "High" || $affectedPriority === "High") {
+            $row["urgency_level"] = "High";
+        } elseif ($issuePriority === "Medium" || $affectedPriority === "Medium") {
+            $row["urgency_level"] = "Medium";
+        } else {
+            $row["urgency_level"] = "Low";
+        }
+
+        $row["complaint_status"] = normalizeCentralStatus($row["complaint_status"]);
         $row["media"] = [];
         $complaints[(int)$row["complaint_id"]] = $row;
     }
@@ -462,7 +889,7 @@ $complaints = array_values($complaints);
                 </div>
 
                 <div class="cm-count-card">
-                    <span><?php echo count($complaints); ?></span>
+                    <span id="visibleComplaintCount"><?php echo count($complaints); ?></span>
                     <small>Total Complaints</small>
                 </div>
             </div>
@@ -505,14 +932,18 @@ $complaints = array_values($complaints);
                         <option value="submitted">Submitted</option>
                         <option value="received">Received</option>
                         <option value="pending_verification">Pending Verification</option>
-                        <option value="verified">Verified</option>
-                        <option value="assigned_to_team">Assigned to Team</option>
+                        <option value="verified_by_ward">Verified by Ward Officer</option>
+                        <option value="team_assigned">Assigned to Team</option>
                         <option value="in_progress">In Progress</option>
                         <option value="solved_by_team">Solved by Team</option>
                         <option value="inspector_verification">Inspector Verification</option>
                         <option value="closed">Closed</option>
-                        <option value="rejected">Rejected</option>
+                        <option value="rejected_by_central">Rejected by Central Officer</option>
+                        <option value="rejected_by_ward">Rejected by Ward Officer</option>
+                        <option value="duplicate">Duplicate</option>
                         <option value="reopened">Reopened</option>
+                        <option value="disputed">Disputed</option>
+                        <option value="final_rejected">Final Rejected</option>
                     </select>
                 </div>
 
@@ -523,7 +954,6 @@ $complaints = array_values($complaints);
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
                         <option value="High">High</option>
-                        <option value="Critical">Critical</option>
                     </select>
                 </div>
 
@@ -536,8 +966,8 @@ $complaints = array_values($complaints);
                 <button type="button" class="cm-tab active" data-filter="all">All</button>
                 <button type="button" class="cm-tab" data-filter="submitted">Submitted</button>
                 <button type="button" class="cm-tab" data-filter="received">Received</button>
-                <button type="button" class="cm-tab" data-priority="Critical">Emergency</button>
-                <button type="button" class="cm-tab" data-filter="rejected">Rejected</button>
+                <button type="button" class="cm-tab" data-priority="High">Emergency</button>
+                <button type="button" class="cm-tab" data-filter="rejected_by_central">Rejected</button>
             </div>
 
             <div class="cm-table-card">
@@ -583,16 +1013,22 @@ $complaints = array_values($complaints);
                                             : safeText("Ward " . $complaint["ward_no"]);
 
                                         $area = safeText($complaint["area_name"]);
-                                        $priority = safeText($complaint["urgency_level"] ?? "Low");
+                                        $rawPriority = urgencyLabel($complaint["urgency_level"] ?? "Low");
+                                        $priority = safeText($rawPriority);
 
-                                        $rawStatus = strtolower((string)$complaint["complaint_status"]);
+                                        $rawStatus = normalizeCentralStatus($complaint["complaint_status"]);
                                         $status = safeText($rawStatus);
                                         $statusText = safeText(formatStatus($rawStatus));
 
-                                        $date = date("M d", strtotime($complaint["submitted_at"]));
-                                        $fullDate = date("M d, Y h:i A", strtotime($complaint["submitted_at"]));
+                                        $date = !empty($complaint["submitted_at"])
+                                            ? date("M d", strtotime($complaint["submitted_at"]))
+                                            : "N/A";
 
-                                        $canCentralAct = in_array($rawStatus, ["submitted", "reopened"], true);
+                                        $fullDate = !empty($complaint["submitted_at"])
+                                            ? date("M d, Y h:i A", strtotime($complaint["submitted_at"]))
+                                            : "N/A";
+
+                                        $canCentralAct = ($rawStatus === "submitted");
 
                                         $mediaItems = $complaint["media"] ?? [];
                                         $mediaCount = count($mediaItems);
@@ -650,13 +1086,13 @@ $complaints = array_values($complaints);
                                         </td>
 
                                         <td>
-                                            <span class="cm-priority <?php echo urgencyClass($priority); ?>">
+                                            <span class="cm-priority <?php echo urgencyClass($rawPriority); ?>">
                                                 <?php echo $priority; ?>
                                             </span>
                                         </td>
 
                                         <td>
-                                            <span class="cm-status <?php echo statusClass($status); ?>">
+                                            <span class="cm-status <?php echo statusClass($rawStatus); ?>">
                                                 <?php echo $statusText; ?>
                                             </span>
                                         </td>
@@ -668,7 +1104,7 @@ $complaints = array_values($complaints);
 
                                                 <?php if ($canCentralAct): ?>
 
-                                                    <form method="POST" action="complaints.php" class="cm-action-form">
+                                                    <form method="POST" action="complaints.php" class="cm-action-form cm-accept-form">
                                                         <input type="hidden" name="complaint_id" value="<?php echo $complaintId; ?>">
                                                         <input type="hidden" name="action" value="accept">
 
@@ -677,14 +1113,15 @@ $complaints = array_values($complaints);
                                                         </button>
                                                     </form>
 
-                                                    <form method="POST" action="complaints.php" class="cm-action-form">
-                                                        <input type="hidden" name="complaint_id" value="<?php echo $complaintId; ?>">
-                                                        <input type="hidden" name="action" value="reject">
-
-                                                        <button type="submit" class="cm-icon-btn reject" title="Reject">
-                                                            <i class="bi bi-x-lg"></i>
-                                                        </button>
-                                                    </form>
+                                                    <button
+                                                        type="button"
+                                                        class="cm-icon-btn reject cm-reject-open-btn"
+                                                        title="Reject"
+                                                        data-complaint-id="<?php echo $complaintId; ?>"
+                                                        data-complaint-code="<?php echo $complaintCode; ?>"
+                                                    >
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
 
                                                 <?php endif; ?>
 
@@ -722,6 +1159,12 @@ $complaints = array_values($complaints);
                         </table>
                     </div>
 
+                    <div class="cm-empty cm-filter-empty" id="filterEmptyState">
+                        <i class="bi bi-inbox"></i>
+                        <h2>No matching complaints</h2>
+                        <p>Try changing your search keyword or filter.</p>
+                    </div>
+
                 <?php else: ?>
 
                     <div class="cm-empty">
@@ -736,7 +1179,7 @@ $complaints = array_values($complaints);
 
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
+       
 
     </main>
 
@@ -788,6 +1231,58 @@ $complaints = array_values($complaints);
             </div>
 
         </div>
+
+    </div>
+</div>
+
+<div class="cm-modal-overlay" id="rejectModal">
+    <div class="cm-modal cm-reject-modal">
+
+        <div class="cm-modal-header">
+            <div>
+                <h2>Reject Complaint</h2>
+                <p id="rejectModalCode">Complaint ID</p>
+            </div>
+
+            <button type="button" id="rejectModalCloseBtn" class="cm-modal-close">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="complaints.php" id="centralRejectForm" class="cm-reject-form">
+            <input type="hidden" name="complaint_id" id="rejectComplaintId">
+            <input type="hidden" name="action" value="reject">
+
+            <div class="cm-modal-body">
+                <div class="cm-reject-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>Reject reason is required. Citizen will see this reason in Track Complaint.</span>
+                </div>
+
+                <label for="rejectReason">Reject Reason</label>
+                <textarea
+                    name="reject_reason"
+                    id="rejectReason"
+                    placeholder="Write a clear reason for rejecting this complaint..."
+                    minlength="8"
+                    maxlength="1000"
+                    required
+                ></textarea>
+
+                <small id="rejectReasonError" class="cm-reject-error"></small>
+
+                <div class="cm-reject-actions">
+                    <button type="button" class="cm-reject-cancel" id="rejectCancelBtn">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="cm-reject-submit">
+                        <i class="bi bi-x-circle"></i>
+                        Reject Complaint
+                    </button>
+                </div>
+            </div>
+        </form>
 
     </div>
 </div>

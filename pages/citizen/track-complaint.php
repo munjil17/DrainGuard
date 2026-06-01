@@ -1,29 +1,26 @@
 <?php
 // C:\xampp\htdocs\DrainGuard\pages\citizen\track-complaint.php
 
-$activePage = 'track-complaint';
-$pageTitle = 'Track Complaint';
-$pageParent = 'Citizen';
-$pageChild = 'Track Complaint';
+$activePage = "track-complaint";
+$pageTitle = "Track Complaint";
+$pageParent = "Citizen";
+$pageChild = "Track Complaint";
 
 require_once "../../config.php";
-require_once "../../auth/session_check.php";
+require_login(["citizen"]);
 
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'citizen') {
-    header("Location: ../../index.php");
-    exit();
-}
-
-$userId = (int)($_SESSION['user_id'] ?? 0);
-$searchCode = trim($_GET['code'] ?? '');
+$userId = (int)($_SESSION["user_id"] ?? 0);
+$searchCode = trim($_GET["code"] ?? "");
 
 $complaint = null;
 $mediaFiles = [];
+$statusLogs = [];
+$decision = null;
 $errorMessage = "";
 
 function safeText($value)
 {
-    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
 function dgStartsWith($string, $prefix)
@@ -36,17 +33,19 @@ function normalizeComplaintStatus($status)
     $status = strtolower(trim((string)$status));
 
     $map = [
-        'assigned' => 'team_assigned',
-        'assigned_to_team' => 'team_assigned',
-        'team_assigned' => 'team_assigned',
-        'completed' => 'solved_by_team',
-        'completed_by_team' => 'solved_by_team',
-        'team_completed' => 'solved_by_team',
-        'under_inspection' => 'inspector_verification',
-        'pending_inspection' => 'inspector_verification',
-        'solved' => 'closed',
-        'resolved' => 'closed',
-        'ward_verified' => 'verified'
+        "assigned" => "team_assigned",
+        "assigned_to_team" => "team_assigned",
+        "completed" => "solved_by_team",
+        "completed_by_team" => "solved_by_team",
+        "team_completed" => "solved_by_team",
+        "under_inspection" => "inspector_verification",
+        "pending_inspection" => "inspector_verification",
+        "solved" => "closed",
+        "resolved" => "closed",
+        "verified" => "verified_by_ward",
+        "ward_verified" => "verified_by_ward",
+        "rejected" => "rejected_by_central",
+        "objection_rejected" => "final_rejected"
     ];
 
     return $map[$status] ?? $status;
@@ -57,9 +56,9 @@ function normalizeWorkStatus($status)
     $status = strtolower(trim((string)$status));
 
     $map = [
-        'assigned' => 'team_assigned',
-        'started' => 'in_progress',
-        'completed' => 'solved_by_team'
+        "assigned" => "team_assigned",
+        "started" => "in_progress",
+        "completed" => "solved_by_team"
     ];
 
     return $map[$status] ?? $status;
@@ -70,42 +69,102 @@ function formatStatus($status)
     $status = normalizeComplaintStatus($status);
 
     $labels = [
-        'submitted' => 'Submitted',
-        'received' => 'Received',
-        'pending_verification' => 'Pending Verification',
-        'verified' => 'Verified',
-        'team_assigned' => 'Assigned to Team',
-        'in_progress' => 'In Progress',
-        'solved_by_team' => 'Solved by Team',
-        'inspector_verification' => 'Inspector Verification',
-        'closed' => 'Closed / Solved',
-        'rejected' => 'Rejected',
-        'duplicate' => 'Duplicate',
-        'reopened' => 'Reopened',
-        'n/a' => 'N/A'
+        "submitted" => "Submitted",
+        "received" => "Received",
+        "pending_verification" => "Pending Verification",
+        "verified_by_ward" => "Verified by Ward Officer",
+        "rejected_by_central" => "Rejected by Central Officer",
+        "rejected_by_ward" => "Rejected by Ward Officer",
+        "duplicate" => "Duplicate",
+        "team_assigned" => "Assigned to Team",
+        "in_progress" => "In Progress",
+        "solved_by_team" => "Solved by Team",
+        "inspector_verification" => "Inspector Verification",
+        "closed" => "Closed / Solved",
+        "reopened" => "Reopened",
+        "disputed" => "Disputed",
+        "final_rejected" => "Final Rejected",
+        "n/a" => "N/A"
     ];
 
-    return $labels[$status] ?? ucwords(str_replace('_', ' ', (string)$status));
+    return $labels[$status] ?? ucwords(str_replace("_", " ", (string)$status));
 }
 
 function statusClass($status)
 {
     $status = normalizeComplaintStatus($status);
 
-    if ($status === 'submitted') return 'status-submitted';
-    if ($status === 'received') return 'status-received';
-    if ($status === 'pending_verification') return 'status-pending';
-    if ($status === 'verified') return 'status-verified';
-    if ($status === 'team_assigned') return 'status-assigned';
-    if ($status === 'in_progress') return 'status-progress';
-    if ($status === 'solved_by_team') return 'status-completed';
-    if ($status === 'inspector_verification') return 'status-inspection';
-    if ($status === 'closed') return 'status-solved';
-    if ($status === 'reopened') return 'status-reopened';
-    if ($status === 'rejected') return 'status-rejected';
-    if ($status === 'duplicate') return 'status-duplicate';
+    $classes = [
+        "submitted" => "status-submitted",
+        "received" => "status-received",
+        "pending_verification" => "status-pending-verification",
+        "verified_by_ward" => "status-verified-by-ward",
+        "rejected_by_central" => "status-rejected-by-central",
+        "rejected_by_ward" => "status-rejected-by-ward",
+        "duplicate" => "status-duplicate",
+        "team_assigned" => "status-team-assigned",
+        "in_progress" => "status-in-progress",
+        "solved_by_team" => "status-solved-by-team",
+        "inspector_verification" => "status-inspector-verification",
+        "closed" => "status-closed",
+        "reopened" => "status-reopened",
+        "disputed" => "status-disputed",
+        "final_rejected" => "status-final-rejected"
+    ];
 
-    return 'status-submitted';
+    return $classes[$status] ?? "status-submitted";
+}
+
+function timelineIconClass($status)
+{
+    $status = normalizeComplaintStatus($status);
+
+    if ($status === "rejected_by_central" || $status === "rejected_by_ward" || $status === "final_rejected") {
+        return "rejected";
+    }
+
+    if ($status === "duplicate") {
+        return "duplicate";
+    }
+
+    if ($status === "reopened") {
+        return "reopened";
+    }
+
+    if ($status === "disputed") {
+        return "disputed";
+    }
+
+    if ($status === "closed") {
+        return "closed";
+    }
+
+    return "";
+}
+
+function timelineDescription($status)
+{
+    $status = normalizeComplaintStatus($status);
+
+    $descriptions = [
+        "submitted" => "Citizen submitted the complaint successfully.",
+        "received" => "Central officer accepted and received the complaint.",
+        "pending_verification" => "Complaint was sent to ward officer for verification.",
+        "verified_by_ward" => "Ward officer verified the complaint.",
+        "rejected_by_central" => "Central officer rejected this complaint.",
+        "rejected_by_ward" => "Ward officer rejected this complaint.",
+        "duplicate" => "This complaint was marked as duplicate.",
+        "team_assigned" => "Maintenance team was assigned to solve the complaint.",
+        "in_progress" => "Maintenance team started the work.",
+        "solved_by_team" => "Maintenance team submitted completion proof.",
+        "inspector_verification" => "Inspector verification is pending.",
+        "closed" => "Complaint has been solved and closed.",
+        "reopened" => "Complaint has been reopened for further action.",
+        "disputed" => "Citizen objection is under review.",
+        "final_rejected" => "Final decision rejected this complaint."
+    ];
+
+    return $descriptions[$status] ?? "Complaint status updated.";
 }
 
 function formatFileSize($bytes)
@@ -127,40 +186,146 @@ function makeMediaPath($path)
 {
     $path = trim((string)$path);
 
-    if ($path === '') {
-        return '';
+    if ($path === "") {
+        return "";
     }
 
     $path = str_replace("\\", "/", $path);
 
-    if (preg_match('/^https?:\/\//i', $path)) {
+    if (preg_match("/^https?:\/\//i", $path)) {
         return $path;
     }
 
-    if (dgStartsWith($path, '../../')) {
+    if (dgStartsWith($path, "../../")) {
         return $path;
     }
 
-    if (dgStartsWith($path, '/')) {
+    if (dgStartsWith($path, "/")) {
         return $path;
     }
 
-    if (dgStartsWith($path, 'assets/')) {
-        return '../../' . $path;
+    if (dgStartsWith($path, "assets/")) {
+        return "../../" . $path;
     }
 
-    if (dgStartsWith($path, 'uploads/')) {
-        return '../../assets/' . $path;
+    if (dgStartsWith($path, "uploads/")) {
+        return "../../assets/" . $path;
     }
 
-    if (!strpos($path, '/')) {
-        return '../../assets/uploads/complaints/' . $path;
+    if (!strpos($path, "/")) {
+        return "../../assets/uploads/complaints/" . $path;
     }
 
-    return '../../' . ltrim($path, '/');
+    return "../../" . ltrim($path, "/");
 }
 
-if ($searchCode !== '') {
+function buildFallbackTimeline($currentStatus)
+{
+    $currentStatus = normalizeComplaintStatus($currentStatus);
+
+    $normalPath = [
+        "submitted",
+        "received",
+        "pending_verification",
+        "verified_by_ward",
+        "team_assigned",
+        "in_progress",
+        "solved_by_team",
+        "inspector_verification",
+        "closed"
+    ];
+
+    $centralRejectPath = [
+        "submitted",
+        "rejected_by_central"
+    ];
+
+    $wardRejectPath = [
+        "submitted",
+        "received",
+        "pending_verification",
+        "rejected_by_ward"
+    ];
+
+    $duplicatePath = [
+        "submitted",
+        "received",
+        "pending_verification",
+        "duplicate"
+    ];
+
+    $reopenPath = [
+        "submitted",
+        "received",
+        "pending_verification",
+        "verified_by_ward",
+        "reopened",
+        "team_assigned",
+        "in_progress",
+        "solved_by_team",
+        "inspector_verification",
+        "closed"
+    ];
+
+    $finalRejectedPath = [
+        "submitted",
+        "received",
+        "pending_verification",
+        "verified_by_ward",
+        "team_assigned",
+        "in_progress",
+        "solved_by_team",
+        "inspector_verification",
+        "closed",
+        "disputed",
+        "final_rejected"
+    ];
+
+    if ($currentStatus === "rejected_by_central") {
+        return $centralRejectPath;
+    }
+
+    if ($currentStatus === "rejected_by_ward") {
+        return $wardRejectPath;
+    }
+
+    if ($currentStatus === "duplicate") {
+        return $duplicatePath;
+    }
+
+    if ($currentStatus === "reopened") {
+        return $reopenPath;
+    }
+
+    if ($currentStatus === "disputed") {
+        return [
+            "submitted",
+            "received",
+            "pending_verification",
+            "verified_by_ward",
+            "team_assigned",
+            "in_progress",
+            "solved_by_team",
+            "inspector_verification",
+            "closed",
+            "disputed"
+        ];
+    }
+
+    if ($currentStatus === "final_rejected") {
+        return $finalRejectedPath;
+    }
+
+    $index = array_search($currentStatus, $normalPath, true);
+
+    if ($index === false) {
+        return ["submitted"];
+    }
+
+    return array_slice($normalPath, 0, $index + 1);
+}
+
+if ($searchCode !== "") {
     $sql = "
         SELECT
             c.complaint_id,
@@ -173,6 +338,7 @@ if ($searchCode !== '') {
             c.work_started_at,
             c.submitted_at,
             c.updated_at,
+            c.closed_at,
 
             i.issue_name,
             aa.affected_area_name,
@@ -229,9 +395,7 @@ if ($searchCode !== '') {
             SELECT ca1.*
             FROM complaint_assignments ca1
             INNER JOIN (
-                SELECT
-                    complaint_id,
-                    MAX(assignment_id) AS latest_assignment_id
+                SELECT complaint_id, MAX(assignment_id) AS latest_assignment_id
                 FROM complaint_assignments
                 GROUP BY complaint_id
             ) latest_ca
@@ -243,9 +407,7 @@ if ($searchCode !== '') {
             SELECT mu1.*
             FROM maintenance_updates mu1
             INNER JOIN (
-                SELECT
-                    complaint_id,
-                    MAX(update_id) AS latest_update_id
+                SELECT complaint_id, MAX(update_id) AS latest_update_id
                 FROM maintenance_updates
                 GROUP BY complaint_id
             ) latest_mu
@@ -269,21 +431,6 @@ if ($searchCode !== '') {
         if ($result && mysqli_num_rows($result) === 1) {
             $complaint = mysqli_fetch_assoc($result);
 
-            /*
-            |--------------------------------------------------------------------------
-            | Master tracking status
-            |--------------------------------------------------------------------------
-            | Citizen tracking follows complaints.complaint_status only.
-            | Other tables are shown as supporting details.
-            |--------------------------------------------------------------------------
-            */
-            $complaint['complaint_status'] = normalizeComplaintStatus($complaint['complaint_status']);
-
-            /*
-            |--------------------------------------------------------------------------
-            | Uploaded complaint media
-            |--------------------------------------------------------------------------
-            */
             $mediaSql = "
                 SELECT
                     media_id,
@@ -292,8 +439,7 @@ if ($searchCode !== '') {
                     media_path,
                     original_name,
                     file_size,
-                    mime_type,
-                    uploaded_at
+                    mime_type
                 FROM complaint_media
                 WHERE complaint_id = ?
                 ORDER BY media_id ASC
@@ -302,138 +448,126 @@ if ($searchCode !== '') {
             $mediaStmt = mysqli_prepare($conn, $mediaSql);
 
             if ($mediaStmt) {
-                $complaintId = (int)$complaint['complaint_id'];
-
-                mysqli_stmt_bind_param($mediaStmt, "i", $complaintId);
+                mysqli_stmt_bind_param($mediaStmt, "i", $complaint["complaint_id"]);
                 mysqli_stmt_execute($mediaStmt);
 
                 $mediaResult = mysqli_stmt_get_result($mediaStmt);
 
-                while ($media = mysqli_fetch_assoc($mediaResult)) {
-                    $media['display_path'] = makeMediaPath($media['media_path']);
-                    $mediaFiles[] = $media;
+                if ($mediaResult) {
+                    while ($media = mysqli_fetch_assoc($mediaResult)) {
+                        $media["display_path"] = makeMediaPath($media["media_path"] ?? "");
+                        $mediaFiles[] = $media;
+                    }
                 }
 
                 mysqli_stmt_close($mediaStmt);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Maintenance proof fallback
-            |--------------------------------------------------------------------------
-            | If maintenance update has proof_file_path but not in complaint_media,
-            | show it separately in the same evidence card.
-            |--------------------------------------------------------------------------
-            */
-            if (!empty($complaint['proof_file_path'])) {
-                $mediaFiles[] = [
-                    'media_id' => 0,
-                    'complaint_id' => (int)$complaint['complaint_id'],
-                    'media_type' => $complaint['proof_file_type'] ?: 'image',
-                    'media_path' => $complaint['proof_file_path'],
-                    'display_path' => makeMediaPath($complaint['proof_file_path']),
-                    'original_name' => basename((string)$complaint['proof_file_path']),
-                    'file_size' => 0,
-                    'mime_type' => '',
-                    'uploaded_at' => $complaint['work_update_created_at'] ?? null
-                ];
+            $logSql = "
+                SELECT
+                    log_id,
+                    old_status,
+                    new_status,
+                    action_by_user_id,
+                    action_by_role,
+                    remarks,
+                    created_at
+                FROM complaint_status_logs
+                WHERE complaint_id = ?
+                ORDER BY created_at ASC, log_id ASC
+            ";
+
+            $logStmt = mysqli_prepare($conn, $logSql);
+
+            if ($logStmt) {
+                mysqli_stmt_bind_param($logStmt, "i", $complaint["complaint_id"]);
+                mysqli_stmt_execute($logStmt);
+
+                $logResult = mysqli_stmt_get_result($logStmt);
+
+                if ($logResult) {
+                    while ($log = mysqli_fetch_assoc($logResult)) {
+                        $log["new_status"] = normalizeComplaintStatus($log["new_status"]);
+                        $log["old_status"] = normalizeComplaintStatus($log["old_status"]);
+                        $statusLogs[] = $log;
+                    }
+                }
+
+                mysqli_stmt_close($logStmt);
+            }
+
+            $decisionSql = "
+                SELECT
+                    decision_id,
+                    decision_type,
+                    reason,
+                    reference_complaint_id,
+                    created_at
+                FROM complaint_decisions
+                WHERE complaint_id = ?
+                ORDER BY created_at DESC, decision_id DESC
+                LIMIT 1
+            ";
+
+            $decisionStmt = mysqli_prepare($conn, $decisionSql);
+
+            if ($decisionStmt) {
+                mysqli_stmt_bind_param($decisionStmt, "i", $complaint["complaint_id"]);
+                mysqli_stmt_execute($decisionStmt);
+
+                $decisionResult = mysqli_stmt_get_result($decisionStmt);
+
+                if ($decisionResult && mysqli_num_rows($decisionResult) === 1) {
+                    $decision = mysqli_fetch_assoc($decisionResult);
+                }
+
+                mysqli_stmt_close($decisionStmt);
             }
         } else {
-            $errorMessage = "No complaint found with this Complaint ID.";
+            $errorMessage = "No complaint found with this ID under your account.";
         }
 
         mysqli_stmt_close($stmt);
     } else {
-        $errorMessage = "Track complaint query failed: " . mysqli_error($conn);
+        $errorMessage = "Unable to track complaint right now. Please try again.";
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| Tracking Workflow
-|--------------------------------------------------------------------------
-*/
+$currentStatus = $complaint ? normalizeComplaintStatus($complaint["complaint_status"] ?? "submitted") : "";
+$timelineStatuses = [];
 
-$statusOrder = [
-    'submitted',
-    'received',
-    'pending_verification',
-    'verified',
-    'team_assigned',
-    'in_progress',
-    'solved_by_team',
-    'inspector_verification',
-    'closed'
+if ($complaint) {
+    if (count($statusLogs) > 0) {
+        $seen = [];
+
+        foreach ($statusLogs as $log) {
+            $status = normalizeComplaintStatus($log["new_status"]);
+
+            if ($status === "" || isset($seen[$status])) {
+                continue;
+            }
+
+            $timelineStatuses[] = $status;
+            $seen[$status] = true;
+        }
+
+        if (!in_array($currentStatus, $timelineStatuses, true)) {
+            $timelineStatuses[] = $currentStatus;
+        }
+    } else {
+        $timelineStatuses = buildFallbackTimeline($currentStatus);
+    }
+}
+
+$terminalStatuses = [
+    "closed",
+    "rejected_by_central",
+    "rejected_by_ward",
+    "duplicate",
+    "final_rejected"
 ];
 
-$currentStatus = $complaint['complaint_status'] ?? '';
-$currentStatus = normalizeComplaintStatus($currentStatus);
-
-$currentIndex = array_search($currentStatus, $statusOrder, true);
-
-if ($currentStatus === 'rejected') {
-    $currentIndex = 0;
-}
-
-if ($currentStatus === 'duplicate') {
-    $currentIndex = 2;
-}
-
-if ($currentStatus === 'reopened') {
-    $currentIndex = 1;
-}
-
-if ($currentIndex === false) {
-    $currentIndex = -1;
-}
-
-$timelineSteps = [
-    [
-        'key' => 'submitted',
-        'title' => 'Submitted',
-        'description' => 'Complaint submitted successfully'
-    ],
-    [
-        'key' => 'received',
-        'title' => 'Received',
-        'description' => 'Central officer accepted and received the complaint'
-    ],
-    [
-        'key' => 'pending_verification',
-        'title' => 'Pending Verification',
-        'description' => 'Complaint sent to ward officer for problem verification'
-    ],
-    [
-        'key' => 'verified',
-        'title' => 'Verified',
-        'description' => 'Ward officer verified the problem'
-    ],
-    [
-        'key' => 'team_assigned',
-        'title' => 'Assigned to Team',
-        'description' => 'Maintenance team has been assigned'
-    ],
-    [
-        'key' => 'in_progress',
-        'title' => 'In Progress',
-        'description' => 'Maintenance work is ongoing'
-    ],
-    [
-        'key' => 'solved_by_team',
-        'title' => 'Solved by Team',
-        'description' => 'Maintenance team submitted completion proof'
-    ],
-    [
-        'key' => 'inspector_verification',
-        'title' => 'Inspector Verification',
-        'description' => 'Inspector is reviewing before/after proof'
-    ],
-    [
-        'key' => 'closed',
-        'title' => 'Closed / Solved',
-        'description' => 'Complaint solved and closed'
-    ]
-];
+$discussionAllowed = in_array($currentStatus, $terminalStatuses, true);
 ?>
 
 <!DOCTYPE html>
@@ -449,6 +583,7 @@ $timelineSteps = [
     <link rel="stylesheet" href="../../css/citizen/sidebar.css">
     <link rel="stylesheet" href="../../css/citizen/topbar.css">
     <link rel="stylesheet" href="../../css/citizen/track-complaint.css">
+    <link rel="stylesheet" href="../../css/commentSystem/commentSystem.css">
     <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
 </head>
 
@@ -466,7 +601,7 @@ $timelineSteps = [
 
             <div class="tc-header">
                 <h1>Track Complaint</h1>
-                <p>Enter complaint ID to track its progress</p>
+                <p>Enter complaint ID to track its actual workflow progress</p>
             </div>
 
             <form class="tc-search-card" method="GET" action="track-complaint.php">
@@ -487,14 +622,14 @@ $timelineSteps = [
                 </button>
             </form>
 
-            <?php if ($errorMessage !== ''): ?>
+            <?php if ($errorMessage !== ""): ?>
                 <div class="tc-alert tc-error">
                     <i class="bi bi-exclamation-circle"></i>
                     <?php echo safeText($errorMessage); ?>
                 </div>
             <?php endif; ?>
 
-            <?php if ($searchCode === '' && !$complaint): ?>
+            <?php if ($searchCode === "" && !$complaint): ?>
                 <div class="tc-empty-card">
                     <i class="bi bi-search"></i>
                     <h2>Track your complaint</h2>
@@ -507,17 +642,17 @@ $timelineSteps = [
                 <div class="tc-summary-card">
                     <div>
                         <span>Complaint ID</span>
-                        <strong><?php echo safeText($complaint['complaint_code']); ?></strong>
+                        <strong><?php echo safeText($complaint["complaint_code"]); ?></strong>
                     </div>
 
                     <div>
                         <span>Issue Type</span>
-                        <strong><?php echo safeText($complaint['issue_name'] ?? 'N/A'); ?></strong>
+                        <strong><?php echo safeText($complaint["issue_name"] ?? "N/A"); ?></strong>
                     </div>
 
                     <div>
                         <span>Affected Area</span>
-                        <strong><?php echo safeText($complaint['affected_area_name'] ?? 'N/A'); ?></strong>
+                        <strong><?php echo safeText($complaint["affected_area_name"] ?? "N/A"); ?></strong>
                     </div>
 
                     <div>
@@ -528,83 +663,137 @@ $timelineSteps = [
                     </div>
                 </div>
 
-                <?php if ($currentStatus === 'rejected'): ?>
+                <?php if ($currentStatus === "rejected_by_central"): ?>
                     <div class="tc-alert tc-error">
                         <i class="bi bi-x-circle"></i>
-                        This complaint has been rejected by the authority.
+                        This complaint has been rejected by Central Officer.
                     </div>
                 <?php endif; ?>
 
-                <?php if ($currentStatus === 'duplicate'): ?>
+                <?php if ($currentStatus === "rejected_by_ward"): ?>
+                    <div class="tc-alert tc-error">
+                        <i class="bi bi-x-circle"></i>
+                        This complaint has been rejected by Ward Officer.
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($currentStatus === "duplicate"): ?>
                     <div class="tc-alert tc-duplicate">
                         <i class="bi bi-files"></i>
-                        This complaint has been marked as duplicate because a similar issue was already reported for this area.
+                        This complaint has been marked as duplicate.
                     </div>
                 <?php endif; ?>
 
-                <?php if ($currentStatus === 'reopened'): ?>
+                <?php if ($currentStatus === "reopened"): ?>
                     <div class="tc-alert tc-warning">
                         <i class="bi bi-arrow-clockwise"></i>
-                        This complaint has been reopened and is waiting for review.
+                        This complaint has been reopened for further action.
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($currentStatus === "disputed"): ?>
+                    <div class="tc-alert tc-warning">
+                        <i class="bi bi-exclamation-diamond"></i>
+                        Citizen objection is under review.
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($currentStatus === "final_rejected"): ?>
+                    <div class="tc-alert tc-error">
+                        <i class="bi bi-shield-x"></i>
+                        This complaint has been finally rejected after review.
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($decision): ?>
+                    <div class="tc-decision-card">
+                        <h2>Decision Reason</h2>
+
+                        <div class="tc-decision-grid">
+                            <div>
+                                <span>Decision Type</span>
+                                <strong><?php echo safeText(ucwords(str_replace("_", " ", $decision["decision_type"] ?? "Decision"))); ?></strong>
+                            </div>
+
+                            <div>
+                                <span>Decision Date</span>
+                                <strong>
+                                    <?php
+                                        echo !empty($decision["created_at"])
+                                            ? safeText(date("M d, Y h:i A", strtotime($decision["created_at"])))
+                                            : "N/A";
+                                    ?>
+                                </strong>
+                            </div>
+
+                            <?php if (!empty($decision["reference_complaint_id"])): ?>
+                                <div>
+                                    <span>Reference Complaint</span>
+                                    <strong>#<?php echo (int)$decision["reference_complaint_id"]; ?></strong>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="tc-description-block">
+                            <h3>Reason</h3>
+                            <p><?php echo safeText($decision["reason"] ?? "No reason recorded."); ?></p>
+                        </div>
                     </div>
                 <?php endif; ?>
 
                 <div class="tc-card">
                     <div class="tc-card-header">
                         <h2>Progress Timeline</h2>
-                        <p>Current complaint tracking status</p>
+                        <p>This timeline shows the actual completed workflow path only.</p>
                     </div>
 
                     <div class="tc-timeline">
 
-                        <?php foreach ($timelineSteps as $index => $step): ?>
+                        <?php foreach ($timelineStatuses as $index => $status): ?>
                             <?php
-                                $stepClass = "";
+                                $isLast = ($index === count($timelineStatuses) - 1);
+                                $stepClass = $isLast ? "active" : "completed";
+                                $specialClass = timelineIconClass($status);
 
-                                if ($index < $currentIndex) {
-                                    $stepClass = "completed";
+                                if ($specialClass !== "" && $isLast) {
+                                    $stepClass .= " " . $specialClass;
                                 }
 
-                                if ($index === $currentIndex) {
-                                    $stepClass = "active";
-                                }
-
-                                if ($currentStatus === 'rejected' && $index === 0) {
-                                    $stepClass = "rejected";
-                                }
-
-                                if ($currentStatus === 'duplicate' && $index === 2) {
-                                    $stepClass = "duplicate";
-                                }
-
-                                if ($currentStatus === 'reopened' && $index === 1) {
-                                    $stepClass = "active";
-                                }
+                                $logData = $statusLogs[$index] ?? null;
+                                $remarks = $logData["remarks"] ?? "";
+                                $createdAt = $logData["created_at"] ?? "";
                             ?>
 
-                            <div class="tc-timeline-item <?php echo $stepClass; ?>">
+                            <div class="tc-timeline-item <?php echo safeText($stepClass); ?>">
                                 <div class="tc-timeline-icon">
-                                    <?php if ($stepClass === "completed"): ?>
-                                        <i class="bi bi-check-lg"></i>
-                                    <?php elseif ($stepClass === "active"): ?>
-                                        <i class="bi bi-clock"></i>
-                                    <?php elseif ($stepClass === "rejected"): ?>
+                                    <?php if (strpos($stepClass, "rejected") !== false): ?>
                                         <i class="bi bi-x-lg"></i>
-                                    <?php elseif ($stepClass === "duplicate"): ?>
+                                    <?php elseif (strpos($stepClass, "duplicate") !== false): ?>
                                         <i class="bi bi-files"></i>
+                                    <?php elseif (strpos($stepClass, "reopened") !== false): ?>
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    <?php elseif (strpos($stepClass, "disputed") !== false): ?>
+                                        <i class="bi bi-exclamation-diamond"></i>
+                                    <?php elseif (strpos($stepClass, "closed") !== false): ?>
+                                        <i class="bi bi-check2-circle"></i>
+                                    <?php elseif (!$isLast): ?>
+                                        <i class="bi bi-check-lg"></i>
                                     <?php else: ?>
-                                        <i class="bi bi-circle"></i>
+                                        <i class="bi bi-clock"></i>
                                     <?php endif; ?>
                                 </div>
 
                                 <div class="tc-timeline-content">
-                                    <?php if ($currentStatus === 'duplicate' && $step['key'] === 'pending_verification'): ?>
-                                        <h3>Duplicate</h3>
-                                        <p>A similar complaint already exists for this area/problem</p>
-                                    <?php else: ?>
-                                        <h3><?php echo safeText($step['title']); ?></h3>
-                                        <p><?php echo safeText($step['description']); ?></p>
-                                    <?php endif; ?>
+                                    <h3><?php echo safeText(formatStatus($status)); ?></h3>
+                                    <p>
+                                        <?php
+                                            echo safeText($remarks !== "" ? $remarks : timelineDescription($status));
+
+                                            if ($createdAt !== "") {
+                                                echo "<br><small>" . safeText(date("M d, Y h:i A", strtotime($createdAt))) . "</small>";
+                                            }
+                                        ?>
+                                    </p>
                                 </div>
                             </div>
 
@@ -619,45 +808,45 @@ $timelineSteps = [
                     <div class="tc-details-grid">
                         <div>
                             <span>City</span>
-                            <strong><?php echo safeText($complaint['city_name'] ?? 'N/A'); ?></strong>
+                            <strong><?php echo safeText($complaint["city_name"] ?? "N/A"); ?></strong>
                         </div>
 
                         <div>
                             <span>City Corporation</span>
-                            <strong><?php echo safeText($complaint['city_cor_name'] ?? 'N/A'); ?></strong>
+                            <strong><?php echo safeText($complaint["city_cor_name"] ?? "N/A"); ?></strong>
                         </div>
 
                         <div>
                             <span>Thana</span>
-                            <strong><?php echo safeText($complaint['thana_name'] ?? 'N/A'); ?></strong>
+                            <strong><?php echo safeText($complaint["thana_name"] ?? "N/A"); ?></strong>
                         </div>
 
                         <div>
                             <span>Ward</span>
-                            <strong><?php echo safeText("Ward " . ($complaint['ward_no'] ?? 'N/A')); ?></strong>
+                            <strong><?php echo safeText("Ward " . ($complaint["ward_no"] ?? "N/A")); ?></strong>
                         </div>
 
                         <div>
                             <span>Area</span>
-                            <strong><?php echo safeText($complaint['area_name'] ?? 'N/A'); ?></strong>
+                            <strong><?php echo safeText($complaint["area_name"] ?? "N/A"); ?></strong>
                         </div>
 
                         <div>
                             <span>Affected Area</span>
-                            <strong><?php echo safeText($complaint['affected_area_name'] ?? 'N/A'); ?></strong>
+                            <strong><?php echo safeText($complaint["affected_area_name"] ?? "N/A"); ?></strong>
                         </div>
 
                         <div>
                             <span>Issue Type</span>
-                            <strong><?php echo safeText($complaint['issue_name'] ?? 'N/A'); ?></strong>
+                            <strong><?php echo safeText($complaint["issue_name"] ?? "N/A"); ?></strong>
                         </div>
 
                         <div>
                             <span>Submitted At</span>
                             <strong>
                                 <?php
-                                    echo !empty($complaint['submitted_at'])
-                                        ? safeText(date("M d, Y h:i A", strtotime($complaint['submitted_at'])))
+                                    echo !empty($complaint["submitted_at"])
+                                        ? safeText(date("M d, Y h:i A", strtotime($complaint["submitted_at"])))
                                         : "N/A";
                                 ?>
                             </strong>
@@ -667,9 +856,20 @@ $timelineSteps = [
                             <span>Last Updated</span>
                             <strong>
                                 <?php
-                                    echo !empty($complaint['updated_at'])
-                                        ? safeText(date("M d, Y h:i A", strtotime($complaint['updated_at'])))
+                                    echo !empty($complaint["updated_at"])
+                                        ? safeText(date("M d, Y h:i A", strtotime($complaint["updated_at"])))
                                         : "Not updated";
+                                ?>
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Closed At</span>
+                            <strong>
+                                <?php
+                                    echo !empty($complaint["closed_at"])
+                                        ? safeText(date("M d, Y h:i A", strtotime($complaint["closed_at"])))
+                                        : "Not closed";
                                 ?>
                             </strong>
                         </div>
@@ -678,7 +878,7 @@ $timelineSteps = [
                             <span>Assignment Status</span>
                             <strong>
                                 <?php
-                                    $assignmentStatus = $complaint['assignment_status'] ?? 'N/A';
+                                    $assignmentStatus = $complaint["assignment_status"] ?? "N/A";
                                     echo safeText(formatStatus(normalizeComplaintStatus($assignmentStatus)));
                                 ?>
                             </strong>
@@ -688,9 +888,9 @@ $timelineSteps = [
                             <span>Maintenance Status</span>
                             <strong>
                                 <?php
-                                    $workStatus = !empty($complaint['work_status'])
-                                        ? normalizeWorkStatus($complaint['work_status'])
-                                        : 'N/A';
+                                    $workStatus = !empty($complaint["work_status"])
+                                        ? normalizeWorkStatus($complaint["work_status"])
+                                        : "N/A";
 
                                     echo safeText(formatStatus($workStatus));
                                 ?>
@@ -700,16 +900,16 @@ $timelineSteps = [
 
                     <div class="tc-description-block">
                         <h3>Address Description</h3>
-                        <p><?php echo safeText($complaint['address_description'] ?? ''); ?></p>
+                        <p><?php echo safeText($complaint["address_description"] ?? ""); ?></p>
                     </div>
 
                     <div class="tc-description-block">
                         <h3>Problem Description</h3>
-                        <p><?php echo safeText($complaint['problem_description'] ?? ''); ?></p>
+                        <p><?php echo safeText($complaint["problem_description"] ?? ""); ?></p>
                     </div>
                 </div>
 
-                <?php if (!empty($complaint['work_status']) || !empty($complaint['work_note']) || !empty($complaint['delay_reason'])): ?>
+                <?php if (!empty($complaint["work_status"]) || !empty($complaint["work_note"]) || !empty($complaint["delay_reason"])): ?>
                     <div class="tc-work-update-card">
                         <h2>Maintenance Update</h2>
 
@@ -718,7 +918,7 @@ $timelineSteps = [
                                 <span>Work Status</span>
                                 <strong>
                                     <?php
-                                        $workStatus = normalizeWorkStatus($complaint['work_status'] ?? 'N/A');
+                                        $workStatus = normalizeWorkStatus($complaint["work_status"] ?? "N/A");
                                         echo safeText(formatStatus($workStatus));
                                     ?>
                                 </strong>
@@ -728,8 +928,8 @@ $timelineSteps = [
                                 <span>Started At</span>
                                 <strong>
                                     <?php
-                                        echo !empty($complaint['started_at'])
-                                            ? safeText(date("M d, Y h:i A", strtotime($complaint['started_at'])))
+                                        echo !empty($complaint["started_at"])
+                                            ? safeText(date("M d, Y h:i A", strtotime($complaint["started_at"])))
                                             : "N/A";
                                     ?>
                                 </strong>
@@ -739,8 +939,8 @@ $timelineSteps = [
                                 <span>Completed At</span>
                                 <strong>
                                     <?php
-                                        echo !empty($complaint['completed_at'])
-                                            ? safeText(date("M d, Y h:i A", strtotime($complaint['completed_at'])))
+                                        echo !empty($complaint["completed_at"])
+                                            ? safeText(date("M d, Y h:i A", strtotime($complaint["completed_at"])))
                                             : "N/A";
                                     ?>
                                 </strong>
@@ -750,25 +950,25 @@ $timelineSteps = [
                                 <span>Delayed At</span>
                                 <strong>
                                     <?php
-                                        echo !empty($complaint['delayed_at'])
-                                            ? safeText(date("M d, Y h:i A", strtotime($complaint['delayed_at'])))
+                                        echo !empty($complaint["delayed_at"])
+                                            ? safeText(date("M d, Y h:i A", strtotime($complaint["delayed_at"])))
                                             : "N/A";
                                     ?>
                                 </strong>
                             </div>
                         </div>
 
-                        <?php if (!empty($complaint['work_note'])): ?>
+                        <?php if (!empty($complaint["work_note"])): ?>
                             <div class="tc-work-note">
                                 <span>Work Note</span>
-                                <p><?php echo safeText($complaint['work_note']); ?></p>
+                                <p><?php echo safeText($complaint["work_note"]); ?></p>
                             </div>
                         <?php endif; ?>
 
-                        <?php if (!empty($complaint['delay_reason'])): ?>
+                        <?php if (!empty($complaint["delay_reason"])): ?>
                             <div class="tc-work-note">
                                 <span>Delay Reason</span>
-                                <p><?php echo safeText($complaint['delay_reason']); ?></p>
+                                <p><?php echo safeText($complaint["delay_reason"]); ?></p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -781,17 +981,17 @@ $timelineSteps = [
                         <div class="tc-media-grid">
                             <?php foreach ($mediaFiles as $media): ?>
                                 <?php
-                                    $mediaType = strtolower((string)($media['media_type'] ?? 'image'));
-                                    $mediaPath = $media['display_path'];
-                                    $originalName = $media['original_name'] ?: 'Evidence file';
-                                    $fileSize = formatFileSize($media['file_size'] ?? 0);
-                                    $mimeType = $media['mime_type'] ?? '';
+                                    $mediaType = strtolower((string)($media["media_type"] ?? "image"));
+                                    $mediaPath = $media["display_path"];
+                                    $originalName = $media["original_name"] ?: "Evidence file";
+                                    $fileSize = formatFileSize($media["file_size"] ?? 0);
+                                    $mimeType = $media["mime_type"] ?? "";
                                 ?>
 
                                 <div class="tc-media-item">
-                                    <?php if ($mediaType === 'video'): ?>
+                                    <?php if ($mediaType === "video"): ?>
                                         <video controls class="tc-media-video">
-                                            <source src="<?php echo safeText($mediaPath); ?>" type="<?php echo safeText($mimeType ?: 'video/mp4'); ?>">
+                                            <source src="<?php echo safeText($mediaPath); ?>" type="<?php echo safeText($mimeType ?: "video/mp4"); ?>">
                                             Your browser does not support the video tag.
                                         </video>
 
@@ -812,7 +1012,7 @@ $timelineSteps = [
 
                                     <small class="tc-media-meta">
                                         <?php echo safeText(strtoupper($mediaType)); ?>
-                                        <?php if ((int)($media['file_size'] ?? 0) > 0): ?>
+                                        <?php if ((int)($media["file_size"] ?? 0) > 0): ?>
                                             · <?php echo safeText($fileSize); ?>
                                         <?php endif; ?>
                                     </small>
@@ -826,6 +1026,52 @@ $timelineSteps = [
                     <?php endif; ?>
                 </div>
 
+                <?php if ($discussionAllowed): ?>
+                    <div
+                        id="discussion"
+                        class="dg-comment-system"
+                        data-comment-system="true"
+                        data-complaint-id="<?php echo (int)$complaint["complaint_id"]; ?>"
+                        data-base-path="../../"
+                    >
+                        <div class="dg-comment-header">
+                            <div>
+                                <h2>Discussion</h2>
+                                <p>All citizens and authorized panels can comment, reply, like, and dislike after the final complaint decision.</p>
+                            </div>
+
+                            <span class="dg-comment-count" data-comment-count>0</span>
+                        </div>
+
+                        <div class="dg-comment-body">
+                            <div class="dg-comment-alert" data-comment-alert></div>
+
+                            <form class="dg-comment-form" data-comment-form>
+                                <textarea
+                                    name="comment_text"
+                                    data-comment-text
+                                    placeholder="Write your comment..."
+                                    maxlength="1000"
+                                    required
+                                ></textarea>
+
+                                <div class="dg-comment-actions">
+                                    <button type="submit" class="dg-comment-submit">
+                                        <i class="bi bi-send"></i>
+                                        Post Comment
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="dg-comment-list" data-comment-list>
+                                <div class="dg-comment-loading">
+                                    Loading comments...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
             <?php endif; ?>
 
         </section>
@@ -835,6 +1081,10 @@ $timelineSteps = [
 </div>
 
 <script src="../../js/citizen/sidebar.js"></script>
+
+<?php if ($discussionAllowed): ?>
+    <script src="../../js/commentSystem/commentSystem.js"></script>
+<?php endif; ?>
 
 </body>
 </html>

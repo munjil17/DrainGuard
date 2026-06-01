@@ -1,3 +1,5 @@
+// C:\xampp\htdocs\DrainGuard\js\global\login.js
+
 document.addEventListener("DOMContentLoaded", function () {
     const loginPage = document.querySelector(".login-page");
     const roleCards = document.querySelectorAll(".role-card");
@@ -125,14 +127,15 @@ document.addEventListener("DOMContentLoaded", function () {
         clearEmailError();
 
         if (email === "") {
-            showEmailError("Please enter your Gmail address.");
+            showEmailError("Please enter your email address.");
             return false;
         }
 
-        const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        // Basic Email validation instead of Gmail only
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!gmailPattern.test(email)) {
-            showEmailError("Only Gmail addresses are allowed.");
+        if (!emailPattern.test(email)) {
+            showEmailError("Please enter a valid email address.");
             return false;
         }
 
@@ -153,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (result === "not_found") {
-                showEmailError("This Gmail is not registered for the selected role.");
+                showEmailError("This email is not registered for the selected role.");
                 return false;
             }
 
@@ -167,13 +170,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 return false;
             }
 
-            if (result === "invalid_gmail") {
-                showEmailError("Only Gmail addresses are allowed.");
+            if (result === "invalid_gmail" || result === "invalid_email") {
+                showEmailError("Invalid email format.");
                 return false;
             }
 
             if (result === "invalid_role") {
                 showEmailError("Invalid selected role.");
+                return false;
+            }
+
+            if (result === "blocked_domain") {
+                showEmailError("This email domain is not allowed for security reasons.");
                 return false;
             }
 

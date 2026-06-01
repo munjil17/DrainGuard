@@ -654,3 +654,130 @@
         padding: 18px;
     }
 }
+/* ==================================================
+   EXTRA PATCH: CENTRAL COMPLAINTS FINAL WORKFLOW
+   Keep old structure unchanged
+================================================== */
+
+.status-duplicate {
+    background: #E2E8F0;
+    color: #334155;
+}
+
+.status-disputed {
+    background: #FCE7F3;
+    color: #BE185D;
+}
+
+.status-final-rejected {
+    background: #7F1D1D;
+    color: #FFFFFF;
+}
+
+.cm-filter-empty {
+    display: none;
+    border-top: 1px solid #E2E8F0;
+}
+
+.cm-filter-empty.show {
+    display: block;
+}
+
+/* Reject Modal */
+
+.cm-reject-modal {
+    max-width: 620px;
+}
+
+.cm-reject-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.cm-reject-form textarea {
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-size: 15px;
+    line-height: 1.6;
+    outline: none;
+}
+
+.cm-reject-form textarea:focus {
+    border-color: #20D4D9;
+    box-shadow: 0 0 0 4px rgba(32, 212, 217, 0.12);
+}
+
+.cm-reject-warning {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.cm-reject-error {
+    display: block;
+    min-height: 18px;
+    margin-top: 7px;
+    color: #BE123C;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.cm-reject-actions {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.cm-reject-cancel,
+.cm-reject-submit {
+    height: 44px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cm-reject-cancel {
+    background: #F1F5F9;
+    color: #334155;
+}
+
+.cm-reject-submit {
+    background: #DC2626;
+    color: #FFFFFF;
+}
+
+@media (max-width: 768px) {
+    .cm-reject-actions {
+        flex-direction: column;
+    }
+
+    .cm-reject-cancel,
+    .cm-reject-submit {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const statusFilter = document.getElementById("statusFilter");
     const priorityFilter = document.getElementById("priorityFilter");
     const rows = document.querySelectorAll(".cm-row");
+    const visibleComplaintCount = document.getElementById("visibleComplaintCount");
+    const filterEmptyState = document.getElementById("filterEmptyState");
 
     const filterToggleBtn = document.getElementById("filterToggleBtn");
     const filterPanel = document.getElementById("filterPanel");
@@ -13,10 +15,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalCloseBtn = document.getElementById("modalCloseBtn");
     const detailButtons = document.querySelectorAll(".cm-details-btn");
 
+    const acceptForms = document.querySelectorAll(".cm-accept-form");
+
+    const rejectModal = document.getElementById("rejectModal");
+    const rejectModalCloseBtn = document.getElementById("rejectModalCloseBtn");
+    const rejectCancelBtn = document.getElementById("rejectCancelBtn");
+    const rejectOpenButtons = document.querySelectorAll(".cm-reject-open-btn");
+    const rejectForm = document.getElementById("centralRejectForm");
+    const rejectComplaintId = document.getElementById("rejectComplaintId");
+    const rejectModalCode = document.getElementById("rejectModalCode");
+    const rejectReason = document.getElementById("rejectReason");
+    const rejectReasonError = document.getElementById("rejectReasonError");
+
     function filterRows() {
         const searchValue = (searchInput?.value || "").toLowerCase().trim();
         const statusValue = statusFilter?.value || "all";
         const priorityValue = priorityFilter?.value || "all";
+
+        let visibleCount = 0;
 
         rows.forEach(function (row) {
             const searchableText = [
@@ -35,8 +51,22 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchesStatus = statusValue === "all" || rowStatus === statusValue;
             const matchesPriority = priorityValue === "all" || rowPriority === priorityValue;
 
-            row.style.display = matchesSearch && matchesStatus && matchesPriority ? "" : "none";
+            const isVisible = matchesSearch && matchesStatus && matchesPriority;
+
+            row.style.display = isVisible ? "" : "none";
+
+            if (isVisible) {
+                visibleCount++;
+            }
         });
+
+        if (visibleComplaintCount) {
+            visibleComplaintCount.textContent = visibleCount;
+        }
+
+        if (filterEmptyState) {
+            filterEmptyState.classList.toggle("show", rows.length > 0 && visibleCount === 0);
+        }
     }
 
     if (searchInput) {
@@ -67,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 tab.classList.remove("active");
             });
 
-            const allTab = document.querySelector('.cm-tab[data-filter="all"]');
+            const allTab = document.querySelector('.cm-tab[data-filter="all"][data-priority="all"]');
             if (allTab) allTab.classList.add("active");
 
             filterRows();
@@ -92,6 +122,15 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    acceptForms.forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            const ok = confirm("Accept this complaint and mark it as Received?");
+            if (!ok) {
+                event.preventDefault();
+            }
+        });
+    });
+
     function setText(id, value) {
         const element = document.getElementById(id);
 
@@ -108,12 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             const media = JSON.parse(rawMedia);
-
-            if (Array.isArray(media)) {
-                return media;
-            }
-
-            return [];
+            return Array.isArray(media) ? media : [];
         } catch (error) {
             return [];
         }
@@ -247,9 +281,109 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function openRejectModal(button) {
+        if (!rejectModal || !button) return;
+
+        const complaintId = button.dataset.complaintId || "";
+        const complaintCode = button.dataset.complaintCode || "Complaint";
+
+        if (rejectComplaintId) {
+            rejectComplaintId.value = complaintId;
+        }
+
+        if (rejectModalCode) {
+            rejectModalCode.textContent = complaintCode;
+        }
+
+        if (rejectReason) {
+            rejectReason.value = "";
+        }
+
+        if (rejectReasonError) {
+            rejectReasonError.textContent = "";
+        }
+
+        rejectModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+
+        setTimeout(function () {
+            if (rejectReason) {
+                rejectReason.focus();
+            }
+        }, 100);
+    }
+
+    function closeRejectModal() {
+        if (!rejectModal) return;
+
+        rejectModal.classList.remove("active");
+        document.body.style.overflow = "";
+
+        if (rejectReason) {
+            rejectReason.value = "";
+        }
+
+        if (rejectReasonError) {
+            rejectReasonError.textContent = "";
+        }
+    }
+
+    rejectOpenButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            openRejectModal(this);
+        });
+    });
+
+    if (rejectModalCloseBtn) {
+        rejectModalCloseBtn.addEventListener("click", closeRejectModal);
+    }
+
+    if (rejectCancelBtn) {
+        rejectCancelBtn.addEventListener("click", closeRejectModal);
+    }
+
+    if (rejectModal) {
+        rejectModal.addEventListener("click", function (event) {
+            if (event.target === rejectModal) {
+                closeRejectModal();
+            }
+        });
+    }
+
+    if (rejectForm) {
+        rejectForm.addEventListener("submit", function (event) {
+            const reason = (rejectReason?.value || "").trim();
+
+            if (reason.length < 8) {
+                event.preventDefault();
+
+                if (rejectReasonError) {
+                    rejectReasonError.textContent = "Reject reason must be at least 8 characters.";
+                }
+
+                if (rejectReason) {
+                    rejectReason.focus();
+                }
+
+                return;
+            }
+
+            const ok = confirm("Reject this complaint? The citizen will see this reason.");
+            if (!ok) {
+                event.preventDefault();
+            }
+        });
+    }
+
     document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && modal && modal.classList.contains("active")) {
-            closeModal();
+        if (event.key === "Escape") {
+            if (modal && modal.classList.contains("active")) {
+                closeModal();
+            }
+
+            if (rejectModal && rejectModal.classList.contains("active")) {
+                closeRejectModal();
+            }
         }
     });
 

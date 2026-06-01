@@ -1,3 +1,9 @@
+/* ================================================
+   DRAINGUARD — CITIZEN SIDEBAR CSS
+   Path: css/citizen/sidebar.css
+================================================ */
+
+/* ── LAYOUT WRAPPER ───────────────────────────── */
 .citizen-layout {
     min-height: 100vh;
     display: flex;
@@ -5,14 +11,11 @@
     overflow-x: hidden;
 }
 
-/* ========================================
-   SIDEBAR
-======================================== */
-
+/* ── SIDEBAR ──────────────────────────────────── */
 .citizen-sidebar {
     width: 250px;
     max-width: 250px;
-    min-height: 100vh;
+    height: 100vh; /* Fixed height */
     background: #08233D;
     color: #ffffff;
 
@@ -23,61 +26,46 @@
     flex-direction: column;
 
     z-index: 1000;
-
-    overflow: hidden;
+    overflow: hidden; /* No scroll on main sidebar */
     transition: transform 0.25s ease;
+    will-change: transform;
 }
 
-/* ========================================
-   BRAND
-======================================== */
-
+/* ── BRAND ────────────────────────────────────── */
 .sidebar-brand {
-    height: 92px;
-    padding: 20px 18px;
-
+    padding: 16px 18px; /* Padding কমানো হয়েছে */
     display: flex;
     align-items: center;
     gap: 12px;
-
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
-
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     min-width: 0;
 }
 
 .brand-icon {
-    width: 52px;
-    height: 52px;
-    flex: 0 0 52px;
-
-    border-radius: 12px;
-
+    width: 44px; /* Size কমানো হয়েছে */
+    height: 44px;
+    flex: 0 0 44px;
+    border-radius: 10px;
     background: var(--main-gradient);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     position: relative;
 }
 
 .brand-icon i {
-    font-size: 26px;
+    font-size: 22px;
     color: #ffffff;
 }
 
 .brand-icon::after {
     content: "";
-
-    width: 12px;
-    height: 12px;
-
+    width: 10px;
+    height: 10px;
     border: 2px solid #ffffff;
     border-radius: 50%;
-
     background: #16C784;
-
     position: absolute;
     right: -2px;
     bottom: -2px;
@@ -88,45 +76,41 @@
 }
 
 .sidebar-brand h2 {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
     line-height: 1.1;
-    margin-bottom: 3px;
-
+    margin-bottom: 2px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .sidebar-brand p {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--primary-color);
     line-height: 1;
-
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* ========================================
-   ROLE SECTION
-======================================== */
-
+/* ── ROLE SECTION ─────────────────────────────── */
 .sidebar-role {
-    padding: 14px 18px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    padding: 10px 18px 12px; /* Padding কমানো হয়েছে */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     min-width: 0;
 }
 
 .sidebar-role span {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     display: inline-block;
     border-radius: 50%;
     background: var(--primary-color);
-    margin-right: 7px;
+    margin-right: 6px;
+    vertical-align: middle;
 }
 
 .sidebar-role small {
@@ -134,66 +118,53 @@
     font-weight: 800;
     text-transform: uppercase;
     color: var(--primary-color);
-    letter-spacing: .8px;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
 }
 
 .sidebar-role strong {
     display: block;
-    margin-top: 7px;
-    font-size: 14px;
+    margin-top: 5px;
+    font-size: 13px;
     font-weight: 700;
-
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* ========================================
-   MENU
-======================================== */
-
+/* ── MENU ─────────────────────────────────────── */
 .sidebar-menu {
     flex: 1;
-    padding: 16px 12px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.sidebar-menu::-webkit-scrollbar {
-    width: 5px;
-}
-
-.sidebar-menu::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, .16);
-    border-radius: 999px;
+    padding: 12px 12px; /* Padding কমানো হয়েছে */
+    overflow: hidden; /* Scroll বন্ধ */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Menu মাঝখানে থাকবে */
 }
 
 .menu-link {
-    min-height: 42px;
-    padding: 0 16px;
-    margin-bottom: 8px;
-
-    border-radius: 10px;
-
+    min-height: 38px; /* Height কমানো হয়েছে */
+    padding: 0 14px;
+    margin-bottom: 4px; /* Margin কমানো হয়েছে */
+    border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 14px;
-
-    color: #E2E8F0;
+    gap: 12px;
+    color: #CBD5E1;
     text-decoration: none;
-
-    font-size: 14px;
+    font-size: 13.5px; /* Font size একটু কমানো হয়েছে */
     font-weight: 600;
-
-    transition: .22s ease;
+    transition: background 0.2s ease, color 0.2s ease;
     min-width: 0;
 }
 
 .menu-link i {
     width: 18px;
-    font-size: 18px;
+    font-size: 17px;
     text-align: center;
     flex-shrink: 0;
+    color: #94A3B8;
+    transition: color 0.2s ease;
 }
 
 .menu-link span {
@@ -204,23 +175,28 @@
     white-space: nowrap;
 }
 
-.menu-link:hover,
-.menu-link.active {
-    background: linear-gradient(
-        135deg,
-        #20D4D9,
-        #35A6F7
-    );
+.menu-link:hover {
+    background: rgba(49, 246, 230, 0.1);
     color: #ffffff;
 }
 
-/* ========================================
-   USER SECTION
-======================================== */
+.menu-link:hover i {
+    color: var(--primary-color);
+}
 
+.menu-link.active {
+    background: linear-gradient(135deg, #20D4D9, #35A6F7);
+    color: #ffffff;
+}
+
+.menu-link.active i {
+    color: #ffffff;
+}
+
+/* ── USER SECTION ─────────────────────────────── */
 .sidebar-user {
-    padding: 16px 14px 18px;
-    border-top: 1px solid rgba(255, 255, 255, .08);
+    padding: 12px 14px 14px; /* Padding কমানো হয়েছে */
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     min-width: 0;
 }
@@ -228,29 +204,30 @@
 .user-profile-row {
     display: flex;
     align-items: center;
-    gap: 11px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 10px;
     min-width: 0;
 }
 
 .user-avatar {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-
+    width: 38px; /* Avatar size কমানো হয়েছে */
+    height: 38px;
+    flex: 0 0 38px;
     border-radius: 50%;
     background: var(--main-gradient);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     overflow: hidden;
     text-decoration: none;
     color: #ffffff;
-
     border: 2px solid rgba(49, 246, 230, 0.35);
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: border-color 0.2s ease;
+}
+
+.user-avatar:hover {
+    border-color: rgba(49, 246, 230, 0.7);
 }
 
 .user-avatar img {
@@ -261,61 +238,55 @@
 }
 
 .user-avatar i {
-    font-size: 18px;
+    font-size: 16px;
     color: #ffffff;
 }
 
 .user-info {
     min-width: 0;
+    flex: 1;
 }
 
 .user-info h4 {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
-    margin-bottom: 3px;
-    line-height: 1;
+    margin: 0 0 2px;
+    line-height: 1.2;
     color: #ffffff;
-
-    max-width: 145px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .user-info p {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
-    color: #CBD5E1;
+    color: #94A3B8;
     margin: 0;
-
-    max-width: 145px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+/* ── ACTION BUTTONS ───────────────────────────── */
 .user-actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
 }
 
 .profile-btn,
 .logout-btn {
-    min-height: 38px;
-    border-radius: 8px;
-
+    min-height: 34px; /* Button height কমানো হয়েছে */
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-
+    gap: 6px;
     text-decoration: none;
-
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-
-    transition: .2s ease;
+    transition: background 0.2s ease;
     min-width: 0;
 }
 
@@ -327,38 +298,36 @@
 }
 
 .profile-btn {
-    background: rgba(255, 255, 255, .08);
+    background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
 }
 
 .profile-btn:hover {
-    background: rgba(255, 255, 255, .14);
+    background: rgba(255, 255, 255, 0.15);
     color: #ffffff;
 }
 
 .logout-btn {
-    background: rgba(255, 90, 90, .16);
+    background: rgba(255, 90, 90, 0.14);
     color: #FFB4B4;
 }
 
 .logout-btn:hover {
-    background: rgba(255, 90, 90, .22);
-    color: #FFB4B4;
+    background: rgba(255, 90, 90, 0.24);
+    color: #ff8080;
 }
 
-/* ========================================
-   MOBILE OVERLAY
-======================================== */
-
+/* ── MOBILE OVERLAY ───────────────────────────── */
 .sidebar-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.48);
-    backdrop-filter: blur(2px);
+    background: rgba(15, 23, 42, 0.52);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     z-index: 999;
     opacity: 0;
     visibility: hidden;
-    transition: 0.25s ease;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .sidebar-overlay.active {
@@ -370,55 +339,38 @@ body.sidebar-open {
     overflow: hidden;
 }
 
-/* ========================================
-   RESPONSIVE
-======================================== */
-
-@media (max-width: 1200px) {
+/* ── RESPONSIVE ───────────────────────────────── */
+@media (min-width: 1400px) {
     .citizen-sidebar {
-        width: 250px;
-        max-width: 250px;
+        width: 260px;
+        max-width: 260px;
+    }
+}
+
+@media (max-width: 1399px) {
+    .citizen-sidebar {
+        width: 240px;
+        max-width: 240px;
     }
 }
 
 @media (max-width: 992px) {
     .citizen-sidebar {
         transform: translateX(-100%);
-        width: min(82vw, 280px);
+        width: min(80vw, 280px);
         max-width: 280px;
+        box-shadow: none;
+        overflow-y: auto; /* Mobile/Tablet-এ height কম থাকলে scroll হবে */
     }
 
     .citizen-sidebar.active {
         transform: translateX(0);
+        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.3);
     }
 }
 
 @media (max-width: 480px) {
     .citizen-sidebar {
-        width: min(86vw, 270px);
-    }
-
-    .sidebar-brand {
-        height: 84px;
-        padding: 16px;
-    }
-
-    .brand-icon {
-        width: 46px;
-        height: 46px;
-        flex-basis: 46px;
-    }
-
-    .brand-icon i {
-        font-size: 23px;
-    }
-
-    .sidebar-brand h2 {
-        font-size: 17px;
-    }
-
-    .menu-link {
-        padding: 0 14px;
-        gap: 12px;
+        width: min(85vw, 270px);
     }
 }

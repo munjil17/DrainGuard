@@ -1,6 +1,5 @@
 <?php
 
-
 require_once "../config.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -205,34 +204,8 @@ function sc_get_or_create_drain_id($conn, $locId, $addressDescription)
     return $drainId;
 }
 
-function sc_check_repeat_rule($conn, $userId, $locId, $drainId)
+function sc_check_repeat_rule($conn, $userId, $locId, $drainId, $issueId, $affectedAreaId)
 {
-    $sql = "
-        SELECT
-            complaint_id,
-            complaint_status,
-            submitted_at,
-            work_started_at
-        FROM complaints
-        WHERE user_id = ?
-        AND loc_id = ?
-        AND drain_id = ?
-        AND complaint_status NOT IN ('solved', 'closed', 'rejected')
-        ORDER BY submitted_at DESC
-        LIMIT 1
-    ";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
-    if (!$stmt) {
-        throw new Exception("Repeat complaint check failed: " . mysqli_error($conn));
-    }
-
-    mysqli_stmt_bind_param($stmt, "iii", $userId, $locId, $drainId);
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-
     $response = [
         "allowed" => true,
         "is_repeat" => 0,
@@ -240,32 +213,172 @@ function sc_check_repeat_rule($conn, $userId, $locId, $drainId)
         "message" => ""
     ];
 
-    if ($result && mysqli_num_rows($result) === 1) {
-        $existing = mysqli_fetch_assoc($result);
+    $activeSql = "
+        SELECT complaint_id, complaint_status
+        FROM complaints
+        WHERE user_id = ?
+          AND loc_id = ?
+          AND drain_id = ?
+          AND issue_id = ?
+          AND affected_area_id = ?
+          AND complaint_status IN (
+              'submitted',
+              'received',
+              'pending_verification',
+              'verified_by_ward',
+              'team_assigned',
+              'in_progress',
+              'solved_by_team',
+              'inspector_verification',
+              'reopened',
+              'disputed'
+          )
+        ORDER BY submitted_at DESC
+        LIMIT 1
+    ";
 
-        $workStarted = !empty($existing["work_started_at"]);
+    $activeStmt = mysqli_prepare($conn, $activeSql);
 
-        $submittedTime = strtotime($existing["submitted_at"]);
-        $daysPassed = $submittedTime ? floor((time() - $submittedTime) / 86400) : 0;
+    if (!$activeStmt) {
+        throw new Exception("Active repeat complaint check failed: " . mysqli_error($conn));
+    }
 
-        if ($workStarted) {
-            $response["allowed"] = false;
-            $response["message"] = "Work has already started for your previous complaint on this drain.";
-        } elseif ($daysPassed < 15) {
-            $remainingDays = 15 - $daysPassed;
+    mysqli_stmt_bind_param($activeStmt, "iiiii", $userId, $locId, $drainId, $issueId, $affectedAreaId);
+    mysqli_stmt_execute($activeStmt);
 
-            $response["allowed"] = false;
-            $response["message"] = "You already submitted a complaint for this drain. You can complain again after " . $remainingDays . " day(s) if work does not start.";
-        } else {
-            $response["allowed"] = true;
-            $response["is_repeat"] = 1;
-            $response["parent_id"] = (int)$existing["complaint_id"];
-        }
+    $activeResult = mysqli_stmt_get_result($activeStmt);
+
+    if ($activeResult && mysqli_num_rows($activeResult) === 1) {
+        mysqli_stmt_close($activeStmt);
+
+        $response["allowed"] = false;
+        $response["message"] = "You already have an active complaint for the same issue at this location. Please track the existing complaint instead of submitting a new one.";
+
+        return $response;
+    }
+
+    mysqli_stmt_close($activeStmt);
+
+    $closedSql = "
+        SELECT complaint_id, closed_at
+        FROM complaints
+        WHERE user_id = ?
+          AND loc_id = ?
+          AND drain_id = ?
+          AND issue_id = ?
+          AND affected_area_id = ?
+          AND complaint_status = 'closed'
+          AND closed_at IS NOT NULL
+          AND closed_at >= DATE_SUB(NOW(), INTERVAL 15 DAY)
+        ORDER BY closed_at DESC
+        LIMIT 1
+    ";
+
+    $closedStmt = mysqli_prepare($conn, $closedSql);
+
+    if (!$closedStmt) {
+        throw new Exception("Closed repeat complaint check failed: " . mysqli_error($conn));
+    }
+
+    mysqli_stmt_bind_param($closedStmt, "iiiii", $userId, $locId, $drainId, $issueId, $affectedAreaId);
+    mysqli_stmt_execute($closedStmt);
+
+    $closedResult = mysqli_stmt_get_result($closedStmt);
+
+    if ($closedResult && mysqli_num_rows($closedResult) === 1) {
+        $existing = mysqli_fetch_assoc($closedResult);
+        mysqli_stmt_close($closedStmt);
+
+        $closedAt = strtotime($existing["closed_at"]);
+        $daysPassed = $closedAt ? floor((time() - $closedAt) / 86400) : 0;
+        $remainingDays = max(1, 15 - $daysPassed);
+
+        $response["allowed"] = false;
+        $response["message"] = "This complaint was recently solved. If the problem still exists, please submit an objection/reopen request. You can submit a new complaint for the same issue after " . $remainingDays . " day(s).";
+
+        return $response;
+    }
+
+    mysqli_stmt_close($closedStmt);
+
+    $oldClosedSql = "
+        SELECT complaint_id
+        FROM complaints
+        WHERE user_id = ?
+          AND loc_id = ?
+          AND drain_id = ?
+          AND issue_id = ?
+          AND affected_area_id = ?
+          AND complaint_status = 'closed'
+          AND closed_at IS NOT NULL
+          AND closed_at < DATE_SUB(NOW(), INTERVAL 15 DAY)
+        ORDER BY closed_at DESC
+        LIMIT 1
+    ";
+
+    $oldClosedStmt = mysqli_prepare($conn, $oldClosedSql);
+
+    if (!$oldClosedStmt) {
+        throw new Exception("Old closed complaint check failed: " . mysqli_error($conn));
+    }
+
+    mysqli_stmt_bind_param($oldClosedStmt, "iiiii", $userId, $locId, $drainId, $issueId, $affectedAreaId);
+    mysqli_stmt_execute($oldClosedStmt);
+
+    $oldClosedResult = mysqli_stmt_get_result($oldClosedStmt);
+
+    if ($oldClosedResult && mysqli_num_rows($oldClosedResult) === 1) {
+        $existing = mysqli_fetch_assoc($oldClosedResult);
+
+        $response["allowed"] = true;
+        $response["is_repeat"] = 1;
+        $response["parent_id"] = (int)$existing["complaint_id"];
+    }
+
+    mysqli_stmt_close($oldClosedStmt);
+
+    return $response;
+}
+
+function sc_insert_status_log($conn, $complaintId, $oldStatus, $newStatus, $actionByUserId, $actionByRole, $remarks = null)
+{
+    $sql = "
+        INSERT INTO complaint_status_logs (
+            complaint_id,
+            old_status,
+            new_status,
+            action_by_user_id,
+            action_by_role,
+            remarks
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    ";
+
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        throw new Exception("Status log insert failed: " . mysqli_error($conn));
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "ississ",
+        $complaintId,
+        $oldStatus,
+        $newStatus,
+        $actionByUserId,
+        $actionByRole,
+        $remarks
+    );
+
+    if (!mysqli_stmt_execute($stmt)) {
+        $error = mysqli_stmt_error($stmt);
+        mysqli_stmt_close($stmt);
+
+        throw new Exception("Status log insert failed: " . $error);
     }
 
     mysqli_stmt_close($stmt);
-
-    return $response;
 }
 
 function sc_normalize_files($files)
@@ -594,7 +707,12 @@ function sc_get_complaint_count_for_days($conn, $locId, $days)
         SELECT COUNT(*) AS total_complaints
         FROM complaints
         WHERE loc_id = ?
-        AND complaint_status NOT IN ('rejected')
+       AND complaint_status NOT IN (
+    'rejected_by_central',
+    'rejected_by_ward',
+    'duplicate',
+    'final_rejected'
+)
         AND submitted_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
     ";
 
@@ -621,7 +739,12 @@ function sc_get_complaint_count_this_week($conn, $locId)
         SELECT COUNT(*) AS total_complaints
         FROM complaints
         WHERE loc_id = ?
-        AND complaint_status NOT IN ('rejected')
+      AND complaint_status NOT IN (
+    'rejected_by_central',
+    'rejected_by_ward',
+    'duplicate',
+    'final_rejected'
+)
         AND YEARWEEK(submitted_at, 1) = YEARWEEK(CURDATE(), 1)
     ";
 
@@ -644,14 +767,86 @@ function sc_get_complaint_count_this_week($conn, $locId)
 
 function sc_calculate_urgency_level($issueName, $affectedAreaName, $complaintCount7Days)
 {
-    $emergencyIssues = ["Open Manhole", "Water Contamination"];
-    $lowerRiskEmergencyAreas = ["Empty Plot", "Public Park"];
+    /*
+        Final Risk Meaning:
+        High   = Emergency
+        Medium = Priority
+        Low    = Normal
 
-    if (in_array($issueName, $emergencyIssues, true)) {
-        if (in_array($affectedAreaName, $lowerRiskEmergencyAreas, true)) {
+        Risk calculation priority:
+        1. Water Contamination always High
+        2. Direct public safety hazard override
+        3. Sewage leakage health-risk override
+        4. Repeated complaint override
+        5. General score-based calculation
+    */
+
+    $issueName = trim($issueName);
+    $affectedAreaName = trim($affectedAreaName);
+
+    /*
+        Water Contamination = always High / Emergency.
+        It must not be downgraded for Empty Plot or Public Park.
+    */
+    if ($issueName === "Water Contamination") {
+        return "High";
+    }
+
+    /*
+        Direct public safety hazard issues.
+        These are High in most public/sensitive areas.
+        Empty Plot/Public Park can be Medium because public exposure is lower.
+    */
+    $directSafetyHazardIssues = [
+        "Open Manhole",
+        "Missing Drain Cover",
+        "Collapsed Drain Structure"
+    ];
+
+    $lowerExposureAreas = [
+        "Empty Plot",
+        "Public Park"
+    ];
+
+    if (in_array($issueName, $directSafetyHazardIssues, true)) {
+        if (in_array($affectedAreaName, $lowerExposureAreas, true)) {
             return "Medium";
         }
 
+        return "High";
+    }
+
+    /*
+        Sewage Leakage is a health-risk issue.
+        High in sensitive/public areas, Medium elsewhere.
+    */
+    $sewageHighRiskAreas = [
+        "Hospital Zone",
+        "School / College / University Zone",
+        "Residential Street",
+        "Main Road",
+        "Commercial Hub / Market Area",
+        "Bus Stand / Transport Hub",
+        "Low-income Settlement",
+        "Government Office Area",
+        "Religious Place Area",
+        "Narrow Lane",
+        "Industrial Area"
+    ];
+
+    if ($issueName === "Sewage Leakage") {
+        if (in_array($affectedAreaName, $sewageHighRiskAreas, true)) {
+            return "High";
+        }
+
+        return "Medium";
+    }
+
+    /*
+        Repeated complaint override:
+        5+ valid complaints in same location within 7 days = High.
+    */
+    if ($complaintCount7Days >= 5) {
         return "High";
     }
 
@@ -673,6 +868,14 @@ function sc_calculate_urgency_level($issueName, $affectedAreaName, $complaintCou
     }
 
     if ($totalScore >= 4) {
+        return "Medium";
+    }
+
+    /*
+        Repeated complaint minimum rule:
+        3+ valid complaints cannot stay Low.
+    */
+    if ($complaintCount7Days >= 3) {
         return "Medium";
     }
 
@@ -898,7 +1101,14 @@ try {
 
     $drainId = sc_get_or_create_drain_id($conn, $locId, $addressDescription);
 
-    $repeatCheck = sc_check_repeat_rule($conn, $userId, $locId, $drainId);
+    $repeatCheck = sc_check_repeat_rule(
+        $conn,
+        $userId,
+        $locId,
+        $drainId,
+        $issueId,
+        $affectedAreaId
+    );
 
     if (!$repeatCheck["allowed"]) {
         mysqli_rollback($conn);
@@ -958,6 +1168,16 @@ try {
     $complaintId = (int)mysqli_insert_id($conn);
 
     mysqli_stmt_close($insertStmt);
+
+    sc_insert_status_log(
+        $conn,
+        $complaintId,
+        null,
+        "submitted",
+        $userId,
+        "citizen",
+        "Citizen submitted a new complaint."
+    );
 
     if (!empty($mediaFiles)) {
         sc_upload_media_files($conn, $complaintId, $userId, $mediaFiles, $savedUploadedFiles);
