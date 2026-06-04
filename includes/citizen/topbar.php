@@ -121,16 +121,6 @@ if ($topbarUserId > 0 && isset($conn) && $conn instanceof mysqli) {
         FROM citizen_notifications
         WHERE recipient_user_id = ?
           AND is_read = 0
-          AND notification_type IN (
-              'complaint_accepted',
-              'complaint_rejected',
-              'complaint_status_updated',
-              'objection_submitted',
-              'objection_under_review',
-              'objection_reopened',
-              'objection_final_rejected',
-              'comment_reply'
-          )
     ";
 
     $unreadStmt = mysqli_prepare($conn, $unreadSql);
@@ -163,16 +153,6 @@ if ($topbarUserId > 0 && isset($conn) && $conn instanceof mysqli) {
         LEFT JOIN complaints c
             ON cn.related_complaint_id = c.complaint_id
         WHERE cn.recipient_user_id = ?
-          AND cn.notification_type IN (
-              'complaint_accepted',
-              'complaint_rejected',
-              'complaint_status_updated',
-              'objection_submitted',
-              'objection_under_review',
-              'objection_reopened',
-              'objection_final_rejected',
-              'comment_reply'
-          )
         ORDER BY cn.created_at DESC, cn.notification_id DESC
         LIMIT 10
     ";
@@ -333,3 +313,31 @@ if ($topbarUserId > 0 && isset($conn) && $conn instanceof mysqli) {
     </div>
 
 </header>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const details = document.querySelector("details.topbar-notification");
+    if (!details) return;
+
+    const summary = details.querySelector("summary");
+
+    // Close when clicking anywhere outside
+    document.addEventListener("click", function(e) {
+        if (details.hasAttribute("open") && !details.contains(e.target)) {
+            details.removeAttribute("open");
+        }
+    }, true);
+
+    // Toggle on icon click
+    if (summary) {
+        summary.addEventListener("click", function(e) {
+            e.preventDefault();
+            if (details.hasAttribute("open")) {
+                details.removeAttribute("open");
+            } else {
+                details.setAttribute("open", "");
+            }
+        });
+    }
+});
+</script>

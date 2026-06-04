@@ -94,6 +94,76 @@ if ($loggedUserId > 0) {
 $topbarInitial = strtoupper(substr($topbarUserName, 0, 1));
 ?>
 
+<?php
+if (!function_exists('central_topbar_time_ago')) {
+    function central_topbar_time_ago($datetime) {
+        if (empty($datetime)) return 'Just now';
+        $timestamp = strtotime($datetime);
+        if (!$timestamp) return 'Just now';
+        $diff = time() - $timestamp;
+        if ($diff < 60) return 'Just now';
+        if ($diff < 3600) return floor($diff / 60) . ' min ago';
+        if ($diff < 86400) return floor($diff / 3600) . ' hr ago';
+        if ($diff < 604800) return floor($diff / 86400) . ' day ago';
+        return date('M d, Y', $timestamp);
+    }
+}
+
+if (!function_exists('central_notification_icon')) {
+    function central_notification_icon($type) {
+        $type = strtolower(trim((string)$type));
+        if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'bi-file-earmark-text';
+        if (in_array($type, ['inspector_report', 'team_update'])) return 'bi-clipboard-check';
+        if ($type === 'comment_reply') return 'bi-chat-dots';
+        return 'bi-bell';
+    }
+}
+
+if (!function_exists('central_notification_type_class')) {
+    function central_notification_type_class($type) {
+        $type = strtolower(trim((string)$type));
+        if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'type-track';
+        if (in_array($type, ['inspector_report', 'team_update'])) return 'type-objection';
+        if ($type === 'comment_reply') return 'type-reply';
+        return 'type-system';
+    }
+}
+
+$centralUnreadNotificationCount = 0;
+$centralTopbarNotifications = [];
+
+if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
+    $unreadSql = "SELECT COUNT(*) AS unread_total FROM central_notifications WHERE is_read = 0";
+    $unreadResult = mysqli_query($conn, $unreadSql);
+    if ($unreadResult) {
+        $unreadRow = mysqli_fetch_assoc($unreadResult);
+        $centralUnreadNotificationCount = (int)($unreadRow['unread_total'] ?? 0);
+    }
+
+    $notificationSql = "
+        SELECT 
+            cn.notification_id,
+            cn.related_complaint_id,
+            cn.notification_type,
+            cn.notification_title,
+            cn.notification_message,
+            cn.is_read,
+            cn.created_at,
+            c.complaint_code
+        FROM central_notifications cn
+        LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id
+        ORDER BY cn.created_at DESC, cn.notification_id DESC
+        LIMIT 10
+    ";
+    $notificationResult = mysqli_query($conn, $notificationSql);
+    if ($notificationResult) {
+        while ($row = mysqli_fetch_assoc($notificationResult)) {
+            $centralTopbarNotifications[] = $row;
+        }
+    }
+}
+?>
+
 <header class="central-topbar">
 
     <div class="central-topbar-left">
@@ -104,10 +174,89 @@ $topbarInitial = strtoupper(substr($topbarUserName, 0, 1));
 
     <div class="central-topbar-right">
 
-        <button type="button" class="central-notification-btn" aria-label="Notifications">
-            <i class="bi bi-bell"></i>
-            <span></span>
-        </button>
+        <details class="topbar-notification">
+            <summary class="notification-btn" aria-label="Notifications">
+                <i class="bi bi-bell"></i>
+
+                <?php if ($centralUnreadNotificationCount > 0): ?>
+                    <span class="notification-dot"></span>
+                    <em class="notification-count">
+                        <?php echo $centralUnreadNotificationCount > 99 ? '99+' : (int)$centralUnreadNotificationCount; ?>
+                    </em>
+                <?php endif; ?>
+            </summary>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <div>
+                        <h4>Notifications</h4>
+                        <p>
+                            <?php if ($centralUnreadNotificationCount > 0): ?>
+                                <?php echo (int)$centralUnreadNotificationCount; ?> unread notification(s)
+                            <?php else: ?>
+                                No unread notifications
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="notification-list">
+                    <?php if (count($centralTopbarNotifications) > 0): ?>
+
+                        <?php foreach ($centralTopbarNotifications as $notification): ?>
+                            <?php
+                                $notificationType = strtolower(trim((string)$notification['notification_type']));
+                                $notificationClass = central_notification_type_class($notificationType);
+                                $notificationIcon = central_notification_icon($notificationType);
+                                $isUnread = ((int)$notification['is_read'] === 0);
+
+                                $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
+                                if (!empty($notification['complaint_code'])) {
+                                    $notificationLink .= '&redirect=complaints';
+                                }
+                            ?>
+
+                            <a
+                                class="notification-item <?php echo $isUnread ? 'unread' : 'read'; ?> <?php echo centralTopbarSafeText($notificationClass); ?>"
+                                href="<?php echo centralTopbarSafeText($notificationLink); ?>"
+                            >
+                                <span class="notification-icon">
+                                    <i class="bi <?php echo centralTopbarSafeText($notificationIcon); ?>"></i>
+                                </span>
+
+                                <span class="notification-content">
+                                    <strong>
+                                        <?php echo centralTopbarSafeText($notification['notification_title'] ?? 'Notification'); ?>
+                                    </strong>
+                                    <small>
+                                        <?php echo centralTopbarSafeText($notification['notification_message'] ?? ''); ?>
+                                    </small>
+                                    <b>
+                                        <?php echo centralTopbarSafeText(central_topbar_time_ago($notification['created_at'] ?? null)); ?>
+                                    </b>
+                                </span>
+                            </a>
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <div class="notification-empty">
+                            <i class="bi bi-bell-slash"></i>
+                            <h5>No notifications yet</h5>
+                            <p>Updates on complaints and discussions will appear here.</p>
+                        </div>
+
+                    <?php endif; ?>
+                </div>
+
+                <div class="notification-dropdown-footer">
+                    <a href="notifications.php">
+                        View All Notifications
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </details>
 
         <div class="central-topbar-user">
             <div class="central-topbar-user-info">
@@ -133,3 +282,5 @@ $topbarInitial = strtoupper(substr($topbarUserName, 0, 1));
     </div>
 
 </header>
+
+<script src="../../js/central/topbar.js"></script>

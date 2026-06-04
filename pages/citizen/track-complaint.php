@@ -416,14 +416,13 @@ if ($searchCode !== "") {
             ON c.complaint_id = mu.complaint_id
 
         WHERE c.complaint_code = ?
-        AND c.user_id = ?
         LIMIT 1
     ";
 
     $stmt = mysqli_prepare($conn, $sql);
 
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "si", $searchCode, $userId);
+        mysqli_stmt_bind_param($stmt, "s", $searchCode);
         mysqli_stmt_execute($stmt);
 
         $result = mysqli_stmt_get_result($stmt);

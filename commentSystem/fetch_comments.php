@@ -44,10 +44,10 @@ if ($complaintId <= 0) {
 
 $sql = "
     SELECT
-        cc.comment_id,
+        cc.id AS comment_id,
         cc.complaint_id,
         cc.user_id,
-        cc.parent_comment_id,
+        cc.parent_id AS parent_comment_id,
         cc.comment_text,
         cc.is_deleted,
         cc.created_at,
@@ -56,39 +56,42 @@ $sql = "
         u.user_name,
         u.user_role,
 
-        COALESCE(SUM(CASE WHEN cl.reaction_type = 'like' THEN 1 ELSE 0 END), 0) AS like_count,
-        COALESCE(SUM(CASE WHEN cl.reaction_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislike_count,
+        COALESCE(SUM(CASE WHEN cl.type = 'like' THEN 1 ELSE 0 END), 0) AS like_count,
+        COALESCE(SUM(CASE WHEN cl.type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislike_count,
 
-        my_reaction.reaction_type AS my_reaction
+        my_reaction.type AS my_reaction
 
-    FROM complaint_comments cc
+    FROM comment_likes cc
 
     INNER JOIN users u
         ON cc.user_id = u.user_id
 
     LEFT JOIN comment_likes cl
-        ON cc.comment_id = cl.comment_id
+        ON cc.id = cl.parent_id
+       AND cl.type IN ('like', 'dislike')
 
     LEFT JOIN comment_likes my_reaction
-        ON cc.comment_id = my_reaction.comment_id
+        ON cc.id = my_reaction.parent_id
        AND my_reaction.user_id = ?
+       AND my_reaction.type IN ('like', 'dislike')
 
     WHERE cc.complaint_id = ?
+      AND cc.type = 'comment'
 
     GROUP BY
-        cc.comment_id,
+        cc.id,
         cc.complaint_id,
         cc.user_id,
-        cc.parent_comment_id,
+        cc.parent_id,
         cc.comment_text,
         cc.is_deleted,
         cc.created_at,
         cc.updated_at,
         u.user_name,
         u.user_role,
-        my_reaction.reaction_type
+        my_reaction.type
 
-    ORDER BY cc.created_at ASC, cc.comment_id ASC
+    ORDER BY cc.created_at ASC, cc.id ASC
 ";
 
 $stmt = mysqli_prepare($conn, $sql);

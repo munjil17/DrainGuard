@@ -384,8 +384,78 @@ document.addEventListener("DOMContentLoaded", function () {
             if (rejectModal && rejectModal.classList.contains("active")) {
                 closeRejectModal();
             }
+            
+            if (discussionModal && discussionModal.classList.contains("active")) {
+                closeDiscussionModal();
+            }
         }
     });
+
+    const discussionModal = document.getElementById("discussionModal");
+    const discussionModalCloseBtn = document.getElementById("discussionModalCloseBtn");
+    const discussionOpenButtons = document.querySelectorAll(".cm-discussion-btn");
+    const discussionModalCode = document.getElementById("discussionModalCode");
+    const commentComplaintId = document.getElementById("commentComplaintId");
+
+    function openDiscussionModal(button) {
+        if (!discussionModal || !button) return;
+
+        const complaintId = button.dataset.complaintId || "";
+        const complaintCode = button.dataset.complaintCode || "Complaint";
+
+        if (discussionModalCode) discussionModalCode.textContent = complaintCode;
+        if (commentComplaintId) commentComplaintId.value = complaintId;
+        
+        const currentContainer = document.getElementById("centralDiscussionContainer");
+        if (currentContainer) {
+            currentContainer.dataset.complaintId = complaintId;
+        }
+
+        discussionModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+
+        // Call the global commentSystem load function if it exists
+        if (typeof window.loadComments === "function") {
+            window.loadComments();
+        }
+    }
+
+    function closeDiscussionModal() {
+        if (!discussionModal) return;
+        discussionModal.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+
+    discussionOpenButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            openDiscussionModal(this);
+        });
+    });
+
+    if (discussionModalCloseBtn) {
+        discussionModalCloseBtn.addEventListener("click", closeDiscussionModal);
+    }
+
+    if (discussionModal) {
+        discussionModal.addEventListener("click", function (event) {
+            if (event.target === discussionModal) {
+                closeDiscussionModal();
+            }
+        });
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const openDiscussionId = urlParams.get("open_discussion");
+
+    if (openDiscussionId) {
+        const targetBtn = document.querySelector(`.cm-discussion-btn[data-complaint-id="${openDiscussionId}"]`);
+        if (targetBtn) {
+            targetBtn.click();
+            
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
+    }
 
     filterRows();
 });

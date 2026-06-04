@@ -26,7 +26,9 @@ function cs_reply_is_discussion_allowed($conn, $complaintId)
         "rejected_by_central",
         "rejected_by_ward",
         "duplicate",
-        "final_rejected"
+        "final_rejected",
+        "reopened",
+        "disputed"
     ];
 
     $sql = "
@@ -158,18 +160,18 @@ if (!cs_reply_is_discussion_allowed($conn, $complaintId)) {
 
 $parentSql = "
     SELECT
-        cc.comment_id,
+        cc.id AS comment_id,
         cc.user_id AS parent_user_id,
         u.user_role AS parent_user_role,
         c.complaint_code
-    FROM complaint_comments cc
+    FROM comment_likes cc
     INNER JOIN users u
         ON cc.user_id = u.user_id
     INNER JOIN complaints c
         ON cc.complaint_id = c.complaint_id
-    WHERE cc.comment_id = ?
+    WHERE cc.id = ?
       AND cc.complaint_id = ?
-      AND cc.parent_comment_id IS NULL
+      AND cc.parent_id IS NULL
       AND cc.is_deleted = 0
     LIMIT 1
 ";
@@ -194,29 +196,29 @@ $parentRow = mysqli_fetch_assoc($parentResult);
 mysqli_stmt_close($parentStmt);
 
 $sql = "
-    INSERT INTO complaint_comments (
+    INSERT INTO comment_likes (
         complaint_id,
         user_id,
-        parent_comment_id,
+        parent_id,
+        type,
         comment_text,
-        is_deleted,
-        created_at,
-        updated_at
+        created_at
     )
-    VALUES (?, ?, ?, ?, 0, NOW(), NULL)
+    VALUES (?, ?, ?, 'comment', ?, NOW())
 ";
 
 $stmt = mysqli_prepare($conn, $sql);
 
 if (!$stmt) {
-    cs_reply_json_response(false, "Reply prepare failed: " . mysqli_error($conn));
+    cs_reply_json_response(false, "Failed to prepare reply insert.");
 }
 
 mysqli_stmt_bind_param($stmt, "iiis", $complaintId, $userId, $parentCommentId, $commentText);
+mysqli_stmt_execute($stmt);
 
-if (!mysqli_stmt_execute($stmt)) {
+if (mysqli_stmt_affected_rows($stmt) <= 0) {
     mysqli_stmt_close($stmt);
-    cs_reply_json_response(false, "Failed to add reply.");
+    cs_reply_json_response(false, "Failed to insert reply.");
 }
 
 $replyId = mysqli_insert_id($conn);

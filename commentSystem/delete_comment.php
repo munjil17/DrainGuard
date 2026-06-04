@@ -31,16 +31,17 @@ if ($commentId <= 0) {
 }
 
 $checkSql = "
-    SELECT comment_id, user_id, is_deleted
-    FROM complaint_comments
-    WHERE comment_id = ?
+    SELECT user_id, type
+    FROM comment_likes
+    WHERE id = ?
+      AND is_deleted = 0
     LIMIT 1
 ";
 
 $checkStmt = mysqli_prepare($conn, $checkSql);
 
 if (!$checkStmt) {
-    cs_delete_json_response(false, "Delete check failed.");
+    cs_delete_json_response(false, "Failed to check comment.");
 }
 
 mysqli_stmt_bind_param($checkStmt, "i", $commentId);
@@ -50,37 +51,32 @@ $checkResult = mysqli_stmt_get_result($checkStmt);
 
 if (!$checkResult || mysqli_num_rows($checkResult) !== 1) {
     mysqli_stmt_close($checkStmt);
-    cs_delete_json_response(false, "Comment not found.");
+    cs_delete_json_response(false, "Comment not found or already deleted.");
 }
 
-$commentRow = mysqli_fetch_assoc($checkResult);
+$row = mysqli_fetch_assoc($checkResult);
+$commentOwner = (int)$row["user_id"];
+
 mysqli_stmt_close($checkStmt);
 
-if ((int)$commentRow["is_deleted"] === 1) {
-    cs_delete_json_response(false, "Comment already deleted.");
-}
-
-if ((int)$commentRow["user_id"] !== $userId) {
-    cs_delete_json_response(false, "You can delete only your own comment.");
+if ($commentOwner !== $userId) {
+    cs_delete_json_response(false, "You don't have permission to delete this.");
 }
 
 $deleteSql = "
-    UPDATE complaint_comments
+    UPDATE comment_likes
     SET is_deleted = 1,
-        comment_text = '',
         updated_at = NOW()
-    WHERE comment_id = ?
-      AND user_id = ?
+    WHERE id = ?
 ";
 
 $deleteStmt = mysqli_prepare($conn, $deleteSql);
 
 if (!$deleteStmt) {
-    cs_delete_json_response(false, "Delete prepare failed.");
+    cs_delete_json_response(false, "Failed to prepare delete query.");
 }
 
-mysqli_stmt_bind_param($deleteStmt, "ii", $commentId, $userId);
-
+mysqli_stmt_bind_param($deleteStmt, "i", $commentId);
 if (!mysqli_stmt_execute($deleteStmt)) {
     mysqli_stmt_close($deleteStmt);
     cs_delete_json_response(false, "Failed to delete comment.");

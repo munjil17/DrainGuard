@@ -239,18 +239,8 @@ if ($filterType !== "all") {
     $params[] = $filterType;
     $types .= "s";
 } else {
-    $whereSql .= "
-        AND cn.notification_type IN (
-            'complaint_accepted',
-            'complaint_rejected',
-            'complaint_status_updated',
-            'objection_submitted',
-            'objection_under_review',
-            'objection_reopened',
-            'objection_final_rejected',
-            'comment_reply'
-        )
-    ";
+    // No default type restriction, show all
+
 }
 
 if ($filterRead === "unread") {
@@ -549,6 +539,33 @@ function nt_build_query($overrides = [])
 </div>
 
 <script src="../../js/citizen/sidebar.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const filterForm = document.querySelector(".nt-filter-form");
+    if (filterForm) {
+        filterForm.querySelectorAll("select").forEach(function(select) {
+            select.addEventListener("change", function() {
+                // Manually construct the URL to guarantee navigation and reset pagination
+                const url = new URL(window.location.href);
+                const typeSelect = filterForm.querySelector("select[name='type']");
+                const readSelect = filterForm.querySelector("select[name='read']");
+                
+                if (typeSelect) url.searchParams.set("type", typeSelect.value);
+                if (readSelect) url.searchParams.set("read", readSelect.value);
+                
+                url.searchParams.delete("page"); // Reset to page 1
+                window.location.href = url.toString();
+            });
+        });
+        
+        const filterBtn = filterForm.querySelector("button[type='submit']");
+        if (filterBtn) {
+            filterBtn.style.display = "none";
+        }
+    }
+});
+</script>
 
 </body>
 </html>

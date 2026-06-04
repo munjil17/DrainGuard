@@ -137,13 +137,6 @@ $sql = "
     INNER JOIN areas a
         ON l.area_id = a.area_id
 
-    WHERE c.complaint_status NOT IN (
-        'rejected_by_central',
-        'rejected_by_ward',
-        'duplicate',
-        'final_rejected'
-    )
-
     ORDER BY c.submitted_at DESC
 ";
 
@@ -305,6 +298,10 @@ ksort($affectedAreaOptions);
                         <option value="closed">Closed / Solved</option>
                         <option value="reopened">Reopened</option>
                         <option value="disputed">Disputed</option>
+                        <option value="rejected_by_central">Rejected by Central Officer</option>
+                        <option value="rejected_by_ward">Rejected by Ward Officer</option>
+                        <option value="duplicate">Duplicate</option>
+                        <option value="final_rejected">Final Rejected</option>
                     </select>
                 </div>
 

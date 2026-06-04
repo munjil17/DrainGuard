@@ -433,6 +433,27 @@
     white-space: nowrap;
 }
 
+.cm-discussion-btn {
+    border: none;
+    background: #ECFEFF;
+    color: #0891B2;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: 0.2s ease;
+}
+
+.cm-discussion-btn:hover {
+    background: #CFFAFE;
+    color: #0E7490;
+}
+
 /* EMPTY */
 
 .cm-empty {

@@ -36,9 +36,9 @@ if (!in_array($reactionType, ["like", "dislike"], true)) {
 }
 
 $commentSql = "
-    SELECT comment_id
-    FROM complaint_comments
-    WHERE comment_id = ?
+    SELECT id
+    FROM comment_likes
+    WHERE id = ?
       AND is_deleted = 0
     LIMIT 1
 ";
@@ -62,10 +62,11 @@ if (!$commentResult || mysqli_num_rows($commentResult) !== 1) {
 mysqli_stmt_close($commentStmt);
 
 $existingSql = "
-    SELECT like_id, reaction_type
+    SELECT id, type
     FROM comment_likes
-    WHERE comment_id = ?
+    WHERE parent_id = ?
       AND user_id = ?
+      AND type IN ('like', 'dislike')
     LIMIT 1
 ";
 
@@ -83,15 +84,15 @@ $action = "created";
 
 if ($existingResult && mysqli_num_rows($existingResult) === 1) {
     $existingRow = mysqli_fetch_assoc($existingResult);
-    $existingReaction = (string)$existingRow["reaction_type"];
+    $existingReaction = (string)$existingRow["type"];
+    $reactionId = (int)$existingRow["id"];
 
     mysqli_stmt_close($existingStmt);
 
     if ($existingReaction === $reactionType) {
         $deleteSql = "
             DELETE FROM comment_likes
-            WHERE comment_id = ?
-              AND user_id = ?
+            WHERE id = ?
         ";
 
         $deleteStmt = mysqli_prepare($conn, $deleteSql);
@@ -100,7 +101,7 @@ if ($existingResult && mysqli_num_rows($existingResult) === 1) {
             cs_react_json_response(false, "Reaction delete failed.");
         }
 
-        mysqli_stmt_bind_param($deleteStmt, "ii", $commentId, $userId);
+        mysqli_stmt_bind_param($deleteStmt, "i", $reactionId);
         mysqli_stmt_execute($deleteStmt);
         mysqli_stmt_close($deleteStmt);
 
@@ -108,10 +109,9 @@ if ($existingResult && mysqli_num_rows($existingResult) === 1) {
     } else {
         $updateSql = "
             UPDATE comment_likes
-            SET reaction_type = ?,
+            SET type = ?,
                 created_at = NOW()
-            WHERE comment_id = ?
-              AND user_id = ?
+            WHERE id = ?
         ";
 
         $updateStmt = mysqli_prepare($conn, $updateSql);
@@ -120,7 +120,7 @@ if ($existingResult && mysqli_num_rows($existingResult) === 1) {
             cs_react_json_response(false, "Reaction update failed.");
         }
 
-        mysqli_stmt_bind_param($updateStmt, "sii", $reactionType, $commentId, $userId);
+        mysqli_stmt_bind_param($updateStmt, "si", $reactionType, $reactionId);
         mysqli_stmt_execute($updateStmt);
         mysqli_stmt_close($updateStmt);
 
@@ -131,9 +131,9 @@ if ($existingResult && mysqli_num_rows($existingResult) === 1) {
 
     $insertSql = "
         INSERT INTO comment_likes (
-            comment_id,
+            parent_id,
             user_id,
-            reaction_type,
+            type,
             created_at
         )
         VALUES (?, ?, ?, NOW())
@@ -154,10 +154,10 @@ if ($existingResult && mysqli_num_rows($existingResult) === 1) {
 
 $countSql = "
     SELECT
-        SUM(CASE WHEN reaction_type = 'like' THEN 1 ELSE 0 END) AS like_count,
-        SUM(CASE WHEN reaction_type = 'dislike' THEN 1 ELSE 0 END) AS dislike_count
+        SUM(CASE WHEN type = 'like' THEN 1 ELSE 0 END) AS like_count,
+        SUM(CASE WHEN type = 'dislike' THEN 1 ELSE 0 END) AS dislike_count
     FROM comment_likes
-    WHERE comment_id = ?
+    WHERE parent_id = ?
 ";
 
 $countStmt = mysqli_prepare($conn, $countSql);
