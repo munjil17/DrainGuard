@@ -363,7 +363,9 @@
 
 .rd-btn {
     width: 100%;
-    height: 48px;
+    height: auto;
+    min-height: 48px;
+    padding: 12px 16px;
     border: none;
     border-radius: 10px;
     color: #FFFFFF;
@@ -375,6 +377,13 @@
     justify-content: center;
     gap: 8px;
     transition: 0.22s ease;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.rd-btn i {
+    flex-shrink: 0;
+    font-size: 16px;
 }
 
 .rd-btn:hover {
@@ -391,6 +400,74 @@
 
 .rd-btn.inspector {
     background: #E11D48;
+}
+
+.rd-btn.fc-confirm {
+    background: #0D9488;
+}
+
+.rd-btn.fc-reject {
+    background: #E11D48;
+}
+
+.rd-fc-actions-form {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.rd-fc-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.rd-fc-textarea {
+    width: 100%;
+    padding: 14px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    resize: vertical;
+    font-size: 15px;
+    color: #020617;
+    outline: none;
+    transition: 0.2s ease;
+}
+
+.rd-fc-textarea:focus {
+    border-color: #6FA79B;
+    box-shadow: 0 0 0 4px rgba(111, 167, 155, 0.14);
+}
+
+.rd-fc-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.rd-proof-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.rd-proof-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rd-proof-col-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 /* EMPTY */

@@ -4,8 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     forms.forEach(function (form) {
         const stars = form.querySelectorAll(".fr-stars button");
         const ratingInput = form.querySelector(".rating-input");
-        const actionInput = form.querySelector(".action-type");
-        const actionButtons = form.querySelectorAll(".fr-actions button");
+        const actionInput = form.querySelector("select.action-type");
         const textarea = form.querySelector('textarea[name="feedback_text"]');
 
         stars.forEach(function (star) {
@@ -28,25 +27,12 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 
-        actionButtons.forEach(function (button) {
-            button.addEventListener("click", function () {
-                const action = this.dataset.action || "feedback";
-
-                if (actionInput) {
-                    actionInput.value = action;
-                }
-            });
-        });
 
         form.addEventListener("submit", function (event) {
             const clickedButton = event.submitter;
-            const actionType = clickedButton?.dataset.action || actionInput?.value || "feedback";
+            const actionType = actionInput ? actionInput.value : "feedback";
             const ratingValue = Number(ratingInput?.value || 0);
             const textValue = textarea ? textarea.value.trim() : "";
-
-            if (actionInput) {
-                actionInput.value = actionType;
-            }
 
             if (actionType === "feedback") {
                 if (ratingValue < 1) {
@@ -63,6 +49,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (actionType === "citizen_objection") {
+                if (ratingValue < 1) {
+                    event.preventDefault();
+                    alert("Please select a rating before submitting your objection.");
+                    return;
+                }
+
                 if (textValue.length < 10) {
                     event.preventDefault();
                     alert("Please clearly explain why the problem is still not solved.");

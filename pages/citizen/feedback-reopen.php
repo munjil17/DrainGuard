@@ -188,6 +188,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($actionType === "citizen_objection") {
                     if ($currentStatus !== 'closed') {
                         $errorMessage = "Objection can be submitted only after the complaint is solved.";
+                    } elseif ($rating < 1 || $rating > 5) {
+                        $errorMessage = "Please select a rating.";
                     } elseif ($feedbackText === '') {
                         $errorMessage = "Please write your objection reason.";
                     } else {
@@ -221,7 +223,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     $insertFeedbackSql = "
                                         INSERT INTO feedbacks
                                         (complaint_id, user_id, rating, feedback_text, feedback_type)
-                                        VALUES (?, ?, NULL, ?, 'false_completion')
+                                        VALUES (?, ?, ?, ?, 'false_completion')
                                     ";
 
                                     $feedbackStmt = mysqli_prepare($conn, $insertFeedbackSql);
@@ -230,7 +232,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         throw new Exception("Feedback insert prepare failed.");
                                     }
 
-                                    mysqli_stmt_bind_param($feedbackStmt, "iis", $complaintId, $userId, $feedbackText);
+                                    mysqli_stmt_bind_param($feedbackStmt, "iiis", $complaintId, $userId, $rating, $feedbackText);
                                     mysqli_stmt_execute($feedbackStmt);
                                     mysqli_stmt_close($feedbackStmt);
 
@@ -499,7 +501,14 @@ if ($stmt) {
                                 <form class="fr-form" method="POST" action="feedback-reopen.php">
                                     <input type="hidden" name="complaint_id" value="<?php echo (int) $complaint['complaint_id']; ?>">
                                     <input type="hidden" name="rating" class="rating-input" value="0">
-                                    <input type="hidden" name="action_type" class="action-type" value="feedback">
+
+                                    <div class="fr-input-block">
+                                        <label>Feedback Type</label>
+                                        <select name="action_type" class="action-type fr-select" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem; background-color: var(--white); margin-bottom: 20px;">
+                                            <option value="feedback">Satisfied (Good Review)</option>
+                                            <option value="citizen_objection">Still Unresolved (Objection)</option>
+                                        </select>
+                                    </div>
 
                                     <div class="fr-rating-block">
                                         <label>Rate the maintenance work</label>
@@ -528,7 +537,7 @@ if ($stmt) {
                                     </div>
 
                                     <div class="fr-input-block">
-                                        <label>Feedback / Objection Reason</label>
+                                        <label>Reason / Comments</label>
                                         <textarea
                                             name="feedback_text"
                                             placeholder="Write feedback. If the issue is still not solved, clearly explain the problem for Ward Officer review..."
@@ -536,14 +545,9 @@ if ($stmt) {
                                     </div>
 
                                     <div class="fr-actions">
-                                        <button type="submit" class="fr-submit-btn" data-action="feedback">
+                                        <button type="submit" class="fr-submit-btn">
                                             <i class="bi bi-send"></i>
-                                            Submit Feedback
-                                        </button>
-
-                                        <button type="submit" class="fr-reopen-btn" data-action="citizen_objection">
-                                            <i class="bi bi-exclamation-triangle"></i>
-                                            Raise Objection
+                                            Submit
                                         </button>
                                     </div>
                                 </form>

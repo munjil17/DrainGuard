@@ -300,7 +300,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
             AND ca.ward_id = ?
             AND mp.proof_stage = 'after'
             AND mp.proof_status = 'submitted'
-            AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'rejected', 'duplicate')
+            AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected', 'duplicate')
             LIMIT 1",
             "ii",
             [$complaintId, $assignedWardId]
@@ -325,6 +325,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
         mysqli_stmt_bind_param($stmt, "i", $complaintId);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
+
+        // Fetch recipients for notifications
+        $citizenUserId = 0;
+        $centralOfficerUserId = 0;
+        $wardOfficerUserId = 0;
+        $maintenanceTeamMembers = [];
+        $complaintCode = '';
+        $locId = 0;
+        $maintenanceTeamId = 0;
+
+        $fetchSql = "
+            SELECT 
+                c.complaint_code, 
+                c.user_id AS citizen_id, 
+                c.loc_id,
+                ca.maintenance_team_id,
+                (SELECT assigned_by FROM complaint_assignments WHERE complaint_id = c.complaint_id AND assignment_status = 'ward_assigned' LIMIT 1) AS central_officer_id
+            FROM complaints c
+            INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
+            WHERE c.complaint_id = ?
+            LIMIT 1
+        ";
+        
+        $stmtC = mysqli_prepare($conn, $fetchSql);
+        if ($stmtC) {
+            mysqli_stmt_bind_param($stmtC, "i", $complaintId);
+            mysqli_stmt_execute($stmtC);
+            $resC = mysqli_stmt_get_result($stmtC);
+            if ($rowC = mysqli_fetch_assoc($resC)) {
+                $complaintCode = $rowC['complaint_code'];
+                $citizenUserId = (int)$rowC['citizen_id'];
+                $centralOfficerUserId = (int)$rowC['central_officer_id'];
+                $locId = (int)$rowC['loc_id'];
+                $maintenanceTeamId = (int)$rowC['maintenance_team_id'];
+            }
+            mysqli_stmt_close($stmtC);
+        }
+
+        if ($locId > 0) {
+            $woSql = "SELECT wo.user_id FROM locations l JOIN ward_officers wo ON wo.assigned_ward_id = l.ward_id AND wo.city_cor_id = l.city_cor_id WHERE l.loc_id = ? LIMIT 1";
+            $stmtWo = mysqli_prepare($conn, $woSql);
+            if ($stmtWo) {
+                mysqli_stmt_bind_param($stmtWo, "i", $locId);
+                mysqli_stmt_execute($stmtWo);
+                $resWo = mysqli_stmt_get_result($stmtWo);
+                if ($rowWo = mysqli_fetch_assoc($resWo)) {
+                    $wardOfficerUserId = (int)$rowWo['user_id'];
+                }
+                mysqli_stmt_close($stmtWo);
+            }
+        }
+
+        if ($maintenanceTeamId > 0) {
+            $mtSql = "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ?";
+            $stmtMt = mysqli_prepare($conn, $mtSql);
+            if ($stmtMt) {
+                mysqli_stmt_bind_param($stmtMt, "i", $maintenanceTeamId);
+                mysqli_stmt_execute($stmtMt);
+                $resMt = mysqli_stmt_get_result($stmtMt);
+                while ($rowMt = mysqli_fetch_assoc($resMt)) {
+                    $maintenanceTeamMembers[] = (int)$rowMt['user_id'];
+                }
+                mysqli_stmt_close($stmtMt);
+            }
+        }
+
+        $notifTime = date('Y-m-d H:i:s');
+
+        // Citizen
+        if ($citizenUserId > 0) {
+            $msg = "Inspector has started reviewing the completion proof for your complaint.";
+            $ins = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            if ($ins) {
+                mysqli_stmt_bind_param($ins, "iiiss", $citizenUserId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_execute($ins);
+                mysqli_stmt_close($ins);
+            }
+        }
+
+        // Central Officer
+        if ($centralOfficerUserId > 0) {
+            $msg = "Inspector has started reviewing the completion proof for complaint {$complaintCode}.";
+            $ins = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            if ($ins) {
+                mysqli_stmt_bind_param($ins, "iiiss", $centralOfficerUserId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_execute($ins);
+                mysqli_stmt_close($ins);
+            }
+        }
+
+        // Ward Officer
+        if ($wardOfficerUserId > 0) {
+            $msg = "Inspector has started reviewing the completion proof for assigned complaint {$complaintCode}.";
+            $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            if ($ins) {
+                mysqli_stmt_bind_param($ins, "iiiss", $wardOfficerUserId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_execute($ins);
+                mysqli_stmt_close($ins);
+            }
+        }
+
+        // Maintenance Team
+        foreach ($maintenanceTeamMembers as $memberId) {
+            $msg = "Inspector has started reviewing the completion proof you submitted for complaint {$complaintCode}.";
+            $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            if ($ins) {
+                mysqli_stmt_bind_param($ins, "iiiss", $memberId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_execute($ins);
+                mysqli_stmt_close($ins);
+            }
+        }
 
         mysqli_commit($conn);
 
@@ -388,7 +499,7 @@ $countRow = solvedFetchOne(
     WHERE ca.ward_id = ?
     AND mp.proof_stage = 'after'
     AND mp.proof_status = 'submitted'
-    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'rejected', 'duplicate')",
+    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected', 'duplicate')",
     "i",
     [$assignedWardId]
 );
@@ -402,7 +513,7 @@ $totalSolvedByTeam = $countRow ? (int) $countRow['total'] : 0;
 $whereSql = "
     WHERE ca.ward_id = ?
     AND after_proof.proof_id IS NOT NULL
-    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'rejected', 'duplicate')
+    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected', 'duplicate')
 ";
 
 $types = "i";

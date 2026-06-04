@@ -233,7 +233,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 INNER JOIN locations l ON c.loc_id = l.loc_id
                 WHERE c.complaint_id = ?
                   AND l.ward_id = ?
-                  AND c.complaint_status = 'verified_by_ward'
+                  AND c.complaint_status IN ('verified_by_ward', 'reopened')
                 LIMIT 1",
                 "ii",
                 [$complaintId, $wardId]
@@ -452,7 +452,7 @@ try {
             ) msr2 ON msr1.support_request_id = msr2.latest_id
         ) msr ON msr.assignment_id = ca.assignment_id
         WHERE l.ward_id = ?
-          AND c.complaint_status IN ('verified_by_ward', 'team_assigned')
+          AND c.complaint_status IN ('verified_by_ward', 'team_assigned', 'reopened')
         ORDER BY
             CASE WHEN i.priority = 'High'   THEN 1
                  WHEN i.priority = 'Medium' THEN 2
@@ -627,6 +627,8 @@ foreach ($verifiedComplaints as $ci) {
                             </div>
                             <?php if ($complaint["complaint_status"] === 'team_assigned'): ?>
                                 <span class="lta-status" style="background: #e0e7ff; color: #3730a3;">Team Assigned</span>
+                            <?php elseif ($complaint["complaint_status"] === 'reopened'): ?>
+                                <span class="lta-status" style="background: #fef08a; color: #854d0e;">Reopened</span>
                             <?php else: ?>
                                 <span class="lta-status">Verified</span>
                             <?php endif; ?>
@@ -643,7 +645,7 @@ foreach ($verifiedComplaints as $ci) {
                                 </div>
                             </div>
 
-                            <?php if ($complaint["complaint_status"] === 'verified_by_ward'): ?>
+                            <?php if ($complaint["complaint_status"] === 'verified_by_ward' || $complaint["complaint_status"] === 'reopened'): ?>
                                 <form method="POST" action="local-team-assignment.php" class="lta-assign-form">
                                     <input type="hidden" name="complaint_id" value="<?= $cId; ?>">
 

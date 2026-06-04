@@ -144,13 +144,9 @@ function fcrStatusLabel($status)
 function fcrRequestStatusLabel($status)
 {
     $map = [
-        'pending' => 'Pending',
-        'sent_to_inspector' => 'Sent to Inspector',
-        'sent_to_ward_for_reassign' => 'Sent to Ward for Reassignment',
-        'reassigned_same_team' => 'Reassigned Same Team',
-        'reassigned_different_team' => 'Reassigned Different Team',
-        'rejected' => 'Rejected',
-        'resolved' => 'Resolved'
+        'pending' => 'Pending Ward Officer Review',
+        'true' => 'Inspector Claim Confirmed True',
+        'false' => 'Inspector Claim Marked False'
     ];
 
     return $map[$status] ?? ucwords(str_replace('_', ' ', (string) $status));
@@ -263,17 +259,16 @@ $teamRows = fcrFetchAll(
     "SELECT DISTINCT
         mt.maintenance_team_id,
         mt.team_name
-    FROM objection_reviews obr
-    INNER JOIN complaints c ON c.complaint_id = obr.complaint_id
+    FROM false_completion_reviews fcr
+    INNER JOIN complaints c ON c.complaint_id = fcr.complaint_id
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
     LEFT JOIN maintenance_teams mt ON mt.maintenance_team_id = ca.maintenance_team_id
-    WHERE obr.review_action = 'false_completion'
-    AND obr.reviewer_role = 'inspector'
+    WHERE fcr.inspector_user_id = ?
     AND ca.ward_id = ?
     AND mt.maintenance_team_id IS NOT NULL
     ORDER BY mt.team_name ASC",
-    "i",
-    [$assignedWardId]
+    "ii",
+    [$userId, $assignedWardId]
 );
 
 $areaRows = fcrFetchAll(
@@ -291,13 +286,12 @@ $areaRows = fcrFetchAll(
 ========================= */
 
 $countWhere = "
-    WHERE obr.review_action = 'false_completion'
-    AND obr.reviewer_role = 'inspector'
+    WHERE fcr.inspector_user_id = ?
     AND ca.ward_id = ?
 ";
 
-$countTypes = "i";
-$countParams = [$assignedWardId];
+$countTypes = "ii";
+$countParams = [$userId, $assignedWardId];
 
 if ($search !== '') {
     $countWhere .= "
@@ -307,7 +301,7 @@ if ($search !== '') {
             OR issue.issue_name LIKE ?
             OR a.area_name LIKE ?
             OR mt.team_name LIKE ?
-            OR obr.review_note LIKE ?
+            OR fcr.inspector_claim_note LIKE ?
         )
     ";
 
@@ -336,9 +330,9 @@ if ($areaId !== '' && ctype_digit($areaId)) {
 
 $countRow = fcrFetchOne(
     $conn,
-    "SELECT COUNT(DISTINCT obr.review_id) AS total
-    FROM objection_reviews obr
-    INNER JOIN complaints c ON c.complaint_id = obr.complaint_id
+    "SELECT COUNT(DISTINCT fcr.review_id) AS total
+    FROM false_completion_reviews fcr
+    INNER JOIN complaints c ON c.complaint_id = fcr.complaint_id
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
     LEFT JOIN maintenance_teams mt ON mt.maintenance_team_id = ca.maintenance_team_id
     LEFT JOIN issues issue ON issue.issue_id = c.issue_id
@@ -368,19 +362,17 @@ if ($page > $totalPages) {
 $summary = fcrFetchOne(
     $conn,
     "SELECT
-        COUNT(DISTINCT obr.review_id) AS total_false_reports,
+        COUNT(DISTINCT fcr.review_id) AS total_false_reports,
         COUNT(DISTINCT ca.maintenance_team_id) AS affected_teams,
-        SUM(CASE WHEN rr.request_status = 'sent_to_ward_for_reassign' THEN 1 ELSE 0 END) AS pending_reassignment,
-        SUM(CASE WHEN rr.request_status IN ('reassigned_same_team', 'reassigned_different_team') THEN 1 ELSE 0 END) AS reassigned_cases
-    FROM objection_reviews obr
-    INNER JOIN complaints c ON c.complaint_id = obr.complaint_id
+        SUM(CASE WHEN fcr.inspector_claim_status = 'pending' THEN 1 ELSE 0 END) AS pending_reassignment,
+        SUM(CASE WHEN fcr.inspector_claim_status IN ('true', 'false') THEN 1 ELSE 0 END) AS reassigned_cases
+    FROM false_completion_reviews fcr
+    INNER JOIN complaints c ON c.complaint_id = fcr.complaint_id
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    LEFT JOIN reopen_requests rr ON rr.reopen_id = obr.reopen_id
-    WHERE obr.review_action = 'false_completion'
-    AND obr.reviewer_role = 'inspector'
+    WHERE fcr.inspector_user_id = ?
     AND ca.ward_id = ?",
-    "i",
-    [$assignedWardId]
+    "ii",
+    [$userId, $assignedWardId]
 );
 
 $totalFalseReports = (int) ($summary['total_false_reports'] ?? 0);
@@ -393,13 +385,12 @@ $reassignedCases = (int) ($summary['reassigned_cases'] ?? 0);
 ========================= */
 
 $where = "
-    WHERE obr.review_action = 'false_completion'
-    AND obr.reviewer_role = 'inspector'
+    WHERE fcr.inspector_user_id = ?
     AND ca.ward_id = ?
 ";
 
-$types = "i";
-$params = [$assignedWardId];
+$types = "ii";
+$params = [$userId, $assignedWardId];
 
 if ($search !== '') {
     $where .= "
@@ -409,7 +400,7 @@ if ($search !== '') {
             OR issue.issue_name LIKE ?
             OR a.area_name LIKE ?
             OR mt.team_name LIKE ?
-            OR obr.review_note LIKE ?
+            OR fcr.inspector_claim_note LIKE ?
         )
     ";
 
@@ -436,28 +427,27 @@ if ($areaId !== '' && ctype_digit($areaId)) {
     $params[] = (int) $areaId;
 }
 
-$orderBy = "ORDER BY obr.created_at DESC";
+$orderBy = "ORDER BY fcr.created_at DESC";
 
 if ($sort === 'oldest') {
-    $orderBy = "ORDER BY obr.created_at ASC";
+    $orderBy = "ORDER BY fcr.created_at ASC";
 } elseif ($sort === 'priority_high') {
-    $orderBy = "ORDER BY FIELD(ca.assignment_priority, 'High', 'Medium', 'Low'), obr.created_at DESC";
+    $orderBy = "ORDER BY FIELD(ca.assignment_priority, 'High', 'Medium', 'Low'), fcr.created_at DESC";
 } elseif ($sort === 'priority_low') {
-    $orderBy = "ORDER BY FIELD(ca.assignment_priority, 'Low', 'Medium', 'High'), obr.created_at DESC";
+    $orderBy = "ORDER BY FIELD(ca.assignment_priority, 'Low', 'Medium', 'High'), fcr.created_at DESC";
 }
 
 $reportSql = "
     SELECT
-        obr.review_id,
-        obr.reopen_id,
-        obr.complaint_id,
-        obr.reviewed_by,
-        obr.review_note,
-        obr.created_at AS false_reported_at,
+        fcr.review_id,
+        fcr.complaint_id,
+        fcr.inspector_user_id AS reviewed_by,
+        fcr.inspector_claim_note AS review_note,
+        fcr.created_at AS false_reported_at,
 
-        rr.request_type,
-        rr.request_status,
-        rr.reason AS reopen_reason,
+        'false_completion' AS request_type,
+        fcr.inspector_claim_status AS request_status,
+        fcr.ward_decision_note AS reopen_reason,
 
         c.complaint_code,
         c.problem_description,
@@ -490,12 +480,10 @@ $reportSql = "
         leader.warning_count AS leader_warning_count,
         leader.member_status AS leader_member_status
 
-    FROM objection_reviews obr
+    FROM false_completion_reviews fcr
 
-    INNER JOIN complaints c ON c.complaint_id = obr.complaint_id
+    INNER JOIN complaints c ON c.complaint_id = fcr.complaint_id
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-
-    LEFT JOIN reopen_requests rr ON rr.reopen_id = obr.reopen_id
     LEFT JOIN maintenance_teams mt ON mt.maintenance_team_id = ca.maintenance_team_id
     LEFT JOIN issues issue ON issue.issue_id = c.issue_id
     LEFT JOIN locations l ON l.loc_id = c.loc_id
@@ -519,7 +507,7 @@ $reportSql = "
 
     $where
 
-    GROUP BY obr.review_id
+    GROUP BY fcr.review_id
 
     $orderBy
 

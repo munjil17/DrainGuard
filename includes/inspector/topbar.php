@@ -257,7 +257,11 @@ if (isset($conn) && $conn instanceof mysqli && $topbarUserId > 0) {
 
                                 $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
                                 if (!empty($notification['complaint_code'])) {
-                                    $notificationLink .= '&redirect=tasks'; // Or whatever page handles tasks
+                                    if ($notification['notification_title'] === 'Inspection Required') {
+                                        $notificationLink .= '&redirect=solved-cases';
+                                    } else {
+                                        $notificationLink .= '&redirect=tasks'; // Or whatever page handles tasks
+                                    }
                                 }
                             ?>
 

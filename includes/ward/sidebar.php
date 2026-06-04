@@ -152,9 +152,14 @@ if (isset($conn) && $conn && isset($_SESSION["user_id"])) {
     <span>Citizen Objections</span>
 </a>
 
+        <a href="reopened-cases.php" class="menu-link <?php echo ($activePage === 'reopened-cases') ? 'active' : ''; ?>">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Reopened Cases</span>
+        </a>
+
         <a href="reopened-disputed.php" class="menu-link <?php echo ($activePage === 'reopened-disputed') ? 'active' : ''; ?>">
             <i class="bi bi-exclamation-triangle"></i>
-            <span>Reopened / Disputed</span>
+            <span>Disputed Cases</span>
         </a>
 
         <a href="ward-risk-zones.php" class="menu-link <?php echo ($activePage === 'ward-risk-zones') ? 'active' : ''; ?>">

@@ -289,13 +289,13 @@ if (isset($_GET['error'])) {
    Ward Decision Action
 ========================= */
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $reopenId = isset($_POST['reopen_id']) ? (int) $_POST['reopen_id'] : 0;
     $complaintId = isset($_POST['complaint_id']) ? (int) $_POST['complaint_id'] : 0;
-    $decision = trim($_POST['ward_action'] ?? '');
     $wardNote = trim($_POST['ward_note'] ?? '');
+    $decision = $_POST['ward_action'] ?? '';
 
-    $allowedDecisions = ['forward', 'reject'];
+    $allowedDecisions = ['accept', 'reject'];
 
     if ($reopenId <= 0 || $complaintId <= 0 || !in_array($decision, $allowedDecisions, true)) {
         header("Location: citizen-objections.php" . woBuildQuery($search, $areaId, $sort, $page, '', 'invalid_action'));
@@ -329,10 +329,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("This objection is not available for ward review.");
         }
 
-        if ($decision === 'forward') {
-            $newRequestStatus = 'sent_to_inspector';
-            $newComplaintStatus = 'disputed';
-            $redirectStatus = 'forwarded';
+        if ($decision === 'accept') {
+            $newRequestStatus = 'accepted_by_ward';
+            $newComplaintStatus = 'reopened';
+            $redirectStatus = 'reopened';
 
             $stmt = mysqli_prepare(
                 $conn,
@@ -351,10 +351,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_bind_param($stmt, "ssii", $newRequestStatus, $wardNote, $userId, $reopenId);
             mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
+            
+            // CRITICAL FIX: Set maintenance proof to rejected so they can re-upload
+            mysqli_query($conn, "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after'");
 
         } else {
             $newRequestStatus = 'rejected';
-            $newComplaintStatus = 'closed';
+            $newComplaintStatus = 'final_rejected';
             $redirectStatus = 'rejected';
 
             $stmt = mysqli_prepare(
@@ -898,9 +901,9 @@ foreach ($objections as $item) {
                                         placeholder="Write why this objection is valid or why it should be rejected..."><?php echo woText($item['ward_note'] ?? ''); ?></textarea>
 
                                     <div class="action-row">
-                                        <button type="submit" name="ward_action" value="forward" class="action-btn forward-btn">
-                                            <i class="bi bi-send"></i>
-                                            Forward to Inspector
+                                        <button type="submit" name="ward_action" value="accept" class="action-btn forward-btn" style="background-color: var(--warning-color); border-color: var(--warning-color);">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                            Accept & Reopen
                                         </button>
 
                                         <button type="submit" name="ward_action" value="reject" class="action-btn reject-btn">

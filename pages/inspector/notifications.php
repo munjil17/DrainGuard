@@ -80,6 +80,12 @@ if (isset($_GET["read_id"])) {
                     exit;
                 }
                 
+                if ($redirectType === "solved-cases") {
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    header("Location: solved-cases.php" . $complaintIdParam);
+                    exit;
+                }
+                
                 if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
                     header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
                     exit;
@@ -335,6 +341,8 @@ function nt_build_query($overrides = [])
                             if (!empty($notification["complaint_code"])) {
                                 if ($notificationType === 'comment_reply') {
                                     $linkUrl .= "&redirect=discussion";
+                                } elseif ($notification["notification_title"] === 'Inspection Required') {
+                                    $linkUrl .= "&redirect=solved-cases";
                                 } else {
                                     $linkUrl .= "&redirect=verification-queue";
                                 }

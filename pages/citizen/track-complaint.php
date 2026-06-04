@@ -228,7 +228,7 @@ function makeMediaPath($path)
 | The current complaint_status controls the path.
 |--------------------------------------------------------------------------
 */
-function buildFallbackTimeline($currentStatus)
+function buildFallbackTimeline($currentStatus, $wasReopened = false)
 {
     $currentStatus = normalizeComplaintStatus($currentStatus);
 
@@ -302,36 +302,28 @@ function buildFallbackTimeline($currentStatus)
         return $duplicatePath;
     }
 
-    if ($currentStatus === "reopened") {
-        return $reopenPath;
-    }
+    $basePath = $wasReopened ? $reopenPath : $normalPath;
 
     if ($currentStatus === "disputed") {
-        return [
-            "submitted",
-            "received",
-            "pending_verification",
-            "verified_by_ward",
-            "team_assigned",
-            "in_progress",
-            "solved_by_team",
-            "inspector_verification",
-            "closed",
-            "disputed"
-        ];
+        $path = $basePath;
+        $path[] = "disputed";
+        return $path;
     }
 
     if ($currentStatus === "final_rejected") {
-        return $finalRejectedPath;
+        $path = $basePath;
+        $path[] = "disputed";
+        $path[] = "final_rejected";
+        return $path;
     }
 
-    $index = array_search($currentStatus, $normalPath, true);
+    $index = array_search($currentStatus, $basePath, true);
 
     if ($index === false) {
         return ["submitted"];
     }
 
-    return array_slice($normalPath, 0, $index + 1);
+    return array_slice($basePath, 0, $index + 1);
 }
 
 if ($searchCode !== "") {
@@ -568,7 +560,8 @@ if ($complaint) {
         }
     }
 
-    $timelineStatuses = buildFallbackTimeline($currentStatus);
+    $wasReopened = isset($statusLogMap["reopened"]) || $currentStatus === "reopened";
+    $timelineStatuses = buildFallbackTimeline($currentStatus, $wasReopened);
 
     if (!isset($statusLogMap["submitted"]) && !empty($complaint["submitted_at"])) {
         $statusLogMap["submitted"] = [

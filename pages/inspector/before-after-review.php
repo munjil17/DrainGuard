@@ -552,6 +552,10 @@ if ($selectedComplaintId > 0) {
             w.ward_name,
 
             a.area_name,
+            
+            city.city_name,
+            cc.city_cor_name,
+            th.thana_name,
 
             d.drain_code,
             d.drain_name,
@@ -574,6 +578,9 @@ if ($selectedComplaintId > 0) {
         LEFT JOIN locations l ON l.loc_id = c.loc_id
         LEFT JOIN areas a ON a.area_id = l.area_id
         LEFT JOIN wards w ON w.ward_id = ca.ward_id
+        LEFT JOIN cities city ON city.city_id = l.city_id
+        LEFT JOIN city_corporations cc ON cc.city_cor_id = l.city_cor_id
+        LEFT JOIN thanas th ON th.thana_id = l.thana_id
         LEFT JOIN drains d ON d.drain_id = c.drain_id
         LEFT JOIN citizens ct ON ct.user_id = c.user_id
 
@@ -601,24 +608,45 @@ if ($selectedComplaintId > 0) {
             [$selectedComplaintId]
         );
 
-        $afterProofs = barFetchAll(
+        $locParts = [];
+        if (!empty($selectedComplaint['city_name'])) $locParts[] = $selectedComplaint['city_name'];
+        if (!empty($selectedComplaint['city_cor_name'])) $locParts[] = $selectedComplaint['city_cor_name'];
+        if (!empty($selectedComplaint['thana_name'])) $locParts[] = $selectedComplaint['thana_name'];
+        if (!empty($selectedComplaint['ward_no'])) $locParts[] = 'Ward ' . $selectedComplaint['ward_no'];
+        if (!empty($selectedComplaint['area_name'])) $locParts[] = $selectedComplaint['area_name'];
+        
+        $locationString = !empty($locParts) ? implode(', ', $locParts) : 'N/A';
+
+        $latestTimeRow = barFetchOne(
             $conn,
-            "SELECT
-                proof_id,
-                proof_stage,
-                media_type,
-                media_path,
-                original_name,
-                proof_note,
-                proof_status,
-                uploaded_at
-            FROM maintenance_proofs
-            WHERE complaint_id = ?
-            AND proof_stage = 'after'
-            ORDER BY uploaded_at ASC",
+            "SELECT uploaded_at FROM maintenance_proofs WHERE complaint_id = ? AND proof_stage = 'after' ORDER BY uploaded_at DESC LIMIT 1",
             "i",
             [$selectedComplaintId]
         );
+
+        if ($latestTimeRow) {
+            $latestUploadedAt = $latestTimeRow['uploaded_at'];
+            
+            $afterProofs = barFetchAll(
+                $conn,
+                "SELECT
+                    proof_id,
+                    proof_stage,
+                    media_type,
+                    media_path,
+                    original_name,
+                    proof_note,
+                    proof_status,
+                    uploaded_at
+                FROM maintenance_proofs
+                WHERE complaint_id = ?
+                AND proof_stage = 'after'
+                AND uploaded_at >= DATE_SUB(?, INTERVAL 2 MINUTE)
+                ORDER BY uploaded_at ASC",
+                "is",
+                [$selectedComplaintId, $latestUploadedAt]
+            );
+        }
 
         if (!empty($afterProofs)) {
             foreach ($afterProofs as $proof) {
@@ -871,8 +899,8 @@ if ($selectedComplaintId > 0) {
                                     </div>
 
                                     <div>
-                                        <span>Email</span>
-                                        <strong><?php echo barText($selectedComplaint['citizen_email'] ?: 'N/A'); ?></strong>
+                                        <span>Location</span>
+                                        <strong><?php echo barText($locationString); ?></strong>
                                     </div>
 
                                     <div>

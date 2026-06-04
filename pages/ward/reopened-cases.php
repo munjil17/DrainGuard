@@ -1,6 +1,6 @@
 <?php
-$activePage = "reopened-disputed";
-$pageTitle = "Disputed Cases";
+$activePage = "reopened-cases";
+$pageTitle = "Reopened Cases";
 
 require_once "../../config.php";
 require_once "../../auth/session_check.php";
@@ -325,13 +325,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
 
                     mysqli_query($conn, "UPDATE complaints SET complaint_status = 'reopened' WHERE complaint_id = $complaintId");
-                    mysqli_query($conn, "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after' AND proof_status = 'submitted'");
                     $insReq = mysqli_prepare($conn, "INSERT INTO reopen_requests (complaint_id, requested_by, request_type, reason, request_status, ward_note) VALUES (?, ?, 'false_completion', ?, 'pending', ?)");
                     mysqli_stmt_bind_param($insReq, "iiss", $complaintId, $currentUserId, $decisionNote, $decisionNote);
                     mysqli_stmt_execute($insReq);
                     
                     $claimStatus = 'true';
-                    $successMessage = "Inspector claim confirmed true. Maintenance team penalized and complaint disputed/reopened.";
+                    $successMessage = "Inspector claim confirmed true. Maintenance team penalized and complaint reopened.";
                 } else {
                     $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, related_complaint_id, penalty_subject_type, action_type, reason, demerit_points_added, created_by_user_id, created_by_role) VALUES (?, 'inspector', ?, 'inspector', 'demerit', ?, 1, ?, 'ward_officer')");
                     mysqli_stmt_bind_param($stmt, "iisi", $inspectorUserId, $complaintId, $decisionNote, $currentUserId);
@@ -373,62 +372,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_execute($stmt);
 
                 $notifTime = date('Y-m-d H:i:s');
-                $complaintInfo = fetchOne($conn, "SELECT complaint_code, user_id AS citizen_id FROM complaints WHERE complaint_id = $complaintId");
-                $complaintCode = $complaintInfo['complaint_code'] ?? '';
-                $citizenId = (int)($complaintInfo['citizen_id'] ?? 0);
+                $complaintCode = fetchOne($conn, "SELECT complaint_code FROM complaints WHERE complaint_id = $complaintId")['complaint_code'] ?? '';
                 
                 if ($claimStatus === 'true') {
-                    // Maintenance Team Leader
                     $msgTL = "You received 1 demerit point because the false completion claim for complaint {$complaintCode} was confirmed true.";
                     mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($teamLeaderUserId, $currentUserId, $complaintId, 'system', 'Demerit Issued', '$msgTL', 0, '$notifTime')");
-                    
-                    // Maintenance Team Members
-                    $members = fetchAllRows($conn, "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND status = 'active' AND user_id != ?", "ii", [$maintenanceTeamId, $teamLeaderUserId]);
-                    foreach ($members as $member) {
-                        $mId = $member['user_id'];
-                        $msgMw = "Inspector claim confirmed true for complaint {$complaintCode}. A warning has been issued.";
-                        mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($mId, $currentUserId, $complaintId, 'system', 'Claim Confirmed', '$msgMw', 0, '$notifTime')");
-                    }
-
-                    // Inspector
                     $msgIns = "Your false completion claim for complaint {$complaintCode} was confirmed. Thank you.";
                     mysqli_query($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($inspectorUserId, $currentUserId, $complaintId, 'system', 'Claim Confirmed', '$msgIns', 0, '$notifTime')");
-                    
-                    // Citizen
-                    if ($citizenId > 0) {
-                        $msgCit = "Your complaint {$complaintCode} has been disputed due to false completion. We are investigating.";
-                        mysqli_query($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($citizenId, $currentUserId, $complaintId, 'system', 'Complaint Disputed', '$msgCit', 0, '$notifTime')");
-                    }
-                    
-                    // Central
-                    $msgCen = "Inspector's false completion claim confirmed for complaint {$complaintCode}.";
-                    mysqli_query($conn, "INSERT INTO central_notifications (sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($currentUserId, $complaintId, 'system', 'Claim Confirmed', '$msgCen', 0, '$notifTime')");
                 } else {
-                    // Inspector
                     $msgIns = "Your false completion claim for complaint {$complaintCode} was rejected. You have received 1 demerit point.";
                     mysqli_query($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($inspectorUserId, $currentUserId, $complaintId, 'system', 'Demerit Issued', '$msgIns', 0, '$notifTime')");
-                    
-                    // Maintenance Team Leader
                     $msgTL = "The false completion claim for complaint {$complaintCode} against your team was rejected. No penalties were applied.";
                     mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($teamLeaderUserId, $currentUserId, $complaintId, 'system', 'Claim Rejected', '$msgTL', 0, '$notifTime')");
-
-                    // Maintenance Team Members
-                    $members = fetchAllRows($conn, "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND status = 'active' AND user_id != ?", "ii", [$maintenanceTeamId, $teamLeaderUserId]);
-                    foreach ($members as $member) {
-                        $mId = $member['user_id'];
-                        $msgMw = "Inspector claim rejected for complaint {$complaintCode}. Your completion is accepted.";
-                        mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($mId, $currentUserId, $complaintId, 'system', 'Claim Rejected', '$msgMw', 0, '$notifTime')");
-                    }
-                    
-                    // Citizen
-                    if ($citizenId > 0) {
-                        $msgCit = "Your complaint {$complaintCode} is solved! Please provide feedback.";
-                        mysqli_query($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($citizenId, $currentUserId, $complaintId, 'system', 'Complaint Solved', '$msgCit', 0, '$notifTime')");
-                    }
-                    
-                    // Central
-                    $msgCen = "Complaint {$complaintCode} has been successfully solved.";
-                    mysqli_query($conn, "INSERT INTO central_notifications (sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($currentUserId, $complaintId, 'system', 'Complaint Solved', '$msgCen', 0, '$notifTime')");
                 }
                 
                 mysqli_commit($conn);
@@ -453,7 +408,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 WHERE rr.reopen_id = ?
                 AND rr.complaint_id = ?
                 AND l.ward_id = ?
-                AND rr.request_status = 'pending'
+                AND rr.request_status IN ('pending', 'accepted_by_ward')
                 ORDER BY ca.assignment_id DESC
                 LIMIT 1",
                 "iii",
@@ -498,7 +453,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_close($updateAssignmentStmt);
             } elseif ($action === "different_team") {
                 $requestStatus = "reassigned_different_team";
-                $complaintStatus = "verified";
+                $complaintStatus = "reopened";
 
                 $updateAssignmentSql = "
                     UPDATE complaint_assignments
@@ -523,10 +478,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
 
                 mysqli_stmt_close($updateAssignmentStmt);
-            } else {
-                $requestStatus = "sent_to_inspector";
-                $complaintStatus = "inspector_verification";
-            }
+
 
             $updateRequestSql = "
                 UPDATE reopen_requests
@@ -579,10 +531,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $successMessage = "Complaint reassigned to the same team successfully.";
             } elseif ($action === "different_team") {
                 $successMessage = "Complaint moved back to Local Team Assignment for different team selection.";
-            } else {
-                $successMessage = "Complaint sent to inspector verification successfully.";
             }
-
+            } // Close else block
             }
         } catch (Exception $e) {
             mysqli_rollback($conn);
@@ -598,39 +548,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 */
 
 try {
-    $reopenRequests = [];
-
-    $fcSql = "
+    $requestsSql = "
         SELECT
-            fcr.review_id AS reopen_id,
-            fcr.complaint_id,
-            fcr.inspector_user_id AS requested_by,
-            'false_completion' AS request_type,
-            fcr.inspector_claim_note AS reason,
-            fcr.inspector_claim_status AS request_status,
-            fcr.created_at,
-            NULL AS handled_at,
+            rr.reopen_id,
+            rr.complaint_id,
+            rr.requested_by,
+            rr.request_type,
+            rr.reason,
+            rr.request_status,
+            rr.created_at,
+            rr.handled_at,
 
             c.complaint_code,
             c.complaint_status,
             c.problem_description,
             c.updated_at,
 
-            ui.user_name AS requested_by_name,
-            ui.user_mail AS requested_by_email,
+            u.user_name AS requested_by_name,
+            u.user_mail AS requested_by_email,
 
             i.issue_name,
             i.priority AS issue_priority,
 
             a.area_name,
 
-            NULL AS assignment_id,
-            fcr.maintenance_team_id,
-            NULL AS assignment_status,
-            NULL AS deadline_at,
-            NULL AS assignment_priority,
-            NULL AS task_note,
-            NULL AS assigned_at,
+            ca.assignment_id,
+            ca.maintenance_team_id,
+            ca.assignment_status,
+            ca.deadline_at,
+            ca.assignment_priority,
+            ca.task_note,
+            ca.assigned_at,
 
             mt.`$teamNameColumn` AS team_name,
 
@@ -645,29 +593,66 @@ try {
             cm.media_path AS citizen_proof_path,
             cm.media_type AS citizen_proof_type
 
-        FROM false_completion_reviews fcr
-        INNER JOIN complaints c ON fcr.complaint_id = c.complaint_id
-        INNER JOIN locations l ON c.loc_id = l.loc_id
-        LEFT JOIN areas a ON l.area_id = a.area_id
-        LEFT JOIN issues i ON c.issue_id = i.issue_id
-        LEFT JOIN maintenance_teams mt ON fcr.maintenance_team_id = mt.`$teamIdColumn`
-        LEFT JOIN users ui ON fcr.inspector_user_id = ui.user_id
+        FROM reopen_requests rr
+
+        INNER JOIN complaints c
+            ON rr.complaint_id = c.complaint_id
+
+        INNER JOIN users u
+            ON rr.requested_by = u.user_id
+
+        INNER JOIN locations l
+            ON c.loc_id = l.loc_id
+
+        LEFT JOIN areas a
+            ON l.area_id = a.area_id
+
+        LEFT JOIN issues i
+            ON c.issue_id = i.issue_id
+
         LEFT JOIN (
-            SELECT mu1.* FROM maintenance_updates mu1
+            SELECT ca1.*
+            FROM complaint_assignments ca1
             INNER JOIN (
-                SELECT complaint_id, MAX(update_id) AS latest_update_id
-                FROM maintenance_updates GROUP BY complaint_id
-            ) latest_mu ON mu1.update_id = latest_mu.latest_update_id
-        ) mu ON c.complaint_id = mu.complaint_id
+                SELECT
+                    complaint_id,
+                    MAX(assignment_id) AS latest_assignment_id
+                FROM complaint_assignments
+                GROUP BY complaint_id
+            ) latest_ca
+                ON ca1.assignment_id = latest_ca.latest_assignment_id
+        ) ca
+            ON c.complaint_id = ca.complaint_id
+
+        LEFT JOIN maintenance_teams mt
+            ON ca.maintenance_team_id = mt.`$teamIdColumn`
+
         LEFT JOIN (
-            SELECT mp1.* FROM maintenance_proofs mp1
+            SELECT mu1.*
+            FROM maintenance_updates mu1
+            INNER JOIN (
+                SELECT
+                    complaint_id,
+                    MAX(update_id) AS latest_update_id
+                FROM maintenance_updates
+                GROUP BY complaint_id
+            ) latest_mu
+                ON mu1.update_id = latest_mu.latest_update_id
+        ) mu
+            ON c.complaint_id = mu.complaint_id
+            
+        LEFT JOIN (
+            SELECT mp1.*
+            FROM maintenance_proofs mp1
             INNER JOIN (
                 SELECT complaint_id, MAX(proof_id) AS latest_proof_id
                 FROM maintenance_proofs
                 WHERE proof_stage = 'after'
                 GROUP BY complaint_id
-            ) latest_mp ON mp1.proof_id = latest_mp.latest_proof_id
+            ) latest_mp
+                ON mp1.proof_id = latest_mp.latest_proof_id
         ) mp ON c.complaint_id = mp.complaint_id
+            
         LEFT JOIN (
             SELECT cm1.* FROM complaint_media cm1
             INNER JOIN (
@@ -675,12 +660,17 @@ try {
                 FROM complaint_media GROUP BY complaint_id
             ) first_cm ON cm1.media_id = first_cm.first_media_id
         ) cm ON c.complaint_id = cm.complaint_id
-        WHERE l.ward_id = ? AND fcr.inspector_claim_status = 'pending'
+
+        WHERE l.ward_id = ?
+        AND (
+            (rr.request_status = 'pending' AND rr.request_type IN ('reopened', 'false_completion'))
+            OR (rr.request_status = 'accepted_by_ward' AND rr.request_type = 'citizen_objection')
+        )
     ";
 
-    $fcRequests = fetchAllRows($conn, $fcSql, "i", [$wardId]);
-    
-    $reopenRequests = $fcRequests;
+    $reopenRequests = fetchAllRows($conn, $requestsSql, "i", [$wardId]);
+
+    $requests = $reopenRequests;
     usort($reopenRequests, function($a, $b) {
         return strtotime($b['created_at']) - strtotime($a['created_at']);
     });
@@ -690,14 +680,25 @@ try {
     $errorMessage = $e->getMessage();
 }
 
-$totalDisputed = count($reopenRequests);
+$totalReopened = 0;
+$totalDisputed = 0;
+
+foreach ($reopenRequests as $item) {
+    $type = strtolower((string)$item["request_type"]);
+
+    if ($type === "reopened") {
+        $totalReopened++;
+    } else {
+        $totalDisputed++;
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Reopened & Disputed Cases | DrainGuard</title>
+    <title>Reopened Cases | DrainGuard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -721,11 +722,8 @@ $totalDisputed = count($reopenRequests);
 
         <div class="rd-header">
             <div>
-                <h1>Reopened & Disputed Cases</h1>
-                <p>
-                    Handle citizen objections and false completion reports for
-                    Ward <?= safeText($wardNo); ?><?= $wardName ? " - " . safeText($wardName) : ""; ?>.
-                </p>
+                <h1>Reopened Cases</h1>
+                <p>Manage complaints reopened by citizens or confirmed as false completion.</p>
             </div>
         </div>
 
@@ -744,13 +742,13 @@ $totalDisputed = count($reopenRequests);
         <?php endif; ?>
 
         <div class="rd-summary-grid">
-            <div class="rd-summary-card disputed" style="grid-column: 1 / -1; max-width: 300px;">
-                <div class="rd-summary-icon disputed">
-                    <i class="bi bi-flag"></i>
+            <div class="rd-summary-card reopened">
+                <div class="rd-summary-icon reopened">
+                    <i class="bi bi-exclamation-triangle"></i>
                 </div>
                 <div>
-                    <h2><?= $totalDisputed; ?></h2>
-                    <p>Disputed Cases</p>
+                    <h2><?= $totalReopened + $totalDisputed; ?></h2>
+                    <p>Total Reopened Cases</p>
                 </div>
             </div>
         </div>
@@ -813,7 +811,11 @@ $totalDisputed = count($reopenRequests);
                         </div>
 
                         <h2>
-                            <?= safeText($issueName); ?> - False Completion Claim
+                            <?= safeText($issueName); ?>
+                            -
+                            <?= $requestType === "false_completion"
+                                ? "false completion report"
+                                : "citizen reported incomplete work"; ?>
                         </h2>
 
                         <div class="rd-meta-grid">
@@ -893,27 +895,7 @@ $totalDisputed = count($reopenRequests);
                         </div>
 
                         <div class="rd-actions">
-                            <?php if ($requestType === 'false_completion'): ?>
-                                <form method="POST" action="reopened-disputed.php" class="rd-fc-actions-form">
-                                    <input type="hidden" name="review_id" value="<?= $reopenId; ?>">
-                                    <input type="hidden" name="complaint_id" value="<?= $complaintId; ?>">
-                                    
-                                    <label class="rd-fc-label">Ward Officer Decision Note:</label>
-                                    <textarea name="decision_note" class="rd-fc-textarea" rows="3" required placeholder="Explain your decision..."></textarea>
-
-                                    <div class="rd-fc-buttons">
-                                        <button type="submit" name="action" value="inspector_claim_true" class="rd-btn fc-confirm">
-                                            <i class="bi bi-check2-circle"></i>
-                                            <span>Confirm Inspector Claim (Penalize Team)</span>
-                                        </button>
-                                        <button type="submit" name="action" value="inspector_claim_false" class="rd-btn fc-reject">
-                                            <i class="bi bi-x-circle"></i>
-                                            <span>Reject Inspector Claim (Penalize Inspector)</span>
-                                        </button>
-                                    </div>
-                                </form>
-                            <?php else: ?>
-                                <form method="POST" action="reopened-disputed.php" class="rd-action-form">
+                                <form method="POST" action="reopened-cases.php" class="rd-action-form">
                                     <input type="hidden" name="reopen_id" value="<?= $reopenId; ?>">
                                     <input type="hidden" name="complaint_id" value="<?= $complaintId; ?>">
                                     <input type="hidden" name="action" value="same_team">
@@ -924,7 +906,7 @@ $totalDisputed = count($reopenRequests);
                                     </button>
                                 </form>
 
-                                <form method="POST" action="reopened-disputed.php" class="rd-action-form">
+                                <form method="POST" action="reopened-cases.php" class="rd-action-form">
                                     <input type="hidden" name="reopen_id" value="<?= $reopenId; ?>">
                                     <input type="hidden" name="complaint_id" value="<?= $complaintId; ?>">
                                     <input type="hidden" name="action" value="different_team">
@@ -935,25 +917,15 @@ $totalDisputed = count($reopenRequests);
                                     </button>
                                 </form>
 
-                                <form method="POST" action="reopened-disputed.php" class="rd-action-form">
-                                    <input type="hidden" name="reopen_id" value="<?= $reopenId; ?>">
-                                    <input type="hidden" name="complaint_id" value="<?= $complaintId; ?>">
-                                    <input type="hidden" name="action" value="inspector">
 
-                                    <button type="submit" class="rd-btn inspector">
-                                        <i class="bi bi-flag"></i>
-                                        Send to Inspector
-                                    </button>
-                                </form>
-                            <?php endif; ?>
                         </div>
                     </article>
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="rd-empty">
                     <i class="bi bi-check-circle"></i>
-                    <h2>No reopened or disputed cases</h2>
-                    <p>Citizen objections and false completion reports will appear here.</p>
+                    <h2>No reopened cases</h2>
+                    <p>Reopened complaints will appear here.</p>
                 </div>
             <?php endif; ?>
 
