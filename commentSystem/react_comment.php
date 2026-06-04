@@ -1,7 +1,8 @@
 <?php
-// C:\xampp8\htdocs\DrainGuard\commentSystem\react_comment.php
+// C:\xampp\htdocs\DrainGuard\commentSystem\react_comment.php
 
 require_once "../config.php";
+require_once __DIR__ . '/discussion_logic.php';
 
 header("Content-Type: application/json; charset=UTF-8");
 
@@ -36,7 +37,7 @@ if (!in_array($reactionType, ["like", "dislike"], true)) {
 }
 
 $commentSql = "
-    SELECT id
+    SELECT id, complaint_id
     FROM comment_likes
     WHERE id = ?
       AND is_deleted = 0
@@ -59,7 +60,28 @@ if (!$commentResult || mysqli_num_rows($commentResult) !== 1) {
     cs_react_json_response(false, "Comment not found.");
 }
 
+$commentRow = mysqli_fetch_assoc($commentResult);
+$complaintId = (int)$commentRow["complaint_id"];
+
 mysqli_stmt_close($commentStmt);
+
+$roleSql = "SELECT user_role FROM users WHERE user_id = ? LIMIT 1";
+$roleStmt = mysqli_prepare($conn, $roleSql);
+$currentUserRole = "";
+if ($roleStmt) {
+    mysqli_stmt_bind_param($roleStmt, "i", $userId);
+    mysqli_stmt_execute($roleStmt);
+    $roleRes = mysqli_stmt_get_result($roleStmt);
+    if ($roleRes && $roleRow = mysqli_fetch_assoc($roleRes)) {
+        $currentUserRole = (string)$roleRow["user_role"];
+    }
+    mysqli_stmt_close($roleStmt);
+}
+
+$context = cs_get_discussion_context($conn, $complaintId);
+if (!cs_has_discussion_access($context, $userId, $currentUserRole)) {
+    cs_react_json_response(false, "You don't have permission to react in this discussion.");
+}
 
 $existingSql = "
     SELECT id, type

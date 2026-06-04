@@ -75,11 +75,13 @@
             return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
         }
 
-        function renderComment(comment, isReply = false) {
+        function renderComment(comment, isReply = false, rootId = null) {
+            const currentRootId = rootId || comment.comment_id;
             const deletedClass = comment.is_deleted ? "deleted" : "";
             const canDelete = comment.can_delete && !comment.is_deleted;
-            const replyButton = !isReply && !comment.is_deleted
-                ? `<button type="button" class="dg-comment-tool" data-reply-toggle="${comment.comment_id}">
+            
+            const replyButton = !comment.is_deleted
+                ? `<button type="button" class="dg-comment-tool" data-reply-toggle="${currentRootId}" data-reply-to-user="${escapeHtml(comment.user_name)}">
                         <i class="bi bi-reply"></i> Reply
                    </button>` : "";
 
@@ -90,7 +92,7 @@
 
             const replies = Array.isArray(comment.replies) && comment.replies.length > 0
                 ? `<div class="dg-replies">
-                        ${comment.replies.map((reply) => renderComment(reply, true)).join("")}
+                        ${comment.replies.map((reply) => renderComment(reply, true, currentRootId)).join("")}
                    </div>` : "";
 
             const replyForm = !isReply
@@ -202,11 +204,21 @@
 
                 if (replyToggle) {
                     const commentId = replyToggle.dataset.replyToggle;
+                    const replyToUser = replyToggle.dataset.replyToUser;
+                    
                     const replyForm = list.querySelector(`[data-reply-form="${commentId}"]`);
                     if (replyForm) {
-                        replyForm.classList.toggle("show");
+                        replyForm.classList.add("show");
                         const replyTextarea = replyForm.querySelector("textarea");
-                        if (replyTextarea) replyTextarea.focus();
+                        if (replyTextarea) {
+                            replyTextarea.focus();
+                            if (replyToUser && !replyTextarea.value.includes(`@${replyToUser}`)) {
+                                const prefix = `@${replyToUser} `;
+                                if (!replyTextarea.value.startsWith(prefix)) {
+                                    replyTextarea.value = prefix + replyTextarea.value;
+                                }
+                            }
+                        }
                     }
                 }
 

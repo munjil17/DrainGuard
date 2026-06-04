@@ -1,12 +1,12 @@
 <?php
 $activePage = "notifications";
 $pageTitle = "Notifications";
-$pageParent = "Central Control";
+$pageParent = "Ward Office Operations";
 $pageChild = "Notifications";
 
 require_once "../../config.php";
 
-$allowed_role = "central_officer";
+
 require_once "../../auth/session_check.php";
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
@@ -52,7 +52,7 @@ if (isset($_GET["read_id"])) {
     $redirectType = trim($_GET["redirect"] ?? "");
 
     if ($readId > 0 && $userId > 0 && isset($conn) && $conn instanceof mysqli) {
-        $readSql = "SELECT is_read, related_complaint_id FROM central_notifications WHERE notification_id = ? AND recipient_user_id = ?";
+        $readSql = "SELECT is_read, related_complaint_id FROM ward_notifications WHERE notification_id = ? AND recipient_user_id = ?";
         $readStmt = mysqli_prepare($conn, $readSql);
         
         if ($readStmt) {
@@ -63,7 +63,7 @@ if (isset($_GET["read_id"])) {
             if ($readResult && mysqli_num_rows($readResult) === 1) {
                 $readRow = mysqli_fetch_assoc($readResult);
                 
-                $updateSql = "UPDATE central_notifications SET is_read = 1 WHERE notification_id = ? AND recipient_user_id = ?";
+                $updateSql = "UPDATE ward_notifications SET is_read = 1 WHERE notification_id = ? AND recipient_user_id = ?";
                 $updateStmt = mysqli_prepare($conn, $updateSql);
                 if ($updateStmt) {
                     mysqli_stmt_bind_param($updateStmt, "ii", $readId, $userId);
@@ -72,16 +72,17 @@ if (isset($_GET["read_id"])) {
                 }
                 mysqli_stmt_close($readStmt);
                 
-                if ($redirectType === "complaints") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?open_complaint=" . urlencode($readRow["related_complaint_id"]) : "";
-                    $url = "complaints.php" . $complaintIdParam;
-                } else if ($redirectType === "discussion") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?id=" . urlencode($readRow["related_complaint_id"]) : "";
-                    $url = "discussion.php" . $complaintIdParam;
-                } else {
-                    $url = "notifications.php";
+                if ($redirectType === "complaints" || $redirectType === "ward-complaints") {
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?open_discussion=" . urlencode($readRow["related_complaint_id"]) : "";
+                    header("Location: ward-complaints.php" . $complaintIdParam);
+                    exit;
                 }
-                header("Location: " . $url);
+                
+                if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
+                    header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
+                    exit;
+                }
+                header("Location: notifications.php");
                 exit;
             }
             mysqli_stmt_close($readStmt);
@@ -92,25 +93,26 @@ if (isset($_GET["read_id"])) {
 }
 
 if (isset($_GET["mark_all_read"]) && $_GET["mark_all_read"] === "1") {
-    $markAllSql = "UPDATE central_notifications SET is_read = 1 WHERE recipient_user_id = ?";
+    $markAllSql = "UPDATE ward_notifications SET is_read = 1 WHERE recipient_user_id = ?";
     $markAllStmt = mysqli_prepare($conn, $markAllSql);
     if ($markAllStmt) {
         mysqli_stmt_bind_param($markAllStmt, "i", $userId);
         mysqli_stmt_execute($markAllStmt);
         mysqli_stmt_close($markAllStmt);
     }
-    header("Location: /DrainGuard/pages/central/notifications.php");
+    header("Location: /DrainGuard/pages/ward/notifications.php");
     exit;
 }
 
 $allowedTypes = [
     "all",
-    "complaint_submitted",
-    "complaint_received",
-    "complaint_rejected",
+    "complaint_routed",
+    "status_update",
+    "verified",
+    "rejected",
     "comment_reply",
-    "inspector_report",
-    "team_update"
+    "system",
+    "alert"
 ];
 
 $filterType = trim($_GET["type"] ?? "all");
@@ -145,7 +147,7 @@ if ($whereSql !== "") {
 }
 
 $totalNotifications = 0;
-$countSql = "SELECT COUNT(*) AS total FROM central_notifications cn {$whereSql}";
+$countSql = "SELECT COUNT(*) AS total FROM ward_notifications cn {$whereSql}";
 $countStmt = mysqli_prepare($conn, $countSql);
 
 if ($countStmt) {
@@ -172,7 +174,7 @@ $listSql = "
         cn.is_read,
         cn.created_at,
         c.complaint_code
-    FROM central_notifications cn
+    FROM ward_notifications cn
     LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id
     {$whereSql}
     ORDER BY cn.created_at DESC, cn.notification_id DESC
@@ -199,7 +201,7 @@ if ($listStmt) {
 }
 
 $unreadTotal = 0;
-$unreadTotalSql = "SELECT COUNT(*) AS unread_total FROM central_notifications WHERE is_read = 0 AND recipient_user_id = $userId";
+$unreadTotalSql = "SELECT COUNT(*) AS unread_total FROM ward_notifications WHERE is_read = 0 AND recipient_user_id = $userId";
 $unreadTotalResult = mysqli_query($conn, $unreadTotalSql);
 if ($unreadTotalResult) {
     $unreadTotalRow = mysqli_fetch_assoc($unreadTotalResult);
@@ -224,22 +226,22 @@ function nt_build_query($overrides = [])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
     <link rel="stylesheet" href="../../css/global/global.css">
-    <link rel="stylesheet" href="../../css/central/sidebar.css">
-    <link rel="stylesheet" href="../../css/central/topbar.css">
+    <link rel="stylesheet" href="../../css/ward/sidebar.css">
+    <link rel="stylesheet" href="../../css/ward/topbar.css">
   
-    <link rel="stylesheet" href="../../css/central/notifications.css">
-    <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/ward/notifications.css">
+    <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
 </head>
 
-<body class="central">
+<body class="ward">
 
-<div class="dg-central-layout">
+<div class="dg-ward-layout">
 
-    <?php include "../../includes/central/sidebar.php"; ?>
+    <?php include "../../includes/ward/sidebar.php"; ?>
 
-    <main class="dg-central-main">
+    <main class="ward-main">
 
-        <?php include "../../includes/central/topbar.php"; ?>
+        <?php include "../../includes/ward/topbar.php"; ?>
 
         <section class="nt-page">
 
@@ -268,12 +270,13 @@ function nt_build_query($overrides = [])
                         <label for="type">Type</label>
                         <select name="type" id="type">
                             <option value="all" <?php echo $filterType === "all" ? "selected" : ""; ?>>All Types</option>
-                            <option value="complaint_submitted" <?php echo $filterType === "complaint_submitted" ? "selected" : ""; ?>>Complaint Submitted</option>
-                            <option value="complaint_received" <?php echo $filterType === "complaint_received" ? "selected" : ""; ?>>Complaint Received</option>
-                            <option value="complaint_rejected" <?php echo $filterType === "complaint_rejected" ? "selected" : ""; ?>>Complaint Rejected</option>
+                            <option value="complaint_routed" <?php echo $filterType === "complaint_routed" ? "selected" : ""; ?>>Complaint Assigned</option>
+                            <option value="status_update" <?php echo $filterType === "status_update" ? "selected" : ""; ?>>Status Update</option>
+                            <option value="verified" <?php echo $filterType === "verified" ? "selected" : ""; ?>>Verified</option>
+                            <option value="rejected" <?php echo $filterType === "rejected" ? "selected" : ""; ?>>Rejected / Duplicate</option>
                             <option value="comment_reply" <?php echo $filterType === "comment_reply" ? "selected" : ""; ?>>Comment Reply</option>
-                            <option value="inspector_report" <?php echo $filterType === "inspector_report" ? "selected" : ""; ?>>Field Report</option>
-                            <option value="team_update" <?php echo $filterType === "team_update" ? "selected" : ""; ?>>Team Update</option>
+                            <option value="system" <?php echo $filterType === "system" ? "selected" : ""; ?>>System Message</option>
+                            <option value="alert" <?php echo $filterType === "alert" ? "selected" : ""; ?>>Alert</option>
                         </select>
                     </div>
 
@@ -311,7 +314,11 @@ function nt_build_query($overrides = [])
 
                             $linkUrl = "notifications.php?read_id=" . (int)$notification["notification_id"];
                             if (!empty($notification["complaint_code"])) {
-                                $linkUrl .= "&redirect=complaints";
+                                if ($notificationType === 'comment_reply') {
+                                    $linkUrl .= "&redirect=discussion";
+                                } else {
+                                    $linkUrl .= "&redirect=ward-complaints";
+                                }
                             }
                         ?>
 
@@ -419,8 +426,28 @@ function nt_build_query($overrides = [])
 
 </div>
 
-<script src="../../js/central/sidebar.js"></script>
-<script src="../../js/central/notifications.js"></script>
+<script src="../../js/ward/sidebar.js"></script>
+<script src="../../js/ward/notifications.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const typeSelect = document.getElementById("type");
+        const readSelect = document.getElementById("read");
+        const filterForm = document.getElementById("ntFilterForm");
+
+        if (typeSelect && filterForm) {
+            typeSelect.addEventListener("change", function() {
+                filterForm.submit();
+            });
+        }
+        
+        if (readSelect && filterForm) {
+            readSelect.addEventListener("change", function() {
+                filterForm.submit();
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

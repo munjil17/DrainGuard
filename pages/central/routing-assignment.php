@@ -78,7 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         try {
             $checkSql = "
-                SELECT complaint_status
+                SELECT complaint_status, user_id, complaint_code
                 FROM complaints
                 WHERE complaint_id = ?
                 LIMIT 1
@@ -175,6 +175,66 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             mysqli_stmt_close($updateStmt);
+
+            $citizenUserId = (int)($complaintRow["user_id"] ?? 0);
+            if ($citizenUserId > 0) {
+                $notifSql = "
+                    INSERT INTO citizen_notifications (
+                        recipient_user_id,
+                        sender_user_id,
+                        related_complaint_id,
+                        notification_type,
+                        notification_title,
+                        notification_message,
+                        is_read,
+                        created_at
+                    ) VALUES (?, ?, ?, 'status_update', 'Complaint Routed to Ward', 'Your complaint has been processed by the Central Control and routed to your respective Ward Officer for field verification.', 0, NOW())
+                ";
+                $notifStmt = mysqli_prepare($conn, $notifSql);
+                if ($notifStmt) {
+                    mysqli_stmt_bind_param($notifStmt, "iii", $citizenUserId, $centralUserId, $complaintId);
+                    mysqli_stmt_execute($notifStmt);
+                    mysqli_stmt_close($notifStmt);
+                }
+            }
+
+            // Find Ward Officer user_id
+            $wardOfficerUserId = 0;
+            $wardOfficerSql = "SELECT user_id FROM ward_officers WHERE assigned_ward_id = ? LIMIT 1";
+            $wardOfficerStmt = mysqli_prepare($conn, $wardOfficerSql);
+            if ($wardOfficerStmt) {
+                mysqli_stmt_bind_param($wardOfficerStmt, "i", $wardId);
+                mysqli_stmt_execute($wardOfficerStmt);
+                $wardOfficerResult = mysqli_stmt_get_result($wardOfficerStmt);
+                if ($row = mysqli_fetch_assoc($wardOfficerResult)) {
+                    $wardOfficerUserId = (int)$row['user_id'];
+                }
+                mysqli_stmt_close($wardOfficerStmt);
+            }
+            
+            // Insert Ward Notification
+            if ($wardOfficerUserId > 0) {
+                $complaintCode = $complaintRow['complaint_code'] ?? 'Unknown';
+                $wardNotifSql = "
+                    INSERT INTO ward_notifications (
+                        recipient_user_id,
+                        sender_user_id,
+                        related_complaint_id,
+                        notification_type,
+                        notification_title,
+                        notification_message,
+                        is_read,
+                        created_at
+                    ) VALUES (?, ?, ?, 'complaint_routed', 'New Complaint Assigned', ?, 0, NOW())
+                ";
+                $wardNotifStmt = mysqli_prepare($conn, $wardNotifSql);
+                if ($wardNotifStmt) {
+                    $wardMessage = "Central Control has routed complaint #$complaintCode to your ward for verification.";
+                    mysqli_stmt_bind_param($wardNotifStmt, "iiis", $wardOfficerUserId, $centralUserId, $complaintId, $wardMessage);
+                    mysqli_stmt_execute($wardNotifStmt);
+                    mysqli_stmt_close($wardNotifStmt);
+                }
+            }
 
             mysqli_commit($conn);
 
@@ -434,7 +494,7 @@ if ($routedResult) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
-    <link rel="stylesheet" href="../../css/central/footer.css">
+
     <link rel="stylesheet" href="../../css/central/routing-assignment.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
 </head>
@@ -756,7 +816,7 @@ if ($routedResult) {
 
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
+       
 
     </main>
 

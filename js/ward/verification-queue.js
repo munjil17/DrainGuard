@@ -212,23 +212,83 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    const reasonModal = document.getElementById("vqReasonModal");
+    const reasonTitle = document.getElementById("vqReasonTitle");
+    const reasonSubtitle = document.getElementById("vqReasonSubtitle");
+    const reasonInput = document.getElementById("vqReasonInput");
+    const reasonSubmit = document.getElementById("vqReasonSubmit");
+    const reasonClose = document.getElementById("vqReasonClose");
+    
+    let activeForm = null;
+    let activeAction = null;
+
+    function openReasonModal(title, subtitle, form, action) {
+        if (!reasonModal) return;
+        reasonTitle.textContent = title;
+        reasonSubtitle.textContent = subtitle;
+        reasonInput.value = "";
+        activeForm = form;
+        activeAction = action;
+        
+        if (action === 'reject') {
+            reasonSubmit.style.background = "#E11D48";
+        } else if (action === 'duplicate') {
+            reasonSubmit.style.background = "#7E22CE";
+        }
+        
+        reasonModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+        setTimeout(() => reasonInput.focus(), 100);
+    }
+
+    function closeReasonModal() {
+        if (!reasonModal) return;
+        reasonModal.classList.remove("active");
+        document.body.style.overflow = "";
+        activeForm = null;
+        activeAction = null;
+    }
+
+    if (reasonClose) {
+        reasonClose.addEventListener("click", closeReasonModal);
+    }
+    if (reasonModal) {
+        reasonModal.addEventListener("click", function(e) {
+            if (e.target === reasonModal) closeReasonModal();
+        });
+    }
+
+    reasonSubmit.addEventListener("click", function() {
+        const reason = reasonInput.value.trim();
+        if (reason === "") {
+            alert("Please provide a reason.");
+            reasonInput.focus();
+            return;
+        }
+
+        if (activeForm) {
+            const reasonHidden = document.createElement("input");
+            reasonHidden.type = "hidden";
+            reasonHidden.name = "reason";
+            reasonHidden.value = reason;
+            activeForm.appendChild(reasonHidden);
+            
+            // Allow form submission to proceed
+            activeForm.submit();
+        }
+    });
+
     rejectButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
-            const confirmed = confirm("Reject this complaint?");
-
-            if (!confirmed) {
-                event.preventDefault();
-            }
+            event.preventDefault();
+            openReasonModal("Reject Complaint", "Give a reason for rejection or click duplicate.", this.closest("form"), "reject");
         });
     });
 
     duplicateButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
-            const confirmed = confirm("Mark this complaint as duplicate and remove it from the queue?");
-
-            if (!confirmed) {
-                event.preventDefault();
-            }
+            event.preventDefault();
+            openReasonModal("Mark as Duplicate", "Provide the reference Complaint ID or reason for duplicate.", this.closest("form"), "duplicate");
         });
     });
 

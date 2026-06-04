@@ -1,7 +1,8 @@
 <?php
-// C:\xampp8\htdocs\DrainGuard\commentSystem\delete_comment.php
+// C:\xampp\htdocs\DrainGuard\commentSystem\delete_comment.php
 
 require_once "../config.php";
+require_once __DIR__ . '/discussion_logic.php';
 
 header("Content-Type: application/json; charset=UTF-8");
 
@@ -31,7 +32,7 @@ if ($commentId <= 0) {
 }
 
 $checkSql = "
-    SELECT user_id, type
+    SELECT user_id, type, complaint_id
     FROM comment_likes
     WHERE id = ?
       AND is_deleted = 0
@@ -56,11 +57,30 @@ if (!$checkResult || mysqli_num_rows($checkResult) !== 1) {
 
 $row = mysqli_fetch_assoc($checkResult);
 $commentOwner = (int)$row["user_id"];
+$complaintId = (int)$row["complaint_id"];
 
 mysqli_stmt_close($checkStmt);
 
 if ($commentOwner !== $userId) {
     cs_delete_json_response(false, "You don't have permission to delete this.");
+}
+
+$roleSql = "SELECT user_role FROM users WHERE user_id = ? LIMIT 1";
+$roleStmt = mysqli_prepare($conn, $roleSql);
+$currentUserRole = "";
+if ($roleStmt) {
+    mysqli_stmt_bind_param($roleStmt, "i", $userId);
+    mysqli_stmt_execute($roleStmt);
+    $roleRes = mysqli_stmt_get_result($roleStmt);
+    if ($roleRes && $roleRow = mysqli_fetch_assoc($roleRes)) {
+        $currentUserRole = (string)$roleRow["user_role"];
+    }
+    mysqli_stmt_close($roleStmt);
+}
+
+$context = cs_get_discussion_context($conn, $complaintId);
+if (!cs_has_discussion_access($context, $userId, $currentUserRole)) {
+    cs_delete_json_response(false, "You don't have permission to modify this discussion.");
 }
 
 $deleteSql = "

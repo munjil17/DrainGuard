@@ -128,14 +128,14 @@ if (isset($conn) && $conn && isset($_SESSION["user_id"])) {
             <span>Dashboard</span>
         </a>
 
-        <a href="ward-complaints.php" class="menu-link <?php echo ($activePage === 'ward-complaints') ? 'active' : ''; ?>">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Ward Complaints</span>
-        </a>
-
         <a href="verification-queue.php" class="menu-link <?php echo ($activePage === 'verification-queue') ? 'active' : ''; ?>">
             <i class="bi bi-check2-circle"></i>
             <span>Verification Queue</span>
+        </a>
+
+        <a href="ward-complaints.php" class="menu-link <?php echo ($activePage === 'ward-complaints') ? 'active' : ''; ?>">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Ward Complaints</span>
         </a>
 
         <a href="local-team-assignment.php" class="menu-link <?php echo ($activePage === 'local-team-assignment') ? 'active' : ''; ?>">

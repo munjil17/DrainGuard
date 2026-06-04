@@ -287,40 +287,21 @@
     color: #059669;
 }
 
-.wc-status-badge.pending {
-    background: #FEF3C7;
-    color: #CA8A04;
-}
-
-.wc-status-badge.verified {
-    background: #DCFCE7;
-    color: #059669;
-}
-
-.wc-status-badge.assigned-team {
-    background: #DBEAFE;
-    color: #2563EB;
-}
-
-.wc-status-badge.in-progress {
-    background: #FFEDD5;
-    color: #EA580C;
-}
-
-.wc-status-badge.solved-by-team {
-    background: #CCFBF1;
-    color: #0F766E;
-}
-
-.wc-status-badge.inspector-verification {
-    background: #F3E8FF;
-    color: #9333EA;
-}
-
-.wc-status-badge.closed-solved {
-    background: #DCFCE7;
-    color: #047857;
-}
+.status-submitted { background: #DBEAFE; color: #1D4ED8; }
+.status-received { background: #E0F2FE; color: #0369A1; }
+.status-pending-verification { background: #FEF3C7; color: #B45309; }
+.status-verified-by-ward { background: #D1FAE5; color: #047857; }
+.status-rejected-by-central { background: #FEE2E2; color: #B91C1C; }
+.status-rejected-by-ward { background: #FFE4E6; color: #BE123C; }
+.status-duplicate { background: #E2E8F0; color: #334155; }
+.status-team-assigned { background: #EDE9FE; color: #6D28D9; }
+.status-in-progress { background: #FFEDD5; color: #C2410C; }
+.status-solved-by-team { background: #CCFBF1; color: #0F766E; }
+.status-inspector-verification { background: #E0E7FF; color: #4338CA; }
+.status-closed { background: #DCFCE7; color: #15803D; }
+.status-reopened { background: #FEF9C3; color: #A16207; }
+.status-disputed { background: #FCE7F3; color: #BE185D; }
+.status-final-rejected { background: #7F1D1D; color: #FFFFFF; }
 
 .wc-media-count {
     min-height: 26px;
@@ -678,3 +659,4 @@
         width: 100%;
     }
 }
+.wc-hidden { display: none !important; }

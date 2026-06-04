@@ -22,7 +22,7 @@ html {
     min-height: 100%;
     max-width: 100%;
     scroll-behavior: smooth;
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 body {
@@ -30,7 +30,7 @@ body {
     min-height: 100vh;
     max-width: 100%;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow-x: hidden;
+    overflow-x: clip;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
 }

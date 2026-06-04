@@ -179,7 +179,6 @@ if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
                 <i class="bi bi-bell"></i>
 
                 <?php if ($centralUnreadNotificationCount > 0): ?>
-                    <span class="notification-dot"></span>
                     <em class="notification-count">
                         <?php echo $centralUnreadNotificationCount > 99 ? '99+' : (int)$centralUnreadNotificationCount; ?>
                     </em>
@@ -212,7 +211,11 @@ if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
 
                                 $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
                                 if (!empty($notification['complaint_code'])) {
-                                    $notificationLink .= '&redirect=complaints';
+                                    if ($notificationType === 'comment_reply') {
+                                        $notificationLink .= '&redirect=discussion';
+                                    } else {
+                                        $notificationLink .= '&redirect=complaints';
+                                    }
                                 }
                             ?>
 

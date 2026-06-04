@@ -339,26 +339,34 @@
 }
 
 .nt-empty {
-    padding: 70px 24px;
+    padding: 80px 24px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
 }
 
 .nt-empty i {
-    font-size: 48px;
-    color: #94A3B8;
+    font-size: 54px;
+    color: #CBD5E1;
+    margin-bottom: 16px;
 }
 
 .nt-empty h3 {
-    margin: 14px 0 8px;
+    margin: 0 0 10px;
     color: #0F172A;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
 }
 
 .nt-empty p {
     margin: 0;
     color: #64748B;
-    font-size: 14px;
+    font-size: 15px;
+    max-width: 340px;
+    line-height: 1.6;
 }
 
 .nt-page *,

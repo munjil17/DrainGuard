@@ -85,6 +85,98 @@ if (isset($conn) && $conn && isset($_SESSION["user_id"])) {
     }
 }
 ?>
+<?php
+if (!function_exists('wardTopbarSafeText')) {
+    function wardTopbarSafeText($text) {
+        if ($text === null) return '';
+        return htmlspecialchars(trim((string)$text), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('ward_topbar_time_ago')) {
+    function ward_topbar_time_ago($datetime) {
+        if (empty($datetime)) return "Unknown";
+        $time = strtotime($datetime);
+        if (!$time) return "Unknown";
+
+        $diff = time() - $time;
+        if ($diff < 60) return "Just now";
+        if ($diff < 3600) return floor($diff / 60) . "m ago";
+        if ($diff < 86400) return floor($diff / 3600) . "h ago";
+        if ($diff < 604800) return floor($diff / 86400) . "d ago";
+        return date("M j", $time);
+    }
+}
+
+if (!function_exists('ward_notification_icon')) {
+    function ward_notification_icon($type) {
+        $type = strtolower(trim((string)$type));
+        if (in_array($type, ['complaint_routed', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
+        if (in_array($type, ['system', 'alert'])) return 'bi-exclamation-triangle';
+        if ($type === 'comment_reply') return 'bi-chat-dots';
+        return 'bi-bell';
+    }
+}
+
+if (!function_exists('ward_notification_type_class')) {
+    function ward_notification_type_class($type) {
+        $type = strtolower(trim((string)$type));
+        if (in_array($type, ['complaint_routed', 'status_update', 'verified', 'rejected'])) return 'type-track';
+        if (in_array($type, ['system', 'alert'])) return 'type-objection';
+        if ($type === 'comment_reply') return 'type-reply';
+        return 'type-system';
+    }
+}
+
+$wardUnreadNotificationCount = 0;
+$wardTopbarNotifications = [];
+
+if (isset($conn) && $conn instanceof mysqli && isset($_SESSION["user_id"])) {
+    $currentTopbarUserId = (int)$_SESSION["user_id"];
+
+    $unreadSql = "SELECT COUNT(*) AS unread_total FROM ward_notifications WHERE is_read = 0 AND recipient_user_id = ?";
+    $unreadStmt = mysqli_prepare($conn, $unreadSql);
+    if ($unreadStmt) {
+        mysqli_stmt_bind_param($unreadStmt, "i", $currentTopbarUserId);
+        mysqli_stmt_execute($unreadStmt);
+        $unreadResult = mysqli_stmt_get_result($unreadStmt);
+        if ($unreadResult) {
+            $unreadRow = mysqli_fetch_assoc($unreadResult);
+            $wardUnreadNotificationCount = (int)($unreadRow['unread_total'] ?? 0);
+        }
+        mysqli_stmt_close($unreadStmt);
+    }
+
+    $notificationSql = "
+        SELECT 
+            wn.notification_id,
+            wn.related_complaint_id,
+            wn.notification_type,
+            wn.notification_title,
+            wn.notification_message,
+            wn.is_read,
+            wn.created_at,
+            c.complaint_code
+        FROM ward_notifications wn
+        LEFT JOIN complaints c ON wn.related_complaint_id = c.complaint_id
+        WHERE wn.recipient_user_id = ?
+        ORDER BY wn.created_at DESC, wn.notification_id DESC
+        LIMIT 10
+    ";
+    $notificationStmt = mysqli_prepare($conn, $notificationSql);
+    if ($notificationStmt) {
+        mysqli_stmt_bind_param($notificationStmt, "i", $currentTopbarUserId);
+        mysqli_stmt_execute($notificationStmt);
+        $notificationResult = mysqli_stmt_get_result($notificationStmt);
+        if ($notificationResult) {
+            while ($row = mysqli_fetch_assoc($notificationResult)) {
+                $wardTopbarNotifications[] = $row;
+            }
+        }
+        mysqli_stmt_close($notificationStmt);
+    }
+}
+?>
 
 <header class="ward-topbar">
 
@@ -101,10 +193,90 @@ if (isset($conn) && $conn && isset($_SESSION["user_id"])) {
     </div>
 
     <div class="topbar-right">
-        <button class="notification-btn" type="button" aria-label="Notifications">
-            <i class="bi bi-bell"></i>
-            <span></span>
-        </button>
+        
+        <details class="topbar-notification">
+            <summary class="notification-btn" aria-label="Notifications">
+                <i class="bi bi-bell"></i>
+
+                <?php if ($wardUnreadNotificationCount > 0): ?>
+                    <em class="notification-count">
+                        <?php echo $wardUnreadNotificationCount > 99 ? '99+' : (int)$wardUnreadNotificationCount; ?>
+                    </em>
+                <?php endif; ?>
+            </summary>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <div>
+                        <h4>Notifications</h4>
+                        <p>
+                            <?php if ($wardUnreadNotificationCount > 0): ?>
+                                <?php echo (int)$wardUnreadNotificationCount; ?> unread notification(s)
+                            <?php else: ?>
+                                No unread notifications
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="notification-list">
+                    <?php if (count($wardTopbarNotifications) > 0): ?>
+
+                        <?php foreach ($wardTopbarNotifications as $notification): ?>
+                            <?php
+                                $notificationType = strtolower(trim((string)$notification['notification_type']));
+                                $notificationClass = ward_notification_type_class($notificationType);
+                                $notificationIcon = ward_notification_icon($notificationType);
+                                $isUnread = ((int)$notification['is_read'] === 0);
+
+                                $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
+                                if (!empty($notification['complaint_code'])) {
+                                    if ($notificationType === 'comment_reply') {
+                                        $notificationLink .= '&redirect=discussion';
+                                    } else {
+                                        $notificationLink .= '&redirect=ward-complaints';
+                                    }
+                                }
+                            ?>
+
+                            <a
+                                class="notification-item <?php echo $isUnread ? 'unread' : 'read'; ?> <?php echo wardTopbarSafeText($notificationClass); ?>"
+                                href="<?php echo wardTopbarSafeText($notificationLink); ?>"
+                            >
+                                <span class="notification-icon">
+                                    <i class="bi <?php echo wardTopbarSafeText($notificationIcon); ?>"></i>
+                                </span>
+
+                                <span class="notification-content">
+                                    <strong>
+                                        <?php echo wardTopbarSafeText($notification['notification_title'] ?? 'Notification'); ?>
+                                    </strong>
+                                    <small>
+                                        <?php echo wardTopbarSafeText($notification['notification_message'] ?? ''); ?>
+                                    </small>
+                                    <b>
+                                        <?php echo wardTopbarSafeText(ward_topbar_time_ago($notification['created_at'] ?? null)); ?>
+                                    </b>
+                                </span>
+                            </a>
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <div class="notification-empty">
+                            <i class="bi bi-bell-slash"></i>
+                            <h5>No notifications yet</h5>
+                            <p>Updates on complaints and discussions will appear here.</p>
+                        </div>
+
+                    <?php endif; ?>
+                </div>
+
+                <div class="notification-dropdown-footer">
+                    <a href="notifications.php">View All Notifications</a>
+                </div>
+            </div>
+        </details>
 
         <div class="topbar-user">
             <div class="topbar-user-info">

@@ -173,16 +173,22 @@ if ($readId > 0) {
             mysqli_stmt_close($readStmt);
 
             if ($redirectType === "track" && !empty($readRow["complaint_code"])) {
-                redirect_to("pages/citizen/track-complaint.php?code=" . urlencode($readRow["complaint_code"]));
+                header("Location: track-complaint.php?code=" . urlencode($readRow["complaint_code"]));
+                exit;
+            } else if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
+                header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
+                exit;
             }
 
-            redirect_to("pages/citizen/notifications.php");
+            header("Location: notifications.php");
+            exit;
         }
 
         mysqli_stmt_close($readStmt);
     }
 
-    redirect_to("pages/citizen/notifications.php");
+    header("Location: notifications.php");
+    exit;
 }
 
 /* Mark all notifications as read */
@@ -459,7 +465,11 @@ function nt_build_query($overrides = [])
                                 $targetLink = "notifications.php?read_id=" . (int)$notification["notification_id"];
 
                                 if (!empty($notification["complaint_code"])) {
-                                    $targetLink .= "&redirect=track";
+                                    if ($type === "comment_reply") {
+                                        $targetLink .= "&redirect=discussion";
+                                    } else {
+                                        $targetLink .= "&redirect=track";
+                                    }
                                 }
                             ?>
 

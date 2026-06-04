@@ -1,0 +1,81 @@
+.citizen-discussion-page {
+    padding: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ct-header {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ct-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+}
+
+.ct-back-btn:hover {
+    color: #2563eb; /* Citizen theme color */
+}
+
+.ct-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.ct-header p {
+    font-size: 15px;
+    color: #475569;
+    margin: 0 0 16px 0;
+}
+
+.ct-status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.ct-status-badge.rejected_by_central, .ct-status-badge.rejected_by_ward {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.ct-status-badge.duplicate {
+    background: #fdf4ff;
+    color: #d946ef;
+}
+
+.ct-discussion-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .citizen-discussion-page {
+        padding: 16px;
+    }
+    
+    .ct-header, .ct-discussion-card {
+        padding: 16px;
+    }
+}

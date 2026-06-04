@@ -139,6 +139,7 @@ if ($officerStmt) {
     if ($officerData) {
         $assignedWardId = (int)$officerData["assigned_ward_id"];
         $assignedWardDisplay = wardDisplayName($officerData["ward_no"], $officerData["ward_name"]);
+        $assignedCityCorp = $officerData["city_cor_name"] ?? "Unknown City Corp";
     }
 
     mysqli_stmt_close($officerStmt);
@@ -166,26 +167,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
         $allowedComplaintStatuses = getEnumValues($conn, "complaints", "complaint_status");
 
         if ($action === "verify") {
-            /*
-             * Your DB currently has received in complaint_status enum.
-             * Use received as Ward Verified status.
-             */
-            $newStatus = chooseAllowedStatus($allowedComplaintStatuses, [
-                "received",
-                "verified",
-                "ward_verified"
-            ]);
+            $newStatus = "verified_by_ward";
         } elseif ($action === "reject") {
-            $newStatus = chooseAllowedStatus($allowedComplaintStatuses, [
-                "rejected",
-                "submitted"
-            ]);
+            $newStatus = "rejected_by_ward";
         } else {
-            $newStatus = chooseAllowedStatus($allowedComplaintStatuses, [
-                "duplicate",
-                "rejected",
-                "submitted"
-            ]);
+            $newStatus = "duplicate";
         }
 
         mysqli_begin_transaction($conn);
@@ -194,8 +180,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
             $checkSql = "
                 SELECT
                     c.complaint_id,
+                    c.complaint_code,
+                    c.user_id AS citizen_user_id,
                     c.complaint_status,
-                    ca.ward_id
+                    ca.ward_id,
+                    ca.assigned_by AS central_user_id
                 FROM complaints c
                 INNER JOIN complaint_assignments ca
                     ON c.complaint_id = ca.complaint_id
@@ -244,7 +233,80 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
 
             mysqli_stmt_close($updateStmt);
 
+            if ($action === "reject" || $action === "duplicate") {
+                $reasonText = trim($_POST["reason"] ?? "");
+                $decisionType = ($action === "reject") ? "ward_reject" : "duplicate";
+                
+                $decisionSql = "
+                    INSERT INTO complaint_decisions (
+                        complaint_id,
+                        decided_by_user_id,
+                        decided_by_role,
+                        decision_type,
+                        reason,
+                        created_at
+                    ) VALUES (?, ?, 'ward_officer', ?, ?, NOW())
+                ";
+                $decisionStmt = mysqli_prepare($conn, $decisionSql);
+                if (!$decisionStmt) {
+                    throw new Exception("Decision insert failed: " . mysqli_error($conn));
+                }
+                mysqli_stmt_bind_param($decisionStmt, "iiss", $complaintId, $wardOfficerUserId, $decisionType, $reasonText);
+                if (!mysqli_stmt_execute($decisionStmt)) {
+                    throw new Exception("Decision save failed: " . mysqli_stmt_error($decisionStmt));
+                }
+                mysqli_stmt_close($decisionStmt);
+            }
+
             mysqli_commit($conn);
+
+            // Add Notifications
+            $citizenUserId = (int)($complaintRow['citizen_user_id'] ?? 0);
+            $centralUserId = (int)($complaintRow['central_user_id'] ?? 0);
+            $complaintCode = $complaintRow['complaint_code'] ?? 'Unknown';
+            
+            if ($action === "verify") {
+                $citNotifType = "status_update";
+                $citTitle = "Complaint Verified";
+                $citMsg = "Your complaint #$complaintCode has been verified by the Ward Officer.";
+                $cenNotifType = "complaint_received";
+                $cenTitle = "Ward Accepted Complaint";
+                $cenMsg = "Complaint #$complaintCode routed by you has been verified by the Ward Officer.";
+            } elseif ($action === "reject") {
+                $citNotifType = "status_update";
+                $citTitle = "Complaint Rejected";
+                $citMsg = "Your complaint #$complaintCode was rejected by the Ward Officer.";
+                $cenNotifType = "complaint_rejected";
+                $cenTitle = "Ward Rejected Complaint";
+                $cenMsg = "Complaint #$complaintCode routed by you was rejected by the Ward Officer.";
+            } else {
+                $citNotifType = "status_update";
+                $citTitle = "Complaint Marked Duplicate";
+                $citMsg = "Your complaint #$complaintCode was marked as a duplicate.";
+                $cenNotifType = "complaint_rejected";
+                $cenTitle = "Ward Marked Duplicate";
+                $cenMsg = "Complaint #$complaintCode routed by you was marked as a duplicate.";
+            }
+
+            if ($citizenUserId > 0) {
+                $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
+                $citNotifStmt = mysqli_prepare($conn, $citNotifSql);
+                if ($citNotifStmt) {
+                    mysqli_stmt_bind_param($citNotifStmt, "iiisss", $citizenUserId, $wardOfficerUserId, $complaintId, $citNotifType, $citTitle, $citMsg);
+                    mysqli_stmt_execute($citNotifStmt);
+                    mysqli_stmt_close($citNotifStmt);
+                }
+            }
+
+            if ($centralUserId > 0) {
+                $cenNotifSql = "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
+                $cenNotifStmt = mysqli_prepare($conn, $cenNotifSql);
+                if ($cenNotifStmt) {
+                    mysqli_stmt_bind_param($cenNotifStmt, "iiisss", $centralUserId, $wardOfficerUserId, $complaintId, $cenNotifType, $cenTitle, $cenMsg);
+                    mysqli_stmt_execute($cenNotifStmt);
+                    mysqli_stmt_close($cenNotifStmt);
+                }
+            }
 
             if ($action === "verify") {
                 $successMessage = "Complaint accepted and verified successfully.";
@@ -422,7 +484,6 @@ foreach ($verificationComplaints as $item) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/ward/sidebar.css">
     <link rel="stylesheet" href="../../css/ward/topbar.css">
-    <link rel="stylesheet" href="../../css/ward/footer.css">
     <link rel="stylesheet" href="../../css/ward/verification-queue.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
 </head>
@@ -492,7 +553,7 @@ foreach ($verificationComplaints as $item) {
                     </div>
                     <div>
                         <h2><?php echo safeText($assignedWardDisplay); ?></h2>
-                        <p>Assigned Ward</p>
+                        <p>Assigned Ward <br><small style="color: #64748B; font-weight: 600;"><?php echo safeText($assignedCityCorp ?? ''); ?></small></p>
                     </div>
                 </div>
             </div>
@@ -696,7 +757,7 @@ foreach ($verificationComplaints as $item) {
 
         </section>
 
-        <?php include "../../includes/ward/footer.php"; ?>
+  
 
     </main>
 
@@ -747,6 +808,27 @@ foreach ($verificationComplaints as $item) {
 
         </div>
 
+    </div>
+</div>
+
+<!-- Reason Modal for Reject / Duplicate -->
+<div class="vq-modal-overlay" id="vqReasonModal">
+    <div class="vq-modal" style="max-width: 480px;">
+        <div class="vq-modal-header">
+            <div>
+                <h2 id="vqReasonTitle">Provide Reason</h2>
+            </div>
+            <button type="button" class="vq-modal-close" id="vqReasonClose">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="vq-modal-body">
+            <p id="vqReasonSubtitle" style="color: #64748B; margin-bottom: 12px; font-size: 14px;">Give a reason for rejection or click duplicate.</p>
+            <textarea id="vqReasonInput" class="vq-reason-textarea" rows="4" placeholder="Type reason here..." style="width: 100%; border: 1px solid #CBD5E1; border-radius: 8px; padding: 12px; outline: none; resize: none; font-family: inherit; font-size: 14px;"></textarea>
+            <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="vq-btn vq-reason-submit" id="vqReasonSubmit" style="width: auto; padding: 0 24px; background: #0F766E;">Submit</button>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -185,90 +185,110 @@ function wc_formatDate($datetime)
 |--------------------------------------------------------------------------
 | Status Logic
 |--------------------------------------------------------------------------
-| Main source: complaints.complaint_status
-| Fallback: complaint_assignments.assignment_status / maintenance_updates.work_status
+| Main source: complaints.complaint_status ONLY
+| Do not override status using complaint_assignments.assignment_status
+| or maintenance_updates.work_status.
 |--------------------------------------------------------------------------
 */
-function wc_statusData($complaintStatus, $assignmentStatus, $workStatus)
+function wc_statusData($complaintStatus)
 {
-    $complaintStatus = strtolower(trim($complaintStatus ?? ''));
-    $assignmentStatus = strtolower(trim($assignmentStatus ?? ''));
-    $workStatus = strtolower(trim($workStatus ?? ''));
+    $status = strtolower(trim((string)$complaintStatus));
 
-    if (in_array($complaintStatus, ['closed', 'solved', 'resolved', 'completed_closed'], true)) {
-        return [
-            'label' => 'Closed / Solved',
-            'class' => 'closed-solved',
-            'filter' => 'closed-solved'
-        ];
+    if ($status === '') {
+        $status = 'unknown';
     }
 
-    if (in_array($complaintStatus, ['inspector_verification', 'under_inspection', 'pending_inspection'], true)) {
-        return [
-            'label' => 'Inspector Verification',
-            'class' => 'inspector-verification',
-            'filter' => 'inspector-verification'
-        ];
-    }
+    $labels = [
+        "submitted" => "Submitted",
+        "received" => "Received",
+        "pending_verification" => "Pending Verification",
 
-    if (
-        in_array($complaintStatus, ['solved_by_team', 'completed_by_team', 'team_completed'], true) ||
-        $workStatus === 'completed'
-    ) {
-        return [
-            'label' => 'Solved by Team',
-            'class' => 'solved-by-team',
-            'filter' => 'solved-by-team'
-        ];
-    }
+        "verified" => "Verified By Ward",
+        "ward_verified" => "Verified By Ward",
+        "verified_by_ward" => "Verified By Ward",
 
-    if (
-        in_array($complaintStatus, ['in_progress', 'work_started', 'maintenance_started'], true) ||
-        $assignmentStatus === 'in_progress' ||
-        in_array($workStatus, ['started', 'in_progress'], true)
-    ) {
-        return [
-            'label' => 'In Progress',
-            'class' => 'in-progress',
-            'filter' => 'in-progress'
-        ];
-    }
+        "rejected_by_central" => "Rejected By Central",
+        "rejected_by_ward" => "Rejected By Ward",
+        "rejected" => "Rejected",
 
-    if (
-        in_array($complaintStatus, ['assigned_to_team', 'team_assigned'], true) ||
-        $assignmentStatus === 'team_assigned' ||
-        $workStatus === 'assigned'
-    ) {
-        return [
-            'label' => 'Assigned to Team',
-            'class' => 'assigned-team',
-            'filter' => 'assigned-team'
-        ];
-    }
+        "duplicate" => "Duplicate",
 
-    if (in_array($complaintStatus, ['received', 'verified', 'ward_verified'], true)) {
-        return [
-            'label' => 'Verified',
-            'class' => 'verified',
-            'filter' => 'verified'
-        ];
-    }
+        "team_assigned" => "Assigned to Team",
+        "assigned_to_team" => "Assigned to Team",
 
-    if (
-        in_array($complaintStatus, ['submitted', 'pending_verification'], true) ||
-        $assignmentStatus === 'ward_assigned'
-    ) {
-        return [
-            'label' => 'Pending',
-            'class' => 'pending',
-            'filter' => 'pending'
-        ];
-    }
+        "in_progress" => "In Progress",
+        "solved_by_team" => "Solved By Team",
+        "inspector_verification" => "Inspector Verification",
+
+        "closed" => "Closed / Solved",
+        "reopened" => "Reopened",
+        "disputed" => "Disputed",
+        "final_rejected" => "Final Rejected",
+
+        "unknown" => "Unknown Status"
+    ];
+
+    $classes = [
+        "submitted" => "status-submitted",
+        "received" => "status-received",
+        "pending_verification" => "status-pending-verification",
+
+        "verified" => "status-verified-by-ward",
+        "ward_verified" => "status-verified-by-ward",
+        "verified_by_ward" => "status-verified-by-ward",
+
+        "rejected_by_central" => "status-rejected-by-central",
+        "rejected_by_ward" => "status-rejected-by-ward",
+        "rejected" => "status-rejected-by-ward",
+
+        "duplicate" => "status-duplicate",
+
+        "team_assigned" => "status-team-assigned",
+        "assigned_to_team" => "status-team-assigned",
+
+        "in_progress" => "status-in-progress",
+        "solved_by_team" => "status-solved-by-team",
+        "inspector_verification" => "status-inspector-verification",
+
+        "closed" => "status-closed",
+        "reopened" => "status-reopened",
+        "disputed" => "status-disputed",
+        "final_rejected" => "status-final-rejected",
+
+        "unknown" => "status-submitted"
+    ];
+
+    $filters = [
+        "submitted" => "pending",
+        "received" => "pending",
+        "pending_verification" => "pending",
+
+        "verified" => "verified",
+        "ward_verified" => "verified",
+        "verified_by_ward" => "verified",
+
+        "team_assigned" => "assigned-team",
+        "assigned_to_team" => "assigned-team",
+
+        "in_progress" => "in-progress",
+        "solved_by_team" => "solved-by-team",
+        "inspector_verification" => "inspector-verification",
+        "closed" => "closed-solved",
+
+        "rejected_by_ward" => "rejected-duplicate",
+        "rejected" => "rejected-duplicate",
+        "duplicate" => "rejected-duplicate",
+
+        "reopened" => "reopened-disputed",
+        "disputed" => "reopened-disputed",
+        "final_rejected" => "rejected-duplicate"
+    ];
 
     return [
-        'label' => ucwords(str_replace('_', ' ', $complaintStatus ?: 'Pending')),
-        'class' => 'pending',
-        'filter' => 'pending'
+        'raw' => $status,
+        'label' => $labels[$status] ?? ucwords(str_replace("_", " ", $status)),
+        'class' => $classes[$status] ?? "status-submitted",
+        'filter' => $filters[$status] ?? "all"
     ];
 }
 
@@ -285,14 +305,17 @@ if ($currentUserId) {
         "SELECT 
             wo.ward_officer_id,
             wo.user_id,
+            wo.city_cor_id,
             wo.assigned_ward_id,
             wo.full_name,
             wo.user_mail,
             w.ward_id,
             w.ward_no,
-            w.ward_name
+            w.ward_name,
+            cc.city_cor_name
         FROM ward_officers wo
         INNER JOIN wards w ON wo.assigned_ward_id = w.ward_id
+        LEFT JOIN city_corporations cc ON wo.city_cor_id = cc.city_cor_id
         WHERE wo.user_id = ?
         LIMIT 1",
         "i",
@@ -306,14 +329,17 @@ if (!$wardOfficer && !empty($currentUserMail)) {
         "SELECT 
             wo.ward_officer_id,
             wo.user_id,
+            wo.city_cor_id,
             wo.assigned_ward_id,
             wo.full_name,
             wo.user_mail,
             w.ward_id,
             w.ward_no,
-            w.ward_name
+            w.ward_name,
+            cc.city_cor_name
         FROM ward_officers wo
         INNER JOIN wards w ON wo.assigned_ward_id = w.ward_id
+        LEFT JOIN city_corporations cc ON wo.city_cor_id = cc.city_cor_id
         WHERE wo.user_mail = ?
         LIMIT 1",
         "s",
@@ -322,31 +348,14 @@ if (!$wardOfficer && !empty($currentUserMail)) {
 }
 
 if (!$wardOfficer) {
-    $wardOfficer = wc_fetchOne(
-        $conn,
-        "SELECT 
-            wo.ward_officer_id,
-            wo.user_id,
-            wo.assigned_ward_id,
-            wo.full_name,
-            wo.user_mail,
-            w.ward_id,
-            w.ward_no,
-            w.ward_name
-        FROM ward_officers wo
-        INNER JOIN wards w ON wo.assigned_ward_id = w.ward_id
-        ORDER BY wo.ward_officer_id ASC
-        LIMIT 1"
-    );
-}
-
-if (!$wardOfficer) {
-    die("No ward officer found. Please insert ward officer data first.");
+    die("No ward officer found. Please login with a valid ward officer account.");
 }
 
 $wardId = (int)$wardOfficer['assigned_ward_id'];
+$cityCorId = (int)($wardOfficer['city_cor_id'] ?? 0);
 $wardNo = $wardOfficer['ward_no'] ?? '';
 $wardName = $wardOfficer['ward_name'] ?? '';
+$cityCorporationName = $wardOfficer['city_cor_name'] ?? 'City Corporation';
 $userName = $wardOfficer['full_name'] ?? ($_SESSION['user_name'] ?? 'Ward Officer');
 
 $_SESSION['user_name'] = $userName;
@@ -356,7 +365,8 @@ $_SESSION['user_role_label'] = "Ward Operations";
 |--------------------------------------------------------------------------
 | Fetch Ward Complaints
 |--------------------------------------------------------------------------
-| Ward Officer sees all complaints under assigned ward.
+| Main status display source: complaints.complaint_status
+| Ward officer sees complaints from assigned ward and city corporation only.
 |--------------------------------------------------------------------------
 */
 $complaints = wc_fetchAll(
@@ -398,16 +408,16 @@ $complaints = wc_fetchAll(
         ) latest_mu ON mu1.update_id = latest_mu.latest_update_id
     ) mu ON ca.assignment_id = mu.assignment_id
     WHERE l.ward_id = ?
+    AND l.city_cor_id = ?
+    AND c.complaint_status NOT IN ('submitted', 'received', 'rejected_by_central')
     ORDER BY c.submitted_at DESC, c.complaint_id DESC",
-    "i",
-    [$wardId]
+    "ii",
+    [$wardId, $cityCorId]
 );
 
 /*
 |--------------------------------------------------------------------------
 | Fetch Complaint Media
-|--------------------------------------------------------------------------
-| Auto-detects possible column names from complaint_media.
 |--------------------------------------------------------------------------
 */
 $mediaByComplaint = [];
@@ -422,9 +432,7 @@ if (!empty($complaints)) {
     if (!empty($complaintIds)) {
         $mediaColumns = wc_tableColumns($conn, 'complaint_media');
 
-        $mediaComplaintColumn = wc_firstExistingColumn($mediaColumns, [
-            'complaint_id'
-        ]);
+        $mediaComplaintColumn = wc_firstExistingColumn($mediaColumns, ['complaint_id']);
 
         $mediaPathColumn = wc_firstExistingColumn($mediaColumns, [
             'file_path',
@@ -482,6 +490,11 @@ if (!empty($complaints)) {
     }
 }
 
+/*
+|--------------------------------------------------------------------------
+| Counts
+|--------------------------------------------------------------------------
+*/
 $totalComplaints = count($complaints);
 
 $statusCounts = [
@@ -491,15 +504,13 @@ $statusCounts = [
     'in-progress' => 0,
     'solved-by-team' => 0,
     'inspector-verification' => 0,
-    'closed-solved' => 0
+    'closed-solved' => 0,
+    'rejected-duplicate' => 0,
+    'reopened-disputed' => 0
 ];
 
 foreach ($complaints as $item) {
-    $statusData = wc_statusData(
-        $item['complaint_status'] ?? '',
-        $item['assignment_status'] ?? '',
-        $item['work_status'] ?? ''
-    );
+    $statusData = wc_statusData($item['complaint_status'] ?? '');
 
     if (isset($statusCounts[$statusData['filter']])) {
         $statusCounts[$statusData['filter']]++;
@@ -520,7 +531,6 @@ foreach ($complaints as $item) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/ward/sidebar.css">
     <link rel="stylesheet" href="../../css/ward/topbar.css">
-    <link rel="stylesheet" href="../../css/ward/footer.css">
     <link rel="stylesheet" href="../../css/ward/ward-complaints.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
 </head>
@@ -539,6 +549,7 @@ foreach ($complaints as $item) {
                 <h1>Ward Complaints</h1>
                 <p>
                     View and manage all complaints for
+                    <?= htmlspecialchars($cityCorporationName); ?>,
                     Ward <?= htmlspecialchars($wardNo); ?>
                     <?= !empty($wardName) ? " - " . htmlspecialchars($wardName) : ""; ?>
                 </p>
@@ -550,7 +561,7 @@ foreach ($complaints as $item) {
                 <i class="bi bi-search"></i>
                 <input type="text"
                        id="wardComplaintSearch"
-                       placeholder="Search complaints by ID, area, or issue...">
+                       placeholder="Search complaints by ID, area, issue, status, or urgency...">
             </div>
 
             <div class="wc-filter-dropdown">
@@ -608,6 +619,16 @@ foreach ($complaints as $item) {
                 Closed / Solved
                 <span><?= $statusCounts['closed-solved']; ?></span>
             </button>
+
+            <button class="wc-tab" type="button" data-filter="rejected-duplicate">
+                Rejected / Duplicate
+                <span><?= $statusCounts['rejected-duplicate']; ?></span>
+            </button>
+
+            <button class="wc-tab" type="button" data-filter="reopened-disputed">
+                Reopened / Disputed
+                <span><?= $statusCounts['reopened-disputed']; ?></span>
+            </button>
         </div>
 
         <div class="wc-table-card">
@@ -620,7 +641,6 @@ foreach ($complaints as $item) {
                             <th>Area</th>
                             <th>Urgency</th>
                             <th>Status</th>
-                            <th>Media</th>
                             <th>Date</th>
                             <th>Action</th>
                         </tr>
@@ -632,11 +652,7 @@ foreach ($complaints as $item) {
                                 <?php
                                 $complaintId = (int)$complaint['complaint_id'];
 
-                                $statusData = wc_statusData(
-                                    $complaint['complaint_status'] ?? '',
-                                    $complaint['assignment_status'] ?? '',
-                                    $complaint['work_status'] ?? ''
-                                );
+                                $statusData = wc_statusData($complaint['complaint_status'] ?? '');
 
                                 $issueName = $complaint['issue_name'] ?: 'Unknown Issue';
                                 $areaName = $complaint['area_name'] ?: 'Area not specified';
@@ -645,7 +661,6 @@ foreach ($complaints as $item) {
                                 $urgencyFilter = strtolower($priority);
 
                                 $complaintMedia = $mediaByComplaint[$complaintId] ?? [];
-                                $mediaCount = count($complaintMedia);
                                 $mediaJson = htmlspecialchars(
                                     json_encode($complaintMedia, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP),
                                     ENT_QUOTES,
@@ -658,9 +673,17 @@ foreach ($complaints as $item) {
                                     $areaName . ' ' .
                                     $priority . ' ' .
                                     $statusData['label'] . ' ' .
+                                    $statusData['raw'] . ' ' .
                                     ($complaint['problem_description'] ?? '') . ' ' .
                                     ($complaint['address_description'] ?? '')
                                 );
+
+                                $discussionAllowedStatuses = [
+                                    'rejected_by_ward',
+                                    'duplicate'
+                                ];
+
+                                $showDiscussion = in_array($statusData['raw'], $discussionAllowedStatuses, true);
                                 ?>
 
                                 <tr class="wc-complaint-row"
@@ -687,7 +710,7 @@ foreach ($complaints as $item) {
                                     </td>
 
                                     <td>
-                                        <span class="wc-priority-badge <?= $priorityClass; ?>">
+                                        <span class="wc-priority-badge <?= htmlspecialchars($priorityClass); ?>">
                                             <?= htmlspecialchars($priority); ?>
                                         </span>
                                     </td>
@@ -699,23 +722,12 @@ foreach ($complaints as $item) {
                                     </td>
 
                                     <td>
-                                        <?php if ($mediaCount > 0): ?>
-                                            <span class="wc-media-count">
-                                                <i class="bi bi-paperclip"></i>
-                                                <?= $mediaCount; ?>
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="wc-no-media">No media</span>
-                                        <?php endif; ?>
-                                    </td>
-
-                                    <td>
                                         <span class="wc-date">
                                             <?= htmlspecialchars(wc_formatDate($complaint['submitted_at'])); ?>
                                         </span>
                                     </td>
 
-                                    <td>
+                                    <td class="wc-actions-cell">
                                         <button type="button"
                                                 class="wc-view-btn"
                                                 data-bs-toggle="modal"
@@ -732,6 +744,14 @@ foreach ($complaints as $item) {
                                             View Details
                                             <i class="bi bi-arrow-right"></i>
                                         </button>
+
+                                        <?php if ($showDiscussion): ?>
+                                            <a href="discussion.php?id=<?= $complaintId; ?>"
+                                               class="wc-discussion-btn"
+                                               title="Open Discussion">
+                                                <i class="bi bi-chat-dots"></i>
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
 
                                 </tr>
@@ -749,8 +769,6 @@ foreach ($complaints as $item) {
         </div>
 
     </section>
-
-    <?php include "../../includes/ward/footer.php"; ?>
 </main>
 
 <div class="modal fade" id="complaintDetailsModal" tabindex="-1" aria-labelledby="complaintDetailsModalLabel" aria-hidden="true">

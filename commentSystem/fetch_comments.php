@@ -2,6 +2,7 @@
 // C:\xampp8\htdocs\DrainGuard\commentSystem\fetch_comments.php
 
 require_once "../config.php";
+require_once __DIR__ . '/discussion_logic.php';
 
 header("Content-Type: application/json; charset=UTF-8");
 
@@ -40,6 +41,24 @@ $complaintId = (int)($_GET["complaint_id"] ?? 0);
 
 if ($complaintId <= 0) {
     cs_fetch_json_response(false, "Invalid complaint.");
+}
+
+$roleSql = "SELECT user_role FROM users WHERE user_id = ? LIMIT 1";
+$roleStmt = mysqli_prepare($conn, $roleSql);
+$currentUserRole = "";
+if ($roleStmt) {
+    mysqli_stmt_bind_param($roleStmt, "i", $userId);
+    mysqli_stmt_execute($roleStmt);
+    $roleRes = mysqli_stmt_get_result($roleStmt);
+    if ($roleRes && $roleRow = mysqli_fetch_assoc($roleRes)) {
+        $currentUserRole = (string)$roleRow["user_role"];
+    }
+    mysqli_stmt_close($roleStmt);
+}
+
+$context = cs_get_discussion_context($conn, $complaintId);
+if (!cs_has_discussion_access($context, $userId, $currentUserRole)) {
+    cs_fetch_json_response(false, "You are not allowed to view this discussion.");
 }
 
 $sql = "

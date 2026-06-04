@@ -209,7 +209,6 @@ if ($topbarUserId > 0 && isset($conn) && $conn instanceof mysqli) {
                 <i class="bi bi-bell"></i>
 
                 <?php if ($citizenUnreadNotificationCount > 0): ?>
-                    <span class="notification-dot"></span>
                     <em class="notification-count">
                         <?php echo $citizenUnreadNotificationCount > 99 ? '99+' : (int)$citizenUnreadNotificationCount; ?>
                     </em>
@@ -243,7 +242,11 @@ if ($topbarUserId > 0 && isset($conn) && $conn instanceof mysqli) {
                                 $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
 
                                 if (!empty($notification['complaint_code'])) {
-                                    $notificationLink .= '&redirect=track';
+                                    if ($notificationType === 'comment_reply') {
+                                        $notificationLink .= '&redirect=discussion';
+                                    } else {
+                                        $notificationLink .= '&redirect=track';
+                                    }
                                 }
                             ?>
 

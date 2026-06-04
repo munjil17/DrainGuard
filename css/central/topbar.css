@@ -14,11 +14,12 @@
     align-items: center;
     justify-content: space-between;
 
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 280px;
+    right: 0;
     z-index: 900;
 
-    width: 100%;
     box-sizing: border-box;
 }
 
@@ -458,6 +459,7 @@
 
     .central-topbar {
         padding: 0 18px;
+        left: 0;
     }
 }
 
@@ -465,6 +467,7 @@
     .central-topbar {
         height: 76px;
         padding: 0 14px;
+        left: 0;
 
         flex-direction: row;
         align-items: center;

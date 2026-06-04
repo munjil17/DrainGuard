@@ -1,0 +1,81 @@
+.ward-discussion-page {
+    padding: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.wd-header {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.wd-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+}
+
+.wd-back-btn:hover {
+    color: #0ea5e9;
+}
+
+.wd-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+}
+
+.wd-header p {
+    font-size: 15px;
+    color: #475569;
+    margin: 0 0 16px 0;
+}
+
+.wd-status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.wd-status-badge.rejected_by_ward {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.wd-status-badge.duplicate {
+    background: #fdf4ff;
+    color: #d946ef;
+}
+
+.wd-discussion-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .ward-discussion-page {
+        padding: 16px;
+    }
+    
+    .wd-header, .wd-discussion-card {
+        padding: 16px;
+    }
+}

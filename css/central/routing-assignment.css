@@ -619,9 +619,13 @@
 
 /* SAFETY */
 
+.ra-page,
 .ra-page *,
+.ra-card,
 .ra-card *,
+.ra-table-card,
 .ra-table-card *,
+.ra-details-modal,
 .ra-details-modal * {
     box-sizing: border-box;
 }

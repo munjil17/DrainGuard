@@ -8,6 +8,7 @@ $pageChild = "Track Complaint";
 
 require_once "../../config.php";
 require_login(["citizen"]);
+require_once "../../commentSystem/discussion_logic.php";
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
 $searchCode = trim($_GET["code"] ?? "");
@@ -558,15 +559,11 @@ if ($complaint) {
     }
 }
 
-$terminalStatuses = [
-    "closed",
-    "rejected_by_central",
-    "rejected_by_ward",
-    "duplicate",
-    "final_rejected"
-];
-
-$discussionAllowed = in_array($currentStatus, $terminalStatuses, true);
+$hasDiscussionAccess = false;
+if ($complaint) {
+    $context = cs_get_discussion_context($conn, $complaint["complaint_id"]);
+    $hasDiscussionAccess = cs_has_discussion_access($context, $userId, 'citizen');
+}
 ?>
 
 <!DOCTYPE html>
@@ -661,6 +658,14 @@ $discussionAllowed = in_array($currentStatus, $terminalStatuses, true);
                         </strong>
                     </div>
                 </div>
+
+                <?php if ($hasDiscussionAccess): ?>
+                    <div style="margin-bottom: 24px; text-align: right;">
+                        <a href="discussion.php?id=<?php echo $complaint['complaint_id']; ?>" class="cm-discussion-btn" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; transition: background 0.2s;">
+                            <i class="bi bi-chat-dots"></i> Open Discussion
+                        </a>
+                    </div>
+                <?php endif; ?>
 
                 <?php if ($currentStatus === "rejected_by_central"): ?>
                     <div class="tc-alert tc-error">
@@ -1025,51 +1030,7 @@ $discussionAllowed = in_array($currentStatus, $terminalStatuses, true);
                     <?php endif; ?>
                 </div>
 
-                <?php if ($discussionAllowed): ?>
-                    <div
-                        id="discussion"
-                        class="dg-comment-system"
-                        data-comment-system="true"
-                        data-complaint-id="<?php echo (int)$complaint["complaint_id"]; ?>"
-                        data-base-path="../../"
-                    >
-                        <div class="dg-comment-header">
-                            <div>
-                                <h2>Discussion</h2>
-                                <p>All citizens and authorized panels can comment, reply, like, and dislike after the final complaint decision.</p>
-                            </div>
 
-                            <span class="dg-comment-count" data-comment-count>0</span>
-                        </div>
-
-                        <div class="dg-comment-body">
-                            <div class="dg-comment-alert" data-comment-alert></div>
-
-                            <form class="dg-comment-form" data-comment-form>
-                                <textarea
-                                    name="comment_text"
-                                    data-comment-text
-                                    placeholder="Write your comment..."
-                                    maxlength="1000"
-                                    required
-                                ></textarea>
-
-                                <div class="dg-comment-actions">
-                                    <button type="submit" class="dg-comment-submit">
-                                        <i class="bi bi-send"></i>
-                                        Post Comment
-                                    </button>
-                                </div>
-                            </form>
-
-                            <div class="dg-comment-list" data-comment-list>
-                                <div class="dg-comment-loading">
-                                    Loading comments...
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
 
             <?php endif; ?>
 
@@ -1081,9 +1042,7 @@ $discussionAllowed = in_array($currentStatus, $terminalStatuses, true);
 
 <script src="../../js/citizen/sidebar.js"></script>
 
-<?php if ($discussionAllowed): ?>
-    <script src="../../js/commentSystem/commentSystem.js"></script>
-<?php endif; ?>
+
 
 </body>
 </html>

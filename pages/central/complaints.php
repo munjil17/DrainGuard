@@ -3,6 +3,7 @@ require_once "../../config.php";
 
 $allowed_role = "central_officer";
 require_once "../../auth/session_check.php";
+require_once "../../commentSystem/discussion_logic.php";
 
 $activePage = "complaints";
 $pageTitle = "Complaints Management";
@@ -11,6 +12,8 @@ $pageChild = "Complaints";
 
 $successMessage = "";
 $errorMessage = "";
+
+$userId = (int)($_SESSION["user_id"] ?? 0);
 
 function safeText($value)
 {
@@ -123,7 +126,7 @@ function makeMediaPublicPath($path)
 
 function redirectComplaints()
 {
-    header("Location: /DrainGuard/pages/central/complaints.php");
+    header("Location: complaints.php");
     exit();
 }
 
@@ -1161,21 +1164,17 @@ $complaints = array_values($complaints);
                                                 </button>
 
                                                 <?php 
-                                                    $isFinalStage = in_array($rawStatus, [
-                                                        "rejected_by_central", "closed", 
-                                                        "final_rejected", "duplicate", "reopened", "disputed"
-                                                    ]);
+                                                    $context = cs_get_discussion_context($conn, $complaintId);
+                                                    $hasDiscussionAccess = cs_has_discussion_access($context, $userId, 'central_officer');
                                                 ?>
-                                                <?php if ($isFinalStage): ?>
-                                                    <button
-                                                        type="button"
+                                                <?php if ($hasDiscussionAccess): ?>
+                                                    <a
+                                                        href="discussion.php?id=<?php echo $complaintId; ?>"
                                                         class="cm-discussion-btn"
-                                                        data-complaint-id="<?php echo $complaintId; ?>"
-                                                        data-complaint-code="<?php echo $complaintCode; ?>"
                                                         title="Comment / Discussion"
                                                     >
                                                         <i class="bi bi-chat-dots"></i> Discussion <?php echo ($complaint["comment_count"] > 0) ? "(" . $complaint["comment_count"] . ")" : ""; ?>
-                                                    </button>
+                                                    </a>
                                                 <?php endif; ?>
 
                                             </div>
@@ -1315,45 +1314,7 @@ $complaints = array_values($complaints);
     </div>
 </div>
 
-<div class="cm-modal-overlay" id="discussionModal">
-    <div class="cm-modal cm-discussion-modal" style="max-width: 95%; width: 95%; height: 95vh; display: flex; flex-direction: column; overflow: hidden;">
 
-        <div class="cm-modal-header">
-            <div>
-                <h2>Comment & Discussion</h2>
-                <p id="discussionModalCode">Complaint ID</p>
-            </div>
-            <button type="button" id="discussionModalCloseBtn" class="cm-modal-close">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-
-        <div class="cm-modal-body" style="padding: 0; flex: 1; overflow-y: auto;">
-            <div class="dg-comment-section" id="centralDiscussionContainer" data-complaint-id="" data-comment-system="true">
-                <div class="dg-comment-header" style="border-bottom: 1px solid #eee; padding: 20px;">
-                    <h3 style="margin: 0; font-size: 16px; color: #1a1a1a; display: flex; align-items: center; gap: 8px;">
-                        Discussion 
-                        <span class="dg-comment-count" data-comment-count style="background: var(--primary-color, #0f5132); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">0</span>
-                    </h3>
-                </div>
-                
-                <div class="dg-comment-form" style="padding: 20px; background: #fafafa; border-bottom: 1px solid #eee;">
-                    <form id="commentForm">
-                        <input type="hidden" name="complaint_id" id="commentComplaintId">
-                        <textarea name="comment_text" placeholder="Write a comment..." required maxlength="1000" style="width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 12px; min-height: 80px; resize: vertical; margin-bottom: 12px; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;"></textarea>
-                        <button type="submit" class="dg-comment-submit-btn" style="background: var(--primary-color, #0f5132); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;">
-                            Post Comment <i class="bi bi-send"></i>
-                        </button>
-                    </form>
-                </div>
-                
-                <div class="dg-comment-list" data-comment-list style="padding: 20px;">
-                    <div class="dg-comment-loading" style="text-align: center; color: #666; padding: 20px;">Loading comments...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/complaints.js"></script>
