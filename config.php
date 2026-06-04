@@ -130,4 +130,49 @@ function dg_table_count($conn, $tableName)
     $row = mysqli_fetch_assoc($result);
     return $row['total'] ?? 0;
 }
+
+/* =========================================================
+   TEAM AVAILABILITY HELPER
+========================================================= */
+function autoUpdateTeamAvailability($conn, $maintenanceTeamId)
+{
+    $maintenanceTeamId = (int)$maintenanceTeamId;
+    if ($maintenanceTeamId <= 0) return false;
+
+    // Count active tasks for this team (team_assigned or in_progress)
+    $sql = "
+        SELECT COUNT(*) AS active_tasks
+        FROM complaint_assignments ca
+        INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
+        WHERE ca.maintenance_team_id = ?
+          AND c.complaint_status IN ('team_assigned', 'in_progress')
+    ";
+
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) return false;
+
+    mysqli_stmt_bind_param($stmt, "i", $maintenanceTeamId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    
+    $activeCount = 0;
+    if ($result && $row = mysqli_fetch_assoc($result)) {
+        $activeCount = (int)$row['active_tasks'];
+    }
+    mysqli_stmt_close($stmt);
+
+    // Rule: active tasks >= 3 means busy, else available
+    $newStatus = ($activeCount >= 3) ? 'busy' : 'available';
+
+    // Update the maintenance_teams table
+    $updateSql = "UPDATE maintenance_teams SET availability_status = ? WHERE maintenance_team_id = ?";
+    $updStmt = mysqli_prepare($conn, $updateSql);
+    if ($updStmt) {
+        mysqli_stmt_bind_param($updStmt, "si", $newStatus, $maintenanceTeamId);
+        mysqli_stmt_execute($updStmt);
+        mysqli_stmt_close($updStmt);
+    }
+    
+    return $newStatus;
+}
 ?>

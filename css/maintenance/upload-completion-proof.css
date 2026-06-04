@@ -283,6 +283,7 @@
 
 .completion-note {
     width: 100%;
+    box-sizing: border-box;
     min-height: 120px;
     resize: vertical;
     border: 2px solid #E2E8F0;

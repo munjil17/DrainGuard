@@ -103,7 +103,14 @@ if ($teamId > 0) {
             a.area_id,
             a.area_name,
 
-            u.user_name AS assigned_by_name
+            u.user_name AS assigned_by_name,
+
+            msr.request_status AS support_status,
+            msr.support_reason,
+            msr.other_reason,
+            msr.support_details,
+            msr.ward_reply,
+            msr.replied_at
         FROM complaint_assignments ca
         INNER JOIN complaints c
             ON c.complaint_id = ca.complaint_id
@@ -123,6 +130,17 @@ if ($teamId > 0) {
             ON first_media.complaint_id = c.complaint_id
         LEFT JOIN complaint_media cm
             ON cm.media_id = first_media.first_media_id
+        LEFT JOIN (
+            SELECT msr1.*
+            FROM maintenance_support_requests msr1
+            INNER JOIN (
+                SELECT assignment_id, MAX(support_request_id) as latest_id
+                FROM maintenance_support_requests
+                WHERE request_status IN ('pending', 'seen', 'replied')
+                GROUP BY assignment_id
+            ) msr2 ON msr1.support_request_id = msr2.latest_id
+        ) msr
+            ON msr.assignment_id = ca.assignment_id
         WHERE ca.maintenance_team_id = ?
         AND ca.assignment_status = 'in_progress'
         AND c.complaint_status = 'in_progress'
@@ -157,7 +175,7 @@ if ($teamId > 0) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
-    <link rel="stylesheet" href="../../css/maintenance/in-progress-work.css">
+    <link rel="stylesheet" href="../../css/maintenance/in-progress-work.css?v=1.1">
 </head>
 
 <body class="maintenance">
@@ -210,10 +228,10 @@ if ($teamId > 0) {
 
                         $wardText = 'Ward not found';
 
-if (!empty($task['ward_no'])) {
-    $wardText = 'Ward ' . $task['ward_no'];
-} elseif (!empty($task['ward_name'])) {
+if (!empty($task['ward_name'])) {
     $wardText = $task['ward_name'];
+} elseif (!empty($task['ward_no'])) {
+    $wardText = 'Ward ' . $task['ward_no'];
 }
                             $areaText = !empty($task['area_name'])
                                 ? $task['area_name']
@@ -264,6 +282,20 @@ if (!empty($task['ward_no'])) {
                                             </span>
                                         </div>
                                     </div>
+
+                                    <?php if ($task['support_status']): ?>
+                                        <div style="background: #e9ecef; border-left: 4px solid #6c757d; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+                                            <p style="margin: 0; font-size: 13px;"><strong><i class="bi bi-info-circle"></i> Support Request:</strong> <?= e($task["support_reason"] === 'others' ? $task["other_reason"] : str_replace('_', ' ', $task["support_reason"])); ?></p>
+                                            <p style="margin: 2px 0 0 0; font-size: 13px;"><strong>Status:</strong> <span style="text-transform: capitalize;"><?= e($task["support_status"]); ?></span></p>
+                                            
+                                            <?php if ($task['support_status'] === 'replied' && !empty($task['ward_reply'])): ?>
+                                                <div style="background: #fff; padding: 8px; margin-top: 8px; border-radius: 4px; border: 1px solid #ced4da;">
+                                                    <p style="margin: 0; font-size: 12px; color: #495057;"><strong>Ward Officer Reply:</strong></p>
+                                                    <p style="margin: 0; font-size: 13px;"><?= e($task["ward_reply"]); ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <h2><?php echo e($issueTitle); ?></h2>
 
@@ -462,43 +494,40 @@ if (!empty($task['ward_no'])) {
                 </button>
             </div>
 
-            <div class="support-reason-grid">
-                <button type="button" class="support-reason-btn" data-reason="equipment_needed">
-                    <i class="bi bi-tools"></i>
-                    <span>Equipment Needed</span>
-                </button>
+            <form id="supportRequestForm">
+                <div class="support-form-group">
+                    <label for="selectedSupportReason" class="support-label">Support Reason (Subject)</label>
+                    <select id="selectedSupportReason" name="support_reason" class="support-input" required>
+                        <option value="" disabled selected>Select a reason...</option>
+                        <option value="equipment_needed">Equipment Needed</option>
+                        <option value="extra_manpower_needed">Extra Manpower Needed</option>
+                        <option value="location_access_problem">Location / Access Problem</option>
+                        <option value="complaint_info_unclear">Complaint Info Unclear</option>
+                        <option value="safety_risk">Safety Risk</option>
+                        <option value="large_work_scope">Large Work Scope</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
 
-                <button type="button" class="support-reason-btn" data-reason="extra_manpower_needed">
-                    <i class="bi bi-people"></i>
-                    <span>Extra Manpower Needed</span>
-                </button>
+                <div class="support-form-group" id="otherReasonGroup" style="display: none; margin-top: 15px;">
+                    <label for="otherReasonInput" class="support-label">Write your support reason</label>
+                    <input type="text" id="otherReasonInput" name="other_reason" class="support-input" placeholder="Specify your reason">
+                </div>
 
-                <button type="button" class="support-reason-btn" data-reason="location_access_problem">
-                    <i class="bi bi-geo-alt"></i>
-                    <span>Location / Access Problem</span>
-                </button>
+                <div class="support-form-group" id="supportDetailsGroup" style="display: none; margin-top: 15px;">
+                    <label for="supportDetailsInput" class="support-label">Support Details / Issue Description</label>
+                    <textarea id="supportDetailsInput" name="support_details" class="support-textarea" placeholder="Explain what support is needed for this task..." required rows="4"></textarea>
+                </div>
 
-                <button type="button" class="support-reason-btn" data-reason="complaint_info_unclear">
-                    <i class="bi bi-question-circle"></i>
-                    <span>Complaint Info Unclear</span>
-                </button>
-
-                <button type="button" class="support-reason-btn" data-reason="safety_risk">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <span>Safety Risk</span>
-                </button>
-
-                <button type="button" class="support-reason-btn" data-reason="large_work_scope">
-                    <i class="bi bi-diagram-3"></i>
-                    <span>Large Work Scope</span>
-                </button>
-            </div>
-
-            <div class="support-modal-actions">
-                <button type="button" class="support-cancel-btn" data-close-support-modal>
-                    Cancel
-                </button>
-            </div>
+                <div class="support-modal-actions" style="margin-top: 20px;">
+                    <button type="button" class="support-cancel-btn" data-close-support-modal>
+                        Cancel
+                    </button>
+                    <button type="submit" class="support-submit-btn" id="submitSupportBtn" disabled>
+                        Submit Request
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

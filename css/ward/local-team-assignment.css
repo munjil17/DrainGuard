@@ -1,9 +1,9 @@
 /* ==================================================
    DRAINGUARD - WARD LOCAL TEAM ASSIGNMENT
-   Sidebar/topbar untouched
-   Form layout fixed like reference screenshot
+   Responsive: mobile / tablet / laptop / desktop / large
 ================================================== */
 
+/* ---- Page shell ---- */
 .lta-page {
     width: 100%;
     min-height: calc(100vh - 76px);
@@ -12,10 +12,16 @@
     overflow-x: hidden;
 }
 
+.lta-page *,
+.lta-card *,
+.lta-toolbar *,
+.lta-assign-form * {
+    box-sizing: border-box;
+}
+
 /* ==================================================
    HEADER
 ================================================== */
-
 .lta-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 260px;
@@ -67,7 +73,6 @@
 /* ==================================================
    ALERT
 ================================================== */
-
 .lta-alert {
     margin-bottom: 20px;
     padding: 14px 16px;
@@ -76,6 +81,7 @@
     align-items: center;
     gap: 10px;
     font-weight: 800;
+    font-size: 14px;
 }
 
 .lta-success {
@@ -91,9 +97,8 @@
 }
 
 /* ==================================================
-   SUMMARY
+   SUMMARY CARDS
 ================================================== */
-
 .lta-summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -147,13 +152,9 @@
 }
 
 /* ==================================================
-   TOOLBAR
+   TOOLBAR  (search only — no priority tab)
 ================================================== */
-
 .lta-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 220px;
-    gap: 16px;
     margin-bottom: 22px;
     padding: 18px;
     border-radius: 18px;
@@ -164,7 +165,7 @@
 
 .lta-search-box {
     position: relative;
-    min-width: 0;
+    width: 100%;
 }
 
 .lta-search-box i {
@@ -177,37 +178,26 @@
     pointer-events: none;
 }
 
-.lta-search-box input,
-.lta-toolbar select {
+.lta-search-box input {
     width: 100%;
     height: 54px;
+    padding: 0 18px 0 52px;
     border: 1.6px solid #D7E2EF;
     border-radius: 14px;
     background: #FFFFFF;
     color: #020617;
     font-size: 15px;
     outline: none;
-    box-sizing: border-box;
 }
 
-.lta-search-box input {
-    padding: 0 18px 0 52px;
-}
-
-.lta-toolbar select {
-    padding: 0 14px;
-}
-
-.lta-search-box input:focus,
-.lta-toolbar select:focus {
+.lta-search-box input:focus {
     border-color: #6FA79B;
     box-shadow: 0 0 0 4px rgba(111, 167, 155, 0.14);
 }
 
 /* ==================================================
-   LIST
+   COMPLAINT LIST
 ================================================== */
-
 .lta-list {
     display: flex;
     flex-direction: column;
@@ -220,71 +210,61 @@
     background: #FFFFFF;
     border: 1px solid #DDE6F0;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    transition: box-shadow 0.2s ease;
 }
 
+.lta-card:hover {
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.11);
+}
+
+/* Card top row */
 .lta-card-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 12px;
     flex-wrap: wrap;
     margin-bottom: 16px;
 }
 
+.lta-card-top-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .lta-code {
-    display: inline-flex;
-    margin-right: 10px;
     color: #6FA79B;
     font-weight: 800;
     letter-spacing: 0.02em;
+    font-size: 15px;
 }
 
 .lta-priority,
 .lta-status {
     display: inline-flex;
-    padding: 7px 12px;
+    padding: 5px 12px;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
     white-space: nowrap;
 }
 
-.lta-priority.low {
-    background: #DCFCE7;
-    color: #15803D;
-}
-
-.lta-priority.medium {
-    background: #FEF3C7;
-    color: #B45309;
-}
-
-.lta-priority.high {
-    background: #FFE4E6;
-    color: #BE123C;
-}
+.lta-priority.low    { background: #DCFCE7; color: #15803D; }
+.lta-priority.medium { background: #FEF3C7; color: #B45309; }
+.lta-priority.high   { background: #FFE4E6; color: #BE123C; }
 
 .lta-status {
     background: #D1FAE5;
     color: #047857;
 }
 
-/* ==================================================
-   CARD BODY
-   Complaint info top
-   Assignment form below, full width
-================================================== */
-
+/* Card body */
 .lta-card-body {
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
-    align-items: stretch;
-}
-
-.lta-complaint-info {
-    width: 100%;
-    min-width: 0;
 }
 
 .lta-complaint-info h2 {
@@ -299,39 +279,37 @@
     color: #334155;
     font-size: 15px;
     line-height: 1.55;
+    overflow-wrap: anywhere;
 }
 
 .lta-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 14px;
     color: #334155;
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-size: 13px;
 }
 
 .lta-meta span {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 
 /* ==================================================
    ASSIGNMENT FORM
-   Layout only changed; color stays from existing theme
 ================================================== */
-
 .lta-assign-form {
     width: 100%;
-    padding: 0;
-    border: none;
-    background: transparent;
-    border-radius: 0;
+    background: #F8FAFC;
+    border: 1px solid #E2ECF4;
+    border-radius: 16px;
+    padding: 20px;
 }
 
 .lta-form-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
     margin-bottom: 14px;
 }
@@ -341,49 +319,53 @@
     min-width: 0;
 }
 
+.lta-form-group:last-child {
+    margin-bottom: 0;
+}
+
 .lta-form-group label {
     display: block;
     margin-bottom: 8px;
     color: #0F172A;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
 }
 
 .lta-form-group select,
-.lta-form-group input,
+.lta-form-group input[type="date"],
 .lta-form-group textarea {
     width: 100%;
     border: 1.6px solid #D7E2EF;
     border-radius: 12px;
     background: #FFFFFF;
     color: #0F172A;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     outline: none;
-    box-sizing: border-box;
     transition: 0.22s ease;
 }
 
 .lta-form-group select,
-.lta-form-group input {
-    height: 52px;
-    padding: 0 16px;
+.lta-form-group input[type="date"] {
+    height: 48px;
+    padding: 0 14px;
 }
 
 .lta-form-group textarea {
-    min-height: 68px;
-    max-height: 120px;
+    min-height: 72px;
+    max-height: 140px;
     resize: vertical;
-    padding: 16px;
+    padding: 14px;
+    font-family: inherit;
 }
 
 .lta-form-group textarea::placeholder {
     color: #94A3B8;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .lta-form-group select:focus,
-.lta-form-group input:focus,
+.lta-form-group input[type="date"]:focus,
 .lta-form-group textarea:focus {
     border-color: #6FA79B;
     box-shadow: 0 0 0 4px rgba(111, 167, 155, 0.14);
@@ -392,7 +374,7 @@
 .lta-assign-btn {
     width: 100%;
     height: 48px;
-    margin-top: 8px;
+    margin-top: 6px;
     border: none;
     border-radius: 12px;
     background: #6FA79B;
@@ -403,11 +385,11 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: 0.22s ease;
     cursor: pointer;
+    transition: background 0.22s ease, transform 0.18s ease;
 }
 
-.lta-assign-btn:hover {
+.lta-assign-btn:hover:not(:disabled) {
     background: #5A9186;
     transform: translateY(-1px);
 }
@@ -416,13 +398,11 @@
     background: #CBD5E1;
     color: #FFFFFF;
     cursor: not-allowed;
-    transform: none;
 }
 
 /* ==================================================
-   EMPTY
+   EMPTY STATES
 ================================================== */
-
 .lta-empty {
     padding: 60px 24px;
     text-align: center;
@@ -450,29 +430,29 @@
 }
 
 /* ==================================================
-   SAFETY
+   RESPONSIVE — Large Desktop (1400+)
 ================================================== */
-
-.lta-page *,
-.lta-card *,
-.lta-toolbar *,
-.lta-assign-form * {
-    box-sizing: border-box;
-}
-
-/* ==================================================
-   RESPONSIVE
-================================================== */
-
-@media (max-width: 1200px) {
-    .lta-card-body {
-        grid-template-columns: 1fr;
+@media (min-width: 1400px) {
+    .lta-page {
+        padding: 36px 48px;
     }
 }
 
+/* ==================================================
+   RESPONSIVE — Tablet / Small Laptop (≤ 1100px)
+================================================== */
+@media (max-width: 1100px) {
+    .lta-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ==================================================
+   RESPONSIVE — Tablet (≤ 992px)
+================================================== */
 @media (max-width: 992px) {
     .lta-page {
-        padding: 24px;
+        padding: 24px 20px;
     }
 
     .lta-header {
@@ -481,14 +461,24 @@
 
     .lta-location-card {
         width: 100%;
+        max-width: 400px;
     }
 
     .lta-summary-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* ==================================================
+   RESPONSIVE — Mobile Landscape / Small Tablet (≤ 768px)
+================================================== */
+@media (max-width: 768px) {
+    .lta-summary-grid {
+        grid-template-columns: 1fr 1fr;
     }
 
-    .lta-toolbar {
-        grid-template-columns: 1fr;
+    .lta-summary-grid .lta-summary-card:last-child {
+        grid-column: 1 / -1;
     }
 
     .lta-form-grid {
@@ -496,30 +486,163 @@
     }
 }
 
+/* ==================================================
+   RESPONSIVE — Mobile (≤ 576px)
+================================================== */
 @media (max-width: 576px) {
     .lta-page {
-        padding: 18px 14px;
+        padding: 16px 14px;
     }
 
     .lta-header h1 {
         font-size: 24px;
     }
 
+    .lta-header p {
+        font-size: 14px;
+    }
+
+    .lta-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lta-summary-card {
+        padding: 16px;
+    }
+
     .lta-card {
-        padding: 20px;
+        padding: 18px 16px;
     }
 
     .lta-card-top {
-        align-items: flex-start;
         flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .lta-complaint-info h2 {
+        font-size: 17px;
+    }
+
+    .lta-assign-form {
+        padding: 16px;
     }
 
     .lta-form-group select,
-    .lta-form-group input {
-        height: 48px;
+    .lta-form-group input[type="date"] {
+        height: 46px;
     }
 
     .lta-assign-btn {
-        height: 48px;
+        height: 46px;
+        font-size: 14px;
     }
+
+    .lta-search-box input {
+        height: 48px;
+        font-size: 14px;
+    }
+}
+
+/* ==================================================
+   Custom Confirm Modal
+================================================== */
+.lta-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.lta-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lta-modal-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.lta-modal-overlay.active .lta-modal-box {
+    transform: translateY(0);
+}
+
+.lta-modal-icon {
+    width: 48px;
+    height: 48px;
+    background: #EFF6FF;
+    color: #3B82F6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 16px auto;
+}
+
+.lta-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 8px;
+}
+
+.lta-modal-desc {
+    font-size: 14px;
+    color: #64748B;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.lta-modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.lta-modal-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lta-modal-cancel {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.lta-modal-cancel:hover {
+    background: #E2E8F0;
+    color: #1E293B;
+}
+
+.lta-modal-confirm {
+    background: #3B82F6;
+    color: white;
+}
+
+.lta-modal-confirm:hover {
+    background: #2563EB;
 }

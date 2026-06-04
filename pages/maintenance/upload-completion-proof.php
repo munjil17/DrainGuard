@@ -150,6 +150,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $complaintId = (int)$taskRow['complaint_id'];
     $maintenanceTeamId = (int)$taskRow['maintenance_team_id'];
 
+    $complaintCode = '';
+    $citizenUserId = 0;
+    $centralOfficerUserId = 0;
+    $wardOfficerUserId = 0;
+    $inspectorUserId = 0;
+
+    $fetchComplaintSql = "SELECT complaint_code, user_id, loc_id FROM complaints WHERE complaint_id = ?";
+    $stmtC = mysqli_prepare($conn, $fetchComplaintSql);
+    mysqli_stmt_bind_param($stmtC, "i", $complaintId);
+    mysqli_stmt_execute($stmtC);
+    $resC = mysqli_stmt_get_result($stmtC);
+    $locId = 0;
+    if ($rowC = mysqli_fetch_assoc($resC)) {
+        $complaintCode = $rowC['complaint_code'];
+        $citizenUserId = (int)$rowC['user_id'];
+        $locId = (int)$rowC['loc_id'];
+    }
+    mysqli_stmt_close($stmtC);
+
+    $fetchCentralSql = "SELECT assigned_by FROM complaint_assignments WHERE complaint_id = ? AND assignment_status = 'ward_assigned' LIMIT 1";
+    $stmtCentral = mysqli_prepare($conn, $fetchCentralSql);
+    mysqli_stmt_bind_param($stmtCentral, "i", $complaintId);
+    mysqli_stmt_execute($stmtCentral);
+    $resCentral = mysqli_stmt_get_result($stmtCentral);
+    if ($rowCentral = mysqli_fetch_assoc($resCentral)) {
+        $centralOfficerUserId = (int)$rowCentral['assigned_by'];
+    }
+    mysqli_stmt_close($stmtCentral);
+
+    if ($locId > 0) {
+        $fetchWardOfficerSql = "
+            SELECT wo.user_id 
+            FROM locations l
+            JOIN ward_officers wo ON wo.assigned_ward_id = l.ward_id AND wo.city_cor_id = l.city_cor_id
+            WHERE l.loc_id = ? LIMIT 1
+        ";
+        $stmtWo = mysqli_prepare($conn, $fetchWardOfficerSql);
+        mysqli_stmt_bind_param($stmtWo, "i", $locId);
+        mysqli_stmt_execute($stmtWo);
+        $resWo = mysqli_stmt_get_result($stmtWo);
+        if ($rowWo = mysqli_fetch_assoc($resWo)) {
+            $wardOfficerUserId = (int)$rowWo['user_id'];
+        }
+        mysqli_stmt_close($stmtWo);
+
+        $fetchInspectorSql = "
+            SELECT i.user_id 
+            FROM locations l
+            JOIN inspectors i ON i.assigned_ward_id = l.ward_id AND i.city_cor_id = l.city_cor_id
+            WHERE l.loc_id = ? LIMIT 1
+        ";
+        $stmtInsp = mysqli_prepare($conn, $fetchInspectorSql);
+        mysqli_stmt_bind_param($stmtInsp, "i", $locId);
+        mysqli_stmt_execute($stmtInsp);
+        $resInsp = mysqli_stmt_get_result($stmtInsp);
+        if ($rowInsp = mysqli_fetch_assoc($resInsp)) {
+            $inspectorUserId = (int)$rowInsp['user_id'];
+        }
+        mysqli_stmt_close($stmtInsp);
+    }
+
     /* Duplicate proof prevention */
     $checkProofSql = "
         SELECT proof_id
@@ -359,6 +420,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         }
 
         mysqli_stmt_close($updateTeamStmt);
+
+        $notifTime = date('Y-m-d H:i:s');
+        $maintenanceTeamName = $teamInfo['team_name'];
+
+        if ($citizenUserId > 0) {
+            $msgC = "Your complaint completion proof has been submitted for inspection.";
+            $insC = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Proof Submitted', ?, 0, ?)");
+            mysqli_stmt_bind_param($insC, "iiiss", $citizenUserId, $userId, $complaintId, $msgC, $notifTime);
+            mysqli_stmt_execute($insC);
+            mysqli_stmt_close($insC);
+        }
+
+        if ($centralOfficerUserId > 0) {
+            $msgCent = "Maintenance team {$maintenanceTeamName} submitted completion proof for a complaint.";
+            $insCent = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Proof Submitted', ?, 0, ?)");
+            mysqli_stmt_bind_param($insCent, "iiiss", $centralOfficerUserId, $userId, $complaintId, $msgCent, $notifTime);
+            mysqli_stmt_execute($insCent);
+            mysqli_stmt_close($insCent);
+        }
+
+        if ($wardOfficerUserId > 0) {
+            $msgWard = "Maintenance team {$maintenanceTeamName} submitted completion proof for your assigned complaint.";
+            $insWard = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Proof Submitted', ?, 0, ?)");
+            mysqli_stmt_bind_param($insWard, "iiiss", $wardOfficerUserId, $userId, $complaintId, $msgWard, $notifTime);
+            mysqli_stmt_execute($insWard);
+            mysqli_stmt_close($insWard);
+        }
+
+        if ($inspectorUserId > 0) {
+            $msgInsp = "A solved-by-team case is ready for inspection.";
+            $insInsp = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Inspection Required', ?, 0, ?)");
+            mysqli_stmt_bind_param($insInsp, "iiiss", $inspectorUserId, $userId, $complaintId, $msgInsp, $notifTime);
+            mysqli_stmt_execute($insInsp);
+            mysqli_stmt_close($insInsp);
+        }
 
         mysqli_commit($conn);
 

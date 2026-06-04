@@ -97,8 +97,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const supportModal = document.getElementById("supportModal");
     const supportButtons = document.querySelectorAll(".need-support-btn");
     const closeSupportButtons = document.querySelectorAll("[data-close-support-modal]");
-    const supportReasonButtons = document.querySelectorAll(".support-reason-btn");
-    const supportComplaintCode = document.getElementById("supportComplaintCode");
+    const supportReasonSelect = document.getElementById("selectedSupportReason");
+    const otherReasonGroup = document.getElementById("otherReasonGroup");
+    const otherReasonInput = document.getElementById("otherReasonInput");
+    const supportDetailsInput = document.getElementById("supportDetailsInput");
+    const submitSupportBtn = document.getElementById("submitSupportBtn");
+    const supportForm = document.getElementById("supportRequestForm");
 
     let activeSupportAssignmentId = null;
 
@@ -108,12 +112,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         activeSupportAssignmentId = button.getAttribute("data-assignment-id");
-
         const complaintCode = button.getAttribute("data-complaint-code") || "Complaint";
 
         if (supportComplaintCode) {
             supportComplaintCode.textContent = complaintCode;
         }
+
+        // Reset form state
+        if (supportForm) supportForm.reset();
+        if (supportReasonSelect) supportReasonSelect.value = "";
+        if (otherReasonGroup) otherReasonGroup.style.display = "none";
+        if (otherReasonInput) otherReasonInput.required = false;
+        
+        const detailsGroup = document.getElementById("supportDetailsGroup");
+        if (detailsGroup) detailsGroup.style.display = "none";
+        
+        if (submitSupportBtn) submitSupportBtn.disabled = true;
 
         supportModal.classList.add("is-open");
         supportModal.setAttribute("aria-hidden", "false");
@@ -141,21 +155,45 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", closeSupportModal);
     });
 
-    supportReasonButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-            const reason = button.getAttribute("data-reason");
+    if (supportReasonSelect) {
+        supportReasonSelect.addEventListener("change", function () {
+            const reason = supportReasonSelect.value;
+            
+            const detailsGroup = document.getElementById("supportDetailsGroup");
+            if (detailsGroup) detailsGroup.style.display = "block";
 
-            if (!activeSupportAssignmentId || !reason) {
+            // Enable submit button
+            if (submitSupportBtn) submitSupportBtn.disabled = false;
+
+            if (reason === "others") {
+                if (otherReasonGroup) otherReasonGroup.style.display = "block";
+                if (otherReasonInput) otherReasonInput.required = true;
+            } else {
+                if (otherReasonGroup) otherReasonGroup.style.display = "none";
+                if (otherReasonInput) {
+                    otherReasonInput.required = false;
+                    otherReasonInput.value = "";
+                }
+            }
+        });
+    }
+
+    if (supportForm) {
+        supportForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            if (!activeSupportAssignmentId) {
                 alert("Support request data missing.");
                 return;
             }
 
-            const formData = new FormData();
+            const formData = new FormData(supportForm);
             formData.append("assignment_id", activeSupportAssignmentId);
-            formData.append("support_reason", reason);
 
-            button.classList.add("is-loading");
-            button.disabled = true;
+            if (submitSupportBtn) {
+                submitSupportBtn.classList.add("is-loading");
+                submitSupportBtn.disabled = true;
+            }
 
             fetch("../../notifications/send_maintenance_support_request.php", {
                 method: "POST",
@@ -169,17 +207,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (data.success) {
                         closeSupportModal();
+                        window.location.reload(); // Reload to show the new request in UI
                     }
                 })
                 .catch(function () {
                     alert("Failed to send support request.");
                 })
                 .finally(function () {
-                    button.classList.remove("is-loading");
-                    button.disabled = false;
+                    if (submitSupportBtn) {
+                        submitSupportBtn.classList.remove("is-loading");
+                        submitSupportBtn.disabled = false;
+                    }
                 });
         });
-    });
+    }
 
     document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {

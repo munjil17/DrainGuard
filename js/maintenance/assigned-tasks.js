@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("taskSearchInput");
-    const priorityFilter = document.getElementById("priorityFilter");
     const wardFilter = document.getElementById("wardFilter");
     const areaFilter = document.getElementById("areaFilter");
     const sortFilter = document.getElementById("sortFilter");
@@ -71,7 +70,6 @@ document.addEventListener("DOMContentLoaded", function () {
         syncAreaOptionsWithWard();
 
         const searchValue = searchInput ? searchInput.value.trim().toLowerCase() : "";
-        const priorityValue = priorityFilter ? priorityFilter.value : "all";
         const wardValue = wardFilter ? wardFilter.value : "all";
         const areaValue = areaFilter ? areaFilter.value : "all";
         const sortValue = sortFilter ? sortFilter.value : "priority";
@@ -80,12 +78,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         cards.forEach(function (card) {
             const searchableText = card.getAttribute("data-search") || "";
-            const cardPriority = card.getAttribute("data-priority") || "";
             const cardWardId = card.getAttribute("data-ward-id") || "";
             const cardAreaId = card.getAttribute("data-area-id") || "";
 
             const matchesSearch = searchableText.includes(searchValue);
-            const matchesPriority = priorityValue === "all" || cardPriority === priorityValue;
             const matchesWard = wardValue === "all" || cardWardId === wardValue;
             const matchesArea = areaValue === "all" || cardAreaId === areaValue;
 
@@ -96,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             card.style.display =
-                matchesSearch && matchesPriority && matchesWard && matchesArea && matchesDeadlineMode
+                matchesSearch && matchesWard && matchesArea && matchesDeadlineMode
                     ? "grid"
                     : "none";
         });
@@ -133,7 +129,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (searchInput) searchInput.addEventListener("input", filterAndSortTasks);
-    if (priorityFilter) priorityFilter.addEventListener("change", filterAndSortTasks);
     if (wardFilter) wardFilter.addEventListener("change", filterAndSortTasks);
     if (areaFilter) areaFilter.addEventListener("change", filterAndSortTasks);
     if (sortFilter) sortFilter.addEventListener("change", filterAndSortTasks);
@@ -240,8 +235,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const supportModal = document.getElementById("supportModal");
     const supportButtons = document.querySelectorAll(".need-support-btn");
     const closeSupportButtons = document.querySelectorAll("[data-close-support-modal]");
-    const supportReasonButtons = document.querySelectorAll(".support-reason-btn");
-    const supportComplaintCode = document.getElementById("supportComplaintCode");
+    const supportReasonSelect = document.getElementById("selectedSupportReason");
+    const otherReasonGroup = document.getElementById("otherReasonGroup");
+    const otherReasonInput = document.getElementById("otherReasonInput");
+    const supportDetailsInput = document.getElementById("supportDetailsInput");
+    const submitSupportBtn = document.getElementById("submitSupportBtn");
+    const supportForm = document.getElementById("supportRequestForm");
 
     let activeSupportAssignmentId = null;
 
@@ -249,12 +248,22 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!supportModal) return;
 
         activeSupportAssignmentId = button.getAttribute("data-assignment-id");
-
         const complaintCode = button.getAttribute("data-complaint-code") || "Complaint";
 
         if (supportComplaintCode) {
             supportComplaintCode.textContent = complaintCode;
         }
+
+        // Reset form state
+        if (supportForm) supportForm.reset();
+        if (supportReasonSelect) supportReasonSelect.value = "";
+        if (otherReasonGroup) otherReasonGroup.style.display = "none";
+        if (otherReasonInput) otherReasonInput.required = false;
+        
+        const detailsGroup = document.getElementById("supportDetailsGroup");
+        if (detailsGroup) detailsGroup.style.display = "none";
+        
+        if (submitSupportBtn) submitSupportBtn.disabled = true;
 
         supportModal.classList.add("is-open");
         supportModal.setAttribute("aria-hidden", "false");
@@ -280,45 +289,78 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", closeSupportModal);
     });
 
-    supportReasonButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-            const reason = button.getAttribute("data-reason");
+    if (supportReasonSelect) {
+        supportReasonSelect.addEventListener("change", function () {
+            const reason = supportReasonSelect.value;
+            
+            const detailsGroup = document.getElementById("supportDetailsGroup");
+            if (detailsGroup) detailsGroup.style.display = "block";
 
-            if (!activeSupportAssignmentId || !reason) {
+            // Enable submit button
+            if (submitSupportBtn) submitSupportBtn.disabled = false;
+
+            if (reason === "others") {
+                if (otherReasonGroup) otherReasonGroup.style.display = "block";
+                if (otherReasonInput) otherReasonInput.required = true;
+            } else {
+                if (otherReasonGroup) otherReasonGroup.style.display = "none";
+                if (otherReasonInput) {
+                    otherReasonInput.required = false;
+                    otherReasonInput.value = "";
+                }
+            }
+        });
+    }
+
+    if (supportForm) {
+        supportForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            if (!activeSupportAssignmentId) {
                 alert("Support request data missing.");
                 return;
             }
 
-            const formData = new FormData();
+            const formData = new FormData(supportForm);
             formData.append("assignment_id", activeSupportAssignmentId);
-            formData.append("support_reason", reason);
 
-            button.classList.add("is-loading");
-            button.disabled = true;
+            if (submitSupportBtn) {
+                submitSupportBtn.classList.add("is-loading");
+                submitSupportBtn.disabled = true;
+            }
 
             fetch("../../notifications/send_maintenance_support_request.php", {
                 method: "POST",
                 body: formData
             })
                 .then(function (response) {
-                    return response.json();
+                    return response.text().then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            throw new Error("Invalid JSON: " + text);
+                        }
+                    });
                 })
                 .then(function (data) {
                     alert(data.message || "Support request processed.");
 
                     if (data.success) {
                         closeSupportModal();
+                        window.location.reload(); // Reload to show the new request in UI
                     }
                 })
-                .catch(function () {
-                    alert("Failed to send support request.");
+                .catch(function (error) {
+                    alert("Failed to send support request. Error: " + error.message);
                 })
                 .finally(function () {
-                    button.classList.remove("is-loading");
-                    button.disabled = false;
+                    if (submitSupportBtn) {
+                        submitSupportBtn.classList.remove("is-loading");
+                        submitSupportBtn.disabled = false;
+                    }
                 });
         });
-    });
+    }
 
     const startButtons = document.querySelectorAll(".start-btn");
 

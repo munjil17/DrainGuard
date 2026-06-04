@@ -300,8 +300,15 @@ try {
             mu.completed_at,
             mu.delayed_at,
             mu.delay_reason,
-            mu.updated_at AS work_updated_at
+            mu.updated_at AS work_updated_at,
 
+            msr.support_request_id,
+            msr.support_reason,
+            msr.other_reason,
+            msr.support_details,
+            msr.request_status AS support_status,
+            msr.ward_reply,
+            msr.requested_at
         FROM complaints c
 
         INNER JOIN locations l
@@ -333,12 +340,24 @@ try {
         ) mu
             ON c.complaint_id = mu.complaint_id
 
+        LEFT JOIN (
+            SELECT msr1.*
+            FROM maintenance_support_requests msr1
+            INNER JOIN (
+                SELECT assignment_id, MAX(support_request_id) as latest_id
+                FROM maintenance_support_requests
+                WHERE request_status IN ('pending', 'seen', 'replied')
+                GROUP BY assignment_id
+            ) msr2 ON msr1.support_request_id = msr2.latest_id
+        ) msr
+            ON msr.assignment_id = ca.assignment_id
+
         WHERE l.ward_id = ?
         AND ca.maintenance_team_id IS NOT NULL
         AND (
-            c.complaint_status IN ('team_assigned', 'in_progress')
-            OR ca.assignment_status IN ('team_assigned', 'in_progress')
-            OR mu.work_status IN ('assigned', 'started', 'in_progress')
+            c.complaint_status = 'in_progress'
+            OR ca.assignment_status = 'in_progress'
+            OR mu.work_status IN ('started', 'in_progress')
         )
         AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'rejected', 'duplicate')
 
@@ -384,7 +403,6 @@ foreach ($inProgressCases as $caseItem) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/ward/sidebar.css">
     <link rel="stylesheet" href="../../css/ward/topbar.css">
-    <link rel="stylesheet" href="../../css/ward/footer.css">
     <link rel="stylesheet" href="../../css/ward/in-progress-cases.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
 </head>
@@ -545,13 +563,40 @@ foreach ($inProgressCases as $caseItem) {
                                     </td>
 
                                 </tr>
+                                
+                                <?php if ($case["support_request_id"]): ?>
+                                <tr class="ipc-support-row" style="background: #fff3cd;">
+                                    <td colspan="7" style="padding: 15px; border-top: none; border-bottom: 2px solid #ffe69c;">
+                                        <div class="lta-support-block" style="border: 1px solid #ffe69c; padding: 15px; border-radius: 6px; background: #fff;">
+                                            <h3 style="color: #664d03; font-size: 14px; margin-bottom: 10px; font-weight: 600;"><i class="bi bi-info-circle-fill"></i> Maintenance Team Support Request</h3>
+                                            <p style="margin-bottom: 5px; font-size: 14px;"><strong>Reason:</strong> <?= safeText($case["support_reason"] === 'others' ? $case["other_reason"] : str_replace('_', ' ', $case["support_reason"])); ?></p>
+                                            <p style="margin-bottom: 5px; font-size: 14px;"><strong>Details:</strong> <?= safeText($case["support_details"]); ?></p>
+                                            <p style="margin: 0; font-size: 14px;"><strong>Status:</strong> <span style="text-transform: capitalize; font-weight:600;"><?= safeText($case["support_status"]); ?></span></p>
+                                            
+                                            <?php if ($case["support_status"] === 'pending' || $case["support_status"] === 'seen'): ?>
+                                                <form method="POST" action="reply_support.php" style="margin-top: 15px;">
+                                                    <input type="hidden" name="support_request_id" value="<?= $case["support_request_id"]; ?>">
+                                                    <input type="hidden" name="redirect_to" value="in-progress-cases.php">
+                                                    <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team..." style="width:100%; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
+                                                    <button type="submit" style="margin-top: 10px; background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
+                                                </form>
+                                            <?php else: ?>
+                                                <div style="margin-top: 15px; background: #e2e3e5; padding: 10px; border-radius: 4px;">
+                                                    <p style="margin-bottom: 5px; font-size: 13px; color: #495057;"><strong>Your Reply:</strong></p>
+                                                    <p style="margin: 0; font-size: 14px;"><?= safeText($case["ward_reply"]); ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
-            <div class="ipc-empty <?= !empty($inProgressCases) ? 'd-none' : ''; ?>" id="ipcEmptyState">
+            <div class="ipc-empty" id="ipcEmptyState" <?= !empty($inProgressCases) ? 'style="display:none;"' : ''; ?>>
                 <i class="bi bi-inbox"></i>
                 <h2>No active cases found</h2>
                 <p>Assigned or in-progress complaints will appear here after team assignment.</p>
@@ -560,7 +605,6 @@ foreach ($inProgressCases as $caseItem) {
 
     </section>
 
-    <?php include "../../includes/ward/footer.php"; ?>
 </main>
 
 <script src="../../js/ward/sidebar.js"></script>

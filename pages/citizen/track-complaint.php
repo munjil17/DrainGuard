@@ -220,6 +220,14 @@ function makeMediaPath($path)
     return "../../" . ltrim($path, "/");
 }
 
+/*
+|--------------------------------------------------------------------------
+| Final Timeline Path Logic
+|--------------------------------------------------------------------------
+| This function defines the visible workflow path.
+| The current complaint_status controls the path.
+|--------------------------------------------------------------------------
+*/
 function buildFallbackTimeline($currentStatus)
 {
     $currentStatus = normalizeComplaintStatus($currentStatus);
@@ -533,29 +541,49 @@ if ($searchCode !== "") {
     }
 }
 
+/*
+|--------------------------------------------------------------------------
+| Timeline Construction
+|--------------------------------------------------------------------------
+| Fixed:
+| Logs are used only for timestamp/remarks.
+| Logs do not decide visible steps.
+| Visible steps always come from complaints.complaint_status path.
+|--------------------------------------------------------------------------
+*/
 $currentStatus = $complaint ? normalizeComplaintStatus($complaint["complaint_status"] ?? "submitted") : "";
 $timelineStatuses = [];
+$statusLogMap = [];
 
 if ($complaint) {
-    if (count($statusLogs) > 0) {
-        $seen = [];
+    foreach ($statusLogs as $log) {
+        $logStatus = normalizeComplaintStatus($log["new_status"] ?? "");
 
-        foreach ($statusLogs as $log) {
-            $status = normalizeComplaintStatus($log["new_status"]);
-
-            if ($status === "" || isset($seen[$status])) {
-                continue;
-            }
-
-            $timelineStatuses[] = $status;
-            $seen[$status] = true;
+        if ($logStatus === "") {
+            continue;
         }
 
-        if (!in_array($currentStatus, $timelineStatuses, true)) {
-            $timelineStatuses[] = $currentStatus;
+        if (!isset($statusLogMap[$logStatus])) {
+            $statusLogMap[$logStatus] = $log;
         }
-    } else {
-        $timelineStatuses = buildFallbackTimeline($currentStatus);
+    }
+
+    $timelineStatuses = buildFallbackTimeline($currentStatus);
+
+    if (!isset($statusLogMap["submitted"]) && !empty($complaint["submitted_at"])) {
+        $statusLogMap["submitted"] = [
+            "new_status" => "submitted",
+            "remarks" => timelineDescription("submitted"),
+            "created_at" => $complaint["submitted_at"]
+        ];
+    }
+
+    if (!isset($statusLogMap[$currentStatus]) && !empty($complaint["updated_at"])) {
+        $statusLogMap[$currentStatus] = [
+            "new_status" => $currentStatus,
+            "remarks" => timelineDescription($currentStatus),
+            "created_at" => $complaint["updated_at"]
+        ];
     }
 }
 
@@ -661,7 +689,7 @@ if ($complaint) {
 
                 <?php if ($hasDiscussionAccess): ?>
                     <div style="margin-bottom: 24px; text-align: right;">
-                        <a href="discussion.php?id=<?php echo $complaint['complaint_id']; ?>" class="cm-discussion-btn" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; transition: background 0.2s;">
+                        <a href="discussion.php?id=<?php echo (int)$complaint['complaint_id']; ?>" class="cm-discussion-btn" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; transition: background 0.2s;">
                             <i class="bi bi-chat-dots"></i> Open Discussion
                         </a>
                     </div>
@@ -763,7 +791,7 @@ if ($complaint) {
                                     $stepClass .= " " . $specialClass;
                                 }
 
-                                $logData = $statusLogs[$index] ?? null;
+                                $logData = $statusLogMap[$status] ?? null;
                                 $remarks = $logData["remarks"] ?? "";
                                 $createdAt = $logData["created_at"] ?? "";
                             ?>
@@ -1030,8 +1058,6 @@ if ($complaint) {
                     <?php endif; ?>
                 </div>
 
-
-
             <?php endif; ?>
 
         </section>
@@ -1041,8 +1067,6 @@ if ($complaint) {
 </div>
 
 <script src="../../js/citizen/sidebar.js"></script>
-
-
 
 </body>
 </html>

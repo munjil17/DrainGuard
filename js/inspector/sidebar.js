@@ -51,3 +51,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Notification Dropdown Click Behavior
+    const notificationDetails = document.querySelector(".topbar-notification");
+    if (notificationDetails) {
+        document.addEventListener("click", function(event) {
+            // If click is outside the <details> element entirely
+            if (!notificationDetails.contains(event.target)) {
+                notificationDetails.removeAttribute("open");
+            }
+        });
+        
+        // Prevent closing when clicking INSIDE the dropdown (unless it is a link)
+        const dropdown = notificationDetails.querySelector(".notification-dropdown");
+        if (dropdown) {
+            dropdown.addEventListener("click", function(event) {
+                // Let links work normally
+                if (event.target.closest("a")) return;
+            });
+        }
+    }
+});

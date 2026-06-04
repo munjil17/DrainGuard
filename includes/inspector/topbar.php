@@ -109,6 +109,98 @@ function inspectorTopbarImagePath($path)
 }
 
 $topbarProfileImageSrc = inspectorTopbarImagePath($topbarProfileImage);
+
+/* ==========================================================================
+   Notification Logic
+   ========================================================================== */
+if (!function_exists('inspectorTopbarSafeText')) {
+    function inspectorTopbarSafeText($text) {
+        if ($text === null) return '';
+        return htmlspecialchars(trim((string)$text), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('inspector_topbar_time_ago')) {
+    function inspector_topbar_time_ago($datetime) {
+        if (empty($datetime)) return "Unknown";
+        $time = strtotime($datetime);
+        if (!$time) return "Unknown";
+
+        $diff = time() - $time;
+        if ($diff < 60) return "Just now";
+        if ($diff < 3600) return floor($diff / 60) . "m ago";
+        if ($diff < 86400) return floor($diff / 3600) . "h ago";
+        if ($diff < 604800) return floor($diff / 86400) . "d ago";
+        return date("M j", $time);
+    }
+}
+
+if (!function_exists('inspector_notification_icon')) {
+    function inspector_notification_icon($type) {
+        $type = strtolower(trim((string)$type));
+        if (in_array($type, ['verification_assigned', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
+        if (in_array($type, ['system', 'alert'])) return 'bi-exclamation-triangle';
+        if ($type === 'comment_reply') return 'bi-chat-dots';
+        return 'bi-bell';
+    }
+}
+
+if (!function_exists('inspector_notification_type_class')) {
+    function inspector_notification_type_class($type) {
+        $type = strtolower(trim((string)$type));
+        if (in_array($type, ['verification_assigned', 'status_update', 'verified', 'rejected'])) return 'type-track';
+        if (in_array($type, ['system', 'alert'])) return 'type-objection';
+        if ($type === 'comment_reply') return 'type-reply';
+        return 'type-system';
+    }
+}
+
+$inspectorUnreadNotificationCount = 0;
+$inspectorTopbarNotifications = [];
+
+if (isset($conn) && $conn instanceof mysqli && $topbarUserId > 0) {
+    $unreadSql = "SELECT COUNT(*) AS unread_total FROM inspector_notifications WHERE is_read = 0 AND recipient_user_id = ?";
+    $unreadStmt = mysqli_prepare($conn, $unreadSql);
+    if ($unreadStmt) {
+        mysqli_stmt_bind_param($unreadStmt, "i", $topbarUserId);
+        mysqli_stmt_execute($unreadStmt);
+        $unreadResult = mysqli_stmt_get_result($unreadStmt);
+        if ($unreadResult) {
+            $unreadRow = mysqli_fetch_assoc($unreadResult);
+            $inspectorUnreadNotificationCount = (int)($unreadRow['unread_total'] ?? 0);
+        }
+        mysqli_stmt_close($unreadStmt);
+    }
+
+    $notificationSql = "
+        SELECT 
+            inn.notification_id,
+            inn.related_complaint_id,
+            inn.notification_type,
+            inn.notification_title,
+            inn.notification_message,
+            inn.is_read,
+            inn.created_at,
+            c.complaint_code
+        FROM inspector_notifications inn
+        LEFT JOIN complaints c ON inn.related_complaint_id = c.complaint_id
+        WHERE inn.recipient_user_id = ?
+        ORDER BY inn.created_at DESC, inn.notification_id DESC
+        LIMIT 10
+    ";
+    $notificationStmt = mysqli_prepare($conn, $notificationSql);
+    if ($notificationStmt) {
+        mysqli_stmt_bind_param($notificationStmt, "i", $topbarUserId);
+        mysqli_stmt_execute($notificationStmt);
+        $notificationResult = mysqli_stmt_get_result($notificationStmt);
+        if ($notificationResult) {
+            while ($row = mysqli_fetch_assoc($notificationResult)) {
+                $inspectorTopbarNotifications[] = $row;
+            }
+        }
+        mysqli_stmt_close($notificationStmt);
+    }
+}
 ?>
 
 <header class="topbar">
@@ -128,12 +220,81 @@ $topbarProfileImageSrc = inspectorTopbarImagePath($topbarProfileImage);
 
     <div class="topbar-right">
 
-        <button type="button" class="notification-btn" aria-label="Notifications">
-            <i class="bi bi-bell"></i>
-            <span></span>
-        </button>
+        <details class="topbar-notification">
+            <summary class="notification-btn" aria-label="Notifications">
+                <i class="bi bi-bell"></i>
 
-        <a href="profile.php" class="topbar-user">
+                <?php if ($inspectorUnreadNotificationCount > 0): ?>
+                    <em class="notification-count" style="width: 18px; height: 18px; border-radius: 50%; background: #EF4444; position: absolute; top: 0px; right: 0px; color: white; font-size: 10px; display: flex; align-items: center; justify-content: center; font-style: normal; font-weight: 700;">
+                        <?php echo $inspectorUnreadNotificationCount > 99 ? '99+' : (int)$inspectorUnreadNotificationCount; ?>
+                    </em>
+                <?php endif; ?>
+            </summary>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <div>
+                        <h4>Notifications</h4>
+                        <p>
+                            <?php if ($inspectorUnreadNotificationCount > 0): ?>
+                                <?php echo (int)$inspectorUnreadNotificationCount; ?> unread notification(s)
+                            <?php else: ?>
+                                No unread notifications
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="notification-list">
+                    <?php if (count($inspectorTopbarNotifications) > 0): ?>
+
+                        <?php foreach ($inspectorTopbarNotifications as $notification): ?>
+                            <?php
+                                $notificationType = strtolower(trim((string)$notification['notification_type']));
+                                $notificationClass = inspector_notification_type_class($notificationType);
+                                $notificationIcon = inspector_notification_icon($notificationType);
+                                $isUnread = ((int)$notification['is_read'] === 0);
+
+                                $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
+                                if (!empty($notification['complaint_code'])) {
+                                    $notificationLink .= '&redirect=tasks'; // Or whatever page handles tasks
+                                }
+                            ?>
+
+                            <a
+                                class="notification-item <?php echo $isUnread ? 'unread' : 'read'; ?> <?php echo inspectorTopbarSafeText($notificationClass); ?>"
+                                href="<?php echo inspectorTopbarSafeText($notificationLink); ?>"
+                            >
+                                <span class="notification-icon">
+                                    <i class="bi <?php echo inspectorTopbarSafeText($notificationIcon); ?>"></i>
+                                </span>
+
+                                <span class="notification-content">
+                                    <strong><?php echo inspectorTopbarSafeText($notification['notification_title']); ?></strong>
+                                    <small><?php echo inspectorTopbarSafeText($notification['notification_message']); ?></small>
+                                    <b><?php echo inspector_topbar_time_ago($notification['created_at']); ?></b>
+                                </span>
+                            </a>
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+                        <div class="notification-empty">
+                            <i class="bi bi-bell-slash"></i>
+                            <h5>All caught up!</h5>
+                            <p>You have no new notifications.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="notification-dropdown-footer">
+                    <a href="notifications.php">
+                        View All Notifications <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <a href="profile.php" class="topbar-user" style="text-decoration: none;">
 
             <div class="topbar-user-info">
                 <h4><?php echo inspectorTopbarText($topbarUserName); ?></h4>

@@ -27,9 +27,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (emptyState) {
             if (visibleCount === 0) {
-                emptyState.classList.remove("d-none");
+                emptyState.style.display = "";
             } else {
-                emptyState.classList.add("d-none");
+                emptyState.style.display = "none";
             }
         }
     }
