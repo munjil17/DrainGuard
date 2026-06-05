@@ -136,7 +136,7 @@ function addDemerit($conn, $userId, $memberId, $userRole, $subjectType, $complai
     // Insert Record
     $insRecord = mysqli_prepare($conn, "INSERT INTO disciplinary_records 
         (user_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, demerit_points_added, total_demerit_points_after, suspension_count_after, ban_count_after, start_at, end_at, created_by_user_id, created_by_role) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)");
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)");
     if (!$insRecord) {
         throw new Exception("Prepare failed: " . mysqli_error($conn));
     }
