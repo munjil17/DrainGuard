@@ -151,16 +151,21 @@
 .lr-table-responsive {
     width: 100%;
     overflow-x: auto;
+    max-height: 65vh;
+    overflow-y: auto;
 }
 
 .lr-table {
     width: 100%;
-    min-width: 900px;
+    min-width: 800px;
     border-collapse: collapse;
 }
 
-.lr-table thead {
+.lr-table thead th {
     background: #F8FAFC;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .lr-table th {
@@ -180,7 +185,7 @@
     font-size: 14px;
     font-weight: 500;
     border-bottom: 1px solid #E2E8F0;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .lr-table tbody tr:last-child td {

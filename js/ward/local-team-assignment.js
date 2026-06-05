@@ -72,39 +72,39 @@ document.addEventListener("DOMContentLoaded", function () {
             const prioritySelect = form.querySelector('input[name="assignment_priority"]');
 
             if (!teamSelect || !deadlineInput || !prioritySelect) {
-                alert("Assignment form is incomplete.");
+                showWarningModal("Assignment form is incomplete.");
                 return;
             }
 
             if (!teamSelect.value) {
-                alert("Please select a maintenance team.");
+                showWarningModal("Please select a maintenance team.");
                 teamSelect.focus();
                 return;
             }
 
             if (!deadlineInput.value) {
-                alert("Please select a deadline.");
+                showWarningModal("Please select a deadline.");
                 deadlineInput.focus();
                 return;
             }
 
             if (!["Low", "Medium", "High"].includes(prioritySelect.value)) {
-                alert("Invalid priority value.");
+                showWarningModal("Invalid priority value.");
                 return;
             }
 
             const teamName = teamSelect.options[teamSelect.selectedIndex].text;
             
-            // Set message and show modal
-            if (modalOverlay && modalMessage) {
-                modalMessage.innerText = `Send to ${teamName}?`;
-                pendingForm = form;
-                modalOverlay.classList.add("active");
-            } else {
-                // Fallback if modal HTML is missing
-                const confirmed = confirm(`Send to ${teamName}?`);
-                if (confirmed) form.submit();
-            }
+            showConfirmModal({
+                title: "Confirm Assignment",
+                message: `Send to ${teamName}?`,
+                confirmText: "Assign",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    form.submit();
+                }
+            });
         });
     });
 

@@ -10,14 +10,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!fullName || fullName.value.trim() === "") {
                 event.preventDefault();
-                alert("Full name is required.");
+                showWarningModal("Full name is required.");
                 fullName?.focus();
                 return;
             }
 
             if (!email || email.value.trim() === "") {
                 event.preventDefault();
-                alert("Email is required.");
+                showWarningModal("Email is required.");
                 email?.focus();
                 return;
             }
@@ -26,14 +26,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!emailPattern.test(email.value.trim())) {
                 event.preventDefault();
-                alert("Please enter a valid email address.");
+                showWarningModal("Please enter a valid email address.");
                 email.focus();
                 return;
             }
 
             if (!phone || phone.value.trim() === "") {
                 event.preventDefault();
-                alert("Phone number is required.");
+                showWarningModal("Phone number is required.");
                 phone?.focus();
                 return;
             }
@@ -48,35 +48,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!currentPassword || currentPassword.value.trim() === "") {
                 event.preventDefault();
-                alert("Current password is required.");
+                showWarningModal("Current password is required.");
                 currentPassword?.focus();
                 return;
             }
 
             if (!newPassword || newPassword.value.trim() === "") {
                 event.preventDefault();
-                alert("New password is required.");
+                showWarningModal("New password is required.");
                 newPassword?.focus();
                 return;
             }
 
             if (newPassword.value.length < 8) {
                 event.preventDefault();
-                alert("New password must be at least 8 characters.");
+                showWarningModal("New password must be at least 8 characters.");
                 newPassword.focus();
                 return;
             }
 
             if (!confirmPassword || confirmPassword.value.trim() === "") {
                 event.preventDefault();
-                alert("Confirm password is required.");
+                showWarningModal("Confirm password is required.");
                 confirmPassword?.focus();
                 return;
             }
 
             if (newPassword.value !== confirmPassword.value) {
                 event.preventDefault();
-                alert("New password and confirm password do not match.");
+                showWarningModal("New password and confirm password do not match.");
                 confirmPassword.focus();
             }
         });

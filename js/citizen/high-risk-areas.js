@@ -17,12 +17,90 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalClose = document.getElementById("riskModalClose");
     const modalDrainList = document.getElementById("modalDrainList");
 
+    // Pre-calculate mappings for dependent dropdowns
+    const mappedThanas = new Map();
+    const mappedWards = new Map();
+    const mappedAreas = new Map();
+
+    cards.forEach(card => {
+        const tId = card.dataset.thanaId;
+        const wId = card.dataset.wardId;
+        const aId = card.dataset.areaId;
+        
+        const tName = card.dataset.thanaName;
+        const wName = card.dataset.wardName;
+        const aName = card.dataset.areaName;
+
+        if (tId && tId !== "0" && !mappedThanas.has(tId)) {
+            mappedThanas.set(tId, tName);
+        }
+        
+        if (wId && wId !== "0" && !mappedWards.has(wId)) {
+            mappedWards.set(wId, { id: wId, name: wName, thanaId: tId });
+        }
+        
+        if (aId && aId !== "0" && !mappedAreas.has(aId)) {
+            mappedAreas.set(aId, { id: aId, name: aName, thanaId: tId, wardId: wId });
+        }
+    });
+
+    // Helper: Sort map entries by value/name
+    function sortOptions(optionsMap, getNameFunc) {
+        return Array.from(optionsMap.values()).sort((a, b) => {
+            const nameA = typeof a === "string" ? a : getNameFunc(a);
+            const nameB = typeof b === "string" ? b : getNameFunc(b);
+            return nameA.localeCompare(nameB);
+        });
+    }
+
+    function populateSelect(selectElem, defaultText, optionsList, valKey, textKey) {
+        if (!selectElem) return;
+        const currentVal = selectElem.value;
+        selectElem.innerHTML = `<option value="all">${defaultText}</option>`;
+        
+        optionsList.forEach(opt => {
+            const val = typeof opt === "string" ? opt : opt[valKey];
+            const text = typeof opt === "string" ? opt : opt[textKey];
+            const option = document.createElement("option");
+            option.value = val;
+            option.textContent = text;
+            selectElem.appendChild(option);
+        });
+        
+        // Restore value if it still exists
+        if (Array.from(selectElem.options).some(o => o.value === currentVal)) {
+            selectElem.value = currentVal;
+        } else {
+            selectElem.value = "all";
+        }
+    }
+
+    function updateDependentDropdowns() {
+        const selectedThana = getSelectValue(thanaFilter);
+        const selectedWard = getSelectValue(wardFilter);
+
+        // Update Wards
+        let validWards = sortOptions(mappedWards, w => w.name);
+        if (selectedThana !== "all") {
+            validWards = validWards.filter(w => w.thanaId === selectedThana);
+        }
+        populateSelect(wardFilter, "All Ward", validWards, "id", "name");
+
+        // Update Areas
+        const newSelectedWard = getSelectValue(wardFilter); // might have reset to "all"
+        let validAreas = sortOptions(mappedAreas, a => a.name);
+        if (selectedThana !== "all") {
+            validAreas = validAreas.filter(a => a.thanaId === selectedThana);
+        }
+        if (newSelectedWard !== "all") {
+            validAreas = validAreas.filter(a => a.wardId === newSelectedWard);
+        }
+        populateSelect(areaFilter, "All Area", validAreas, "id", "name");
+    }
+
     function setText(id, value) {
         const element = document.getElementById(id);
-
-        if (element) {
-            element.textContent = value || "N/A";
-        }
+        if (element) element.textContent = value || "N/A";
     }
 
     function getSelectValue(select, fallback = "all") {
@@ -36,18 +114,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedRisk = getSelectValue(riskFilter);
 
         return cards.filter(function (card) {
-            const matchesThana =
-                selectedThana === "all" || String(card.dataset.thanaId) === selectedThana;
-
-            const matchesWard =
-                selectedWard === "all" || String(card.dataset.wardId) === selectedWard;
-
-            const matchesArea =
-                selectedArea === "all" || String(card.dataset.areaId) === selectedArea;
-
-            const matchesRisk =
-                selectedRisk === "all" || String(card.dataset.risk) === selectedRisk;
-
+            const matchesThana = selectedThana === "all" || String(card.dataset.thanaId) === selectedThana;
+            const matchesWard = selectedWard === "all" || String(card.dataset.wardId) === selectedWard;
+            const matchesArea = selectedArea === "all" || String(card.dataset.areaId) === selectedArea;
+            const matchesRisk = selectedRisk === "all" || String(card.dataset.risk) === selectedRisk;
             return matchesThana && matchesWard && matchesArea && matchesRisk;
         });
     }
@@ -90,28 +160,32 @@ document.addEventListener("DOMContentLoaded", function () {
         visibleLimit = initialVisibleCount;
     }
 
+    function handleThanaChange() {
+        if (wardFilter) wardFilter.value = "all";
+        if (areaFilter) areaFilter.value = "all";
+        updateDependentDropdowns();
+        resetVisibleLimit();
+        applyFilters();
+    }
+
+    function handleWardChange() {
+        if (areaFilter) areaFilter.value = "all";
+        updateDependentDropdowns();
+        resetVisibleLimit();
+        applyFilters();
+    }
+
     function handleFilterChange() {
         resetVisibleLimit();
         applyFilters();
     }
 
     function clearFilters() {
-        if (thanaFilter) {
-            thanaFilter.value = "all";
-        }
-
-        if (wardFilter) {
-            wardFilter.value = "all";
-        }
-
-        if (areaFilter) {
-            areaFilter.value = "all";
-        }
-
-        if (riskFilter) {
-            riskFilter.value = "all";
-        }
-
+        if (thanaFilter) thanaFilter.value = "all";
+        if (wardFilter) wardFilter.value = "all";
+        if (areaFilter) areaFilter.value = "all";
+        if (riskFilter) riskFilter.value = "all";
+        updateDependentDropdowns();
         resetVisibleLimit();
         applyFilters();
     }
@@ -126,10 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderDrainBreakdown(drains) {
-        if (!modalDrainList) {
-            return;
-        }
-
+        if (!modalDrainList) return;
         modalDrainList.innerHTML = "";
 
         if (!Array.isArray(drains) || drains.length === 0) {
@@ -155,22 +226,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     <strong>${drainName}</strong>
                     <span>${drainAddress}</span>
                 </div>
-
                 <div class="hra-drain-stat">
                     <strong>${totalComplaints}</strong>
                     <small>complaints</small>
                     <small>Last: ${lastIncident}</small>
                 </div>
             `;
-
             modalDrainList.appendChild(item);
         });
     }
 
     function openModal(button) {
-        if (!modal || !button) {
-            return;
-        }
+        if (!modal || !button) return;
 
         setText("modalRiskArea", button.dataset.area || "Risk Area Details");
         setText("modalRiskWard", button.dataset.ward || "Ward");
@@ -189,7 +256,6 @@ document.addEventListener("DOMContentLoaded", function () {
         setText("modalProblem", button.dataset.problem);
 
         let drains = [];
-
         try {
             drains = JSON.parse(button.dataset.drains || "[]");
         } catch (error) {
@@ -203,10 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function closeModal() {
-        if (!modal) {
-            return;
-        }
-
+        if (!modal) return;
         modal.classList.remove("show");
         document.body.style.overflow = "";
     }
@@ -219,16 +282,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".hra-alert-btn").forEach(function (button) {
         button.addEventListener("click", function () {
-            alert("Safety Notice: Avoid walking or driving through this risky drainage area during rain or flooding.");
+            showWarningModal("Safety Notice: Avoid walking or driving through this risky drainage area during rain or flooding.");
         });
     });
 
     if (thanaFilter) {
-        thanaFilter.addEventListener("change", handleFilterChange);
+        thanaFilter.addEventListener("change", handleThanaChange);
     }
 
     if (wardFilter) {
-        wardFilter.addEventListener("change", handleFilterChange);
+        wardFilter.addEventListener("change", handleWardChange);
     }
 
     if (areaFilter) {
@@ -268,5 +331,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Initialize dependent dropdowns mapping and UI states based on DOM cards
+    updateDependentDropdowns();
     applyFilters();
 });

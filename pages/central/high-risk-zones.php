@@ -5,9 +5,9 @@ $allowed_role = "central_officer";
 require_once "../../auth/session_check.php";
 
 $activePage = "high-risk-zones";
-$pageTitle = "High Risk Zones";
+$pageTitle = "Risk Zones";
 $pageParent = "Central Control";
-$pageChild = "High Risk Zones";
+$pageChild = "Risk Zones";
 
 function safeText($value)
 {
@@ -184,23 +184,26 @@ $sql = "
 
     FROM risk r
 
-    LEFT JOIN cities city
-        ON r.city_id = city.city_id
-
-    LEFT JOIN city_corporations cc
-        ON r.city_cor_id = cc.city_cor_id
-
-    LEFT JOIN thanas t
-        ON r.thana_id = t.thana_id
-
-    LEFT JOIN wards w
-        ON r.ward_id = w.ward_id
-
-    LEFT JOIN areas a
-        ON r.area_id = a.area_id
-
     LEFT JOIN complaints lc
         ON r.last_complaint_id = lc.complaint_id
+
+    LEFT JOIN locations l
+        ON lc.loc_id = l.loc_id
+
+    LEFT JOIN cities city
+        ON l.city_id = city.city_id
+
+    LEFT JOIN city_corporations cc
+        ON l.city_cor_id = cc.city_cor_id
+
+    LEFT JOIN thanas t
+        ON l.thana_id = t.thana_id
+
+    LEFT JOIN wards w
+        ON l.ward_id = w.ward_id
+
+    LEFT JOIN areas a
+        ON l.area_id = a.area_id
 
     LEFT JOIN issues i
         ON lc.issue_id = i.issue_id
@@ -253,7 +256,7 @@ foreach ($riskZones as $zone) {
 <head>
     <meta charset="UTF-8">
 
-    <title>High Risk Zones | DrainGuard</title>
+    <title>Risk Zones | DrainGuard</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -262,9 +265,9 @@ foreach ($riskZones as $zone) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
-    <link rel="stylesheet" href="../../css/central/footer.css">
     <link rel="stylesheet" href="../../css/central/high-risk-zones.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -281,36 +284,12 @@ foreach ($riskZones as $zone) {
 
             <div class="hrz-header">
                 <div>
-                    <h1>High Risk Zones</h1>
+                    <h1>Risk Zones</h1>
                     <p>Monitor areas with repeated drainage complaints and high waterlogging risk.</p>
                 </div>
             </div>
 
-            <div class="hrz-kpi-grid">
-                <div class="hrz-kpi-card danger">
-                    <div class="hrz-kpi-icon">
-                        <i class="bi bi-geo-alt"></i>
-                    </div>
-                    <strong><?php echo (int)$totalHighRiskZones; ?></strong>
-                    <span>Total High Risk Zones</span>
-                </div>
 
-                <div class="hrz-kpi-card warning">
-                    <div class="hrz-kpi-icon">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                    <strong><?php echo (int)$complaintsInRiskZones; ?></strong>
-                    <span>Complaints in High Risk Zones</span>
-                </div>
-
-                <div class="hrz-kpi-card trend">
-                    <div class="hrz-kpi-icon">
-                        <i class="bi bi-graph-up-arrow"></i>
-                    </div>
-                    <strong><?php echo (int)$zonesEscalating; ?></strong>
-                    <span>Zones Escalating This Week</span>
-                </div>
-            </div>
 
             <div class="hrz-filter-card">
                 <select id="cityFilter">
@@ -485,7 +464,6 @@ foreach ($riskZones as $zone) {
 
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
 
     </main>
 
@@ -537,5 +515,6 @@ foreach ($riskZones as $zone) {
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/high-risk-zones.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

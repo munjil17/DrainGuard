@@ -35,6 +35,7 @@ function nt_icon($type)
     if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'bi-file-earmark-text';
     if (in_array($type, ['inspector_report', 'team_update'])) return 'bi-clipboard-check';
     if ($type === 'comment_reply') return 'bi-chat-dots';
+    if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'bi-tools';
     return "bi-bell";
 }
 
@@ -44,6 +45,7 @@ function nt_type_class($type)
     if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'type-track';
     if (in_array($type, ['inspector_report', 'team_update'])) return 'type-objection';
     if ($type === 'comment_reply') return 'type-reply';
+    if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'type-alert';
     return "type-system";
 }
 
@@ -73,8 +75,26 @@ if (isset($_GET["read_id"])) {
                 mysqli_stmt_close($readStmt);
                 
                 if ($redirectType === "complaints" || $redirectType === "ward-complaints") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?open_discussion=" . urlencode($readRow["related_complaint_id"]) : "";
-                    header("Location: ward-complaints.php" . $complaintIdParam);
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    header("Location: ward-complaints.php" . $param);
+                    exit;
+                }
+                
+                if ($redirectType === "local-team-assignment") {
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    header("Location: local-team-assignment.php" . $param);
+                    exit;
+                }
+
+                if ($redirectType === "in-progress-cases") {
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    header("Location: in-progress-cases.php" . $param);
+                    exit;
+                }
+                
+                if ($redirectType === "verification-queue") {
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    header("Location: verification-queue.php" . $param);
                     exit;
                 }
                 
@@ -111,6 +131,8 @@ $allowedTypes = [
     "verified",
     "rejected",
     "comment_reply",
+    "maintenance_support_assigned_task",
+    "maintenance_support_in_progress",
     "system",
     "alert"
 ];
@@ -274,6 +296,8 @@ function nt_build_query($overrides = [])
                             <option value="status_update" <?php echo $filterType === "status_update" ? "selected" : ""; ?>>Status Update</option>
                             <option value="verified" <?php echo $filterType === "verified" ? "selected" : ""; ?>>Verified</option>
                             <option value="rejected" <?php echo $filterType === "rejected" ? "selected" : ""; ?>>Rejected / Duplicate</option>
+                            <option value="maintenance_support_assigned_task" <?php echo $filterType === "maintenance_support_assigned_task" ? "selected" : ""; ?>>Support (Assigned Task)</option>
+                            <option value="maintenance_support_in_progress" <?php echo $filterType === "maintenance_support_in_progress" ? "selected" : ""; ?>>Support (In Progress)</option>
                             <option value="comment_reply" <?php echo $filterType === "comment_reply" ? "selected" : ""; ?>>Comment Reply</option>
                             <option value="system" <?php echo $filterType === "system" ? "selected" : ""; ?>>System Message</option>
                             <option value="alert" <?php echo $filterType === "alert" ? "selected" : ""; ?>>Alert</option>
@@ -316,6 +340,12 @@ function nt_build_query($overrides = [])
                             if (!empty($notification["complaint_code"])) {
                                 if ($notificationType === 'comment_reply') {
                                     $linkUrl .= "&redirect=discussion";
+                                } elseif ($notificationType === 'complaint_routed') {
+                                    $linkUrl .= "&redirect=verification-queue";
+                                } elseif ($notificationType === 'maintenance_support_assigned_task') {
+                                    $linkUrl .= "&redirect=local-team-assignment";
+                                } elseif ($notificationType === 'maintenance_support_in_progress' || $notificationType === 'maintenance_start_work') {
+                                    $linkUrl .= "&redirect=in-progress-cases";
                                 } else {
                                     $linkUrl .= "&redirect=ward-complaints";
                                 }

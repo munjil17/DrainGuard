@@ -157,6 +157,120 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === "ph
 }
 
 /* ===============================
+   HANDLE PROFILE & PASSWORD UPDATE
+================================ */
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === 'profile_update') {
+    $fullName = trim($_POST['full_name'] ?? '');
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $phone = trim($_POST['phone'] ?? '');
+    $street_village = trim($_POST['street_village'] ?? '');
+    $union_area = trim($_POST['union_area'] ?? '');
+    $upazila_thana = trim($_POST['upazila_thana'] ?? '');
+    $district = trim($_POST['district'] ?? '');
+    $division = trim($_POST['division'] ?? '');
+
+    if ($fullName === '' || $email === '') {
+        $errorMessage = "Full name and email are required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errorMessage = "Invalid email format.";
+    } elseif (!preg_match("/^[a-zA-Z0-9._%+-]+@gmail\.com$/", $email)) {
+        $errorMessage = "Only Gmail addresses are allowed.";
+    } else {
+        $checkSql = "SELECT user_id FROM users WHERE user_mail = ? AND user_id != ? LIMIT 1";
+        $checkStmt = mysqli_prepare($conn, $checkSql);
+        if ($checkStmt) {
+            mysqli_stmt_bind_param($checkStmt, "si", $email, $userId);
+            mysqli_stmt_execute($checkStmt);
+            $checkResult = mysqli_stmt_get_result($checkStmt);
+
+            if ($checkResult && mysqli_num_rows($checkResult) > 0) {
+                $errorMessage = "This email is already used by another account.";
+            } else {
+                mysqli_begin_transaction($conn);
+                try {
+                    $updateUserSql = "UPDATE users SET user_mail = ? WHERE user_id = ?";
+                    $updateUserStmt = mysqli_prepare($conn, $updateUserSql);
+                    mysqli_stmt_bind_param($updateUserStmt, "si", $email, $userId);
+                    mysqli_stmt_execute($updateUserStmt);
+                    mysqli_stmt_close($updateUserStmt);
+
+                    $updateCitizenSql = "UPDATE citizens SET phone_number = ?, street_village = ?, union_area = ?, upazila_thana = ?, district = ?, division = ?";
+                    $bindTypes = "ssssss";
+                    $bindParams = [&$phone, &$street_village, &$union_area, &$upazila_thana, &$district, &$division];
+                    
+                    if (tableColumnExists($conn, "citizens", "full_name")) {
+                        $updateCitizenSql .= ", full_name = ?";
+                        $bindTypes .= "s";
+                        $bindParams[] = &$fullName;
+                    }
+                    
+                    $updateCitizenSql .= " WHERE user_id = ?";
+                    $bindTypes .= "i";
+                    $bindParams[] = &$userId;
+
+                    $updateCitizenStmt = mysqli_prepare($conn, $updateCitizenSql);
+                    $bindParamsArray = array_merge(array($updateCitizenStmt, $bindTypes), $bindParams);
+                    call_user_func_array('mysqli_stmt_bind_param', $bindParamsArray);
+                    mysqli_stmt_execute($updateCitizenStmt);
+                    mysqli_stmt_close($updateCitizenStmt);
+
+                    mysqli_commit($conn);
+
+                    $_SESSION['user_name'] = $fullName;
+                    $_SESSION['user_email'] = $email;
+
+                    $successMessage = "Profile updated successfully.";
+                } catch (Exception $e) {
+                    mysqli_rollback($conn);
+                    $errorMessage = "Profile update failed.";
+                }
+            }
+            mysqli_stmt_close($checkStmt);
+        }
+    }
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === 'password_update') {
+    $currentPassword = trim($_POST['old_password'] ?? '');
+    $newPassword = trim($_POST['new_password'] ?? '');
+    $confirmPassword = trim($_POST['confirm_password'] ?? '');
+
+    if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+        $errorMessage = "Please fill all password fields.";
+    } elseif ($newPassword !== $confirmPassword) {
+        $errorMessage = "New password and confirm password do not match.";
+    } elseif (strlen($newPassword) < 6) {
+        $errorMessage = "New password must be at least 6 characters.";
+    } else {
+        $passSql = "SELECT user_password FROM users WHERE user_id = ? LIMIT 1";
+        $passStmt = mysqli_prepare($conn, $passSql);
+        if ($passStmt) {
+            mysqli_stmt_bind_param($passStmt, "i", $userId);
+            mysqli_stmt_execute($passStmt);
+            $passResult = mysqli_stmt_get_result($passStmt);
+            $userPass = mysqli_fetch_assoc($passResult);
+
+            if (!$userPass || !password_verify($currentPassword, $userPass['user_password'])) {
+                $errorMessage = "Current password is incorrect.";
+            } else {
+                $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+                $updatePassSql = "UPDATE users SET user_password = ? WHERE user_id = ?";
+                $updatePassStmt = mysqli_prepare($conn, $updatePassSql);
+                mysqli_stmt_bind_param($updatePassStmt, "si", $newHash, $userId);
+                if (mysqli_stmt_execute($updatePassStmt)) {
+                    $successMessage = "Password changed successfully.";
+                } else {
+                    $errorMessage = "Password change failed.";
+                }
+                mysqli_stmt_close($updatePassStmt);
+            }
+            mysqli_stmt_close($passStmt);
+        }
+    }
+}
+
+/* ===============================
    FETCH USER PROFILE DATA
 ================================ */
 
@@ -174,63 +288,52 @@ if ($photoColumn) {
     $selectCitizenFields[] = "NULL AS profile_photo";
 }
 
-if ($addressColumns["present_address"]) {
-    $selectCitizenFields[] = "c.present_address";
+if (tableColumnExists($conn, "citizens", "division")) {
+    $selectCitizenFields[] = "c.division";
 } else {
-    $selectCitizenFields[] = "NULL AS present_address";
+    $selectCitizenFields[] = "NULL AS division";
 }
 
-if ($addressColumns["permanent_address"]) {
-    $selectCitizenFields[] = "c.permanent_address";
+if (tableColumnExists($conn, "citizens", "district")) {
+    $selectCitizenFields[] = "c.district";
 } else {
-    $selectCitizenFields[] = "NULL AS permanent_address";
+    $selectCitizenFields[] = "NULL AS district";
 }
 
-if ($addressColumns["address"]) {
-    $selectCitizenFields[] = "c.address";
+if (tableColumnExists($conn, "citizens", "upazila_thana")) {
+    $selectCitizenFields[] = "c.upazila_thana";
 } else {
-    $selectCitizenFields[] = "NULL AS address";
+    $selectCitizenFields[] = "NULL AS upazila_thana";
 }
 
-if ($addressColumns["house_no"]) {
-    $selectCitizenFields[] = "c.house_no";
+if (tableColumnExists($conn, "citizens", "union_area")) {
+    $selectCitizenFields[] = "c.union_area";
 } else {
-    $selectCitizenFields[] = "NULL AS house_no";
+    $selectCitizenFields[] = "NULL AS union_area";
 }
 
-if ($addressColumns["road_no"]) {
-    $selectCitizenFields[] = "c.road_no";
+if (tableColumnExists($conn, "citizens", "street_village")) {
+    $selectCitizenFields[] = "c.street_village";
 } else {
-    $selectCitizenFields[] = "NULL AS road_no";
-}
-
-if ($addressColumns["area_name"]) {
-    $selectCitizenFields[] = "c.area_name";
-} else {
-    $selectCitizenFields[] = "NULL AS area_name";
-}
-
-if ($addressColumns["city_name"]) {
-    $selectCitizenFields[] = "c.city_name";
-} else {
-    $selectCitizenFields[] = "NULL AS city_name";
+    $selectCitizenFields[] = "NULL AS street_village";
 }
 
 $citizenSelectSql = implode(",\n        ", $selectCitizenFields);
 
+$citizenSelectSql .= ",\n        c.full_name AS citizen_full_name";
+
 $userData = [
     "user_name" => "",
+    "citizen_full_name" => "",
     "user_mail" => "",
     "user_role" => "citizen",
     "phone_number" => "",
     "profile_photo" => "",
-    "present_address" => "",
-    "permanent_address" => "",
-    "address" => "",
-    "house_no" => "",
-    "road_no" => "",
-    "area_name" => "",
-    "city_name" => "",
+    "division" => "",
+    "district" => "",
+    "upazila_thana" => "",
+    "union_area" => "",
+    "street_village" => "",
 ];
 
 $sql = "
@@ -238,6 +341,7 @@ $sql = "
     u.user_name,
     u.user_mail,
     u.user_role,
+    u.user_status,
     {$citizenSelectSql}
     FROM users u
     LEFT JOIN citizens c
@@ -275,31 +379,28 @@ $createdAt = !empty($userData['created_at'])
 
 $fullAddressParts = [];
 
-if (!empty($userData['house_no'])) {
-    $fullAddressParts[] = "House: " . $userData['house_no'];
+if (!empty($userData['street_village'])) {
+    $fullAddressParts[] = trim($userData['street_village']);
 }
 
-if (!empty($userData['road_no'])) {
-    $fullAddressParts[] = "Road: " . $userData['road_no'];
+if (!empty($userData['union_area'])) {
+    $fullAddressParts[] = trim($userData['union_area']);
 }
 
-if (!empty($userData['area_name'])) {
-    $fullAddressParts[] = $userData['area_name'];
+if (!empty($userData['upazila_thana'])) {
+    $fullAddressParts[] = trim($userData['upazila_thana']);
 }
 
-if (!empty($userData['city_name'])) {
-    $fullAddressParts[] = $userData['city_name'];
+if (!empty($userData['district'])) {
+    $fullAddressParts[] = trim($userData['district']);
 }
 
-if (!empty($userData['present_address'])) {
-    $fullAddressParts[] = $userData['present_address'];
-}
-
-if (!empty($userData['address'])) {
-    $fullAddressParts[] = $userData['address'];
+if (!empty($userData['division'])) {
+    $fullAddressParts[] = trim($userData['division']);
 }
 
 $fullAddress = count($fullAddressParts) > 0 ? implode(", ", $fullAddressParts) : "Not provided";
+$editableAddress = $userData['street_village'] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -321,6 +422,7 @@ $fullAddress = count($fullAddressParts) > 0 ? implode(", ", $fullAddressParts) :
 
     <!-- Page CSS -->
     <link rel="stylesheet" href="../../css/citizen/profile.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 <body class="citizen">
 
@@ -395,57 +497,90 @@ $fullAddress = count($fullAddressParts) > 0 ? implode(", ", $fullAddressParts) :
 
                 </div>
 
-                <div class="cp-info-grid">
+                <div class="cp-forms-container" style="display: flex; flex-direction: column; gap: 30px; padding: 20px;">
+                    
+                    <!-- Profile Update Form -->
+                    <form method="POST" action="profile.php" class="cp-profile-form">
+                        <input type="hidden" name="form_type" value="profile_update">
+                        <h3 style="margin-bottom: 20px;">Profile Information</h3>
 
-                    <div class="cp-info-item">
-                        <span>Full Name</span>
-                        <strong><?php echo safeText($userData['user_name'] ?? 'Not provided'); ?></strong>
-                    </div>
-
-                    <div class="cp-info-item">
-                        <span>Email</span>
-                        <strong><?php echo safeText($userData['user_mail'] ?? 'Not provided'); ?></strong>
-                    </div>
-
-                    <div class="cp-info-item">
-                        <span>Phone</span>
-                        <strong><?php echo safeText($userData['phone_number'] ?? 'Not provided'); ?></strong>
-                    </div>
-
-                    <div class="cp-info-item">
-                        <span>Role</span>
-                        <strong><?php echo safeText(ucwords(str_replace("_", " ", $userData['user_role'] ?? 'citizen'))); ?></strong>
-                    </div>
-
-                    <div class="cp-info-item">
-                        <span>Joined</span>
-                        <strong><?php echo safeText($createdAt); ?></strong>
-                    </div>
-
-                    <div class="cp-info-item">
-                        <span>Account Status</span>
-                        <strong>Active</strong>
-                    </div>
-
-                    <div class="cp-info-item cp-full">
-                        <span>Address</span>
-                        <strong><?php echo safeText($fullAddress); ?></strong>
-                    </div>
-
-                    <?php if (!empty($userData['permanent_address'])): ?>
-                        <div class="cp-info-item cp-full">
-                            <span>Permanent Address</span>
-                            <strong><?php echo safeText($userData['permanent_address']); ?></strong>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Full Name</label>
+                            <input type="text" name="full_name" value="<?php echo safeText($userData['citizen_full_name'] ?? $userData['user_name'] ?? ''); ?>" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         </div>
-                    <?php endif; ?>
 
-                </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Email</label>
+                            <input type="email" name="email" value="<?php echo safeText($userData['user_mail'] ?? ''); ?>" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
 
-                <div class="cp-actions">
-                    <a href="settings.php" class="cp-edit-btn">
-                        <i class="bi bi-pencil-square"></i>
-                        Edit Profile
-                    </a>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Phone</label>
+                            <input type="text" name="phone" value="<?php echo safeText($userData['phone_number'] ?? ''); ?>" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Account Status</label>
+                            <input type="text" value="<?php echo safeText(ucwords($userData['user_status'] ?? 'Active')); ?>" readonly disabled style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background-color: #f5f5f5; color: #666; cursor: not-allowed;">
+                        </div>
+
+                        <h4 style="margin-bottom: 15px; color: #1e293b; font-size: 16px; border-top: 1px solid #eee; padding-top: 15px;">Address Information</h4>
+                        
+                        <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                            <div class="form-group" style="flex: 1 1 calc(33.333% - 15px); min-width: 200px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Division</label>
+                                <input type="text" name="division" value="<?php echo safeText($userData['division'] ?? ''); ?>" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                            </div>
+
+                            <div class="form-group" style="flex: 1 1 calc(33.333% - 15px); min-width: 200px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">District</label>
+                                <input type="text" name="district" value="<?php echo safeText($userData['district'] ?? ''); ?>" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                            </div>
+
+                            <div class="form-group" style="flex: 1 1 calc(33.333% - 15px); min-width: 200px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Upazila/Thana</label>
+                                <input type="text" name="upazila_thana" value="<?php echo safeText($userData['upazila_thana'] ?? ''); ?>" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                            </div>
+
+                            <div class="form-group" style="flex: 1 1 calc(50% - 15px); min-width: 200px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Union/Area</label>
+                                <input type="text" name="union_area" value="<?php echo safeText($userData['union_area'] ?? ''); ?>" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                            </div>
+
+                            <div class="form-group" style="flex: 1 1 calc(50% - 15px); min-width: 200px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Street/Village</label>
+                                <input type="text" name="street_village" value="<?php echo safeText($userData['street_village'] ?? ''); ?>" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                            </div>
+                        </div>
+
+                        <button type="submit" style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">Update Profile</button>
+                    </form>
+
+                    <hr style="border: 0; height: 1px; background: #eee;">
+
+                    <!-- Password Update Form -->
+                    <form method="POST" action="profile.php" class="cp-password-form">
+                        <input type="hidden" name="form_type" value="password_update">
+                        <h3 style="margin-bottom: 20px;">Change Password</h3>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Old Password</label>
+                            <input type="password" name="old_password" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">New Password</label>
+                            <input type="password" name="new_password" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Confirm New Password</label>
+                            <input type="password" name="confirm_password" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        </div>
+
+                        <button type="submit" style="background: var(--warning-color, #f59e0b); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">Change Password</button>
+                    </form>
+
                 </div>
 
             </div>
@@ -459,5 +594,6 @@ $fullAddress = count($fullAddressParts) > 0 ? implode(", ", $fullAddressParts) :
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/citizen/profile.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

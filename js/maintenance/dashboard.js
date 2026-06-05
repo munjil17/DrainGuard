@@ -6,36 +6,39 @@ document.addEventListener("DOMContentLoaded", function () {
             const assignmentId = button.getAttribute("data-assignment-id");
 
             if (!assignmentId) {
-                alert("Assignment ID not found.");
+                showWarningModal("Assignment ID not found.");
                 return;
             }
 
-            const confirmed = confirm("Do you want to start work on this task?");
+            showConfirmModal({
+                title: "Start Work",
+                message: "Do you want to start work on this task?",
+                confirmText: "Start",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Starting...';
 
-            if (!confirmed) {
-                return;
-            }
+                    /*
+                        Backend process file will be added later:
+                        auth/maintenance_start_work_process.php
 
-            button.disabled = true;
-            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Starting...';
+                        Expected POST:
+                        assignment_id = assignmentId
 
-            /*
-                Backend process file will be added later:
-                auth/maintenance_start_work_process.php
+                        Expected backend update:
+                        complaint_assignments.assignment_status = 'in_progress'
+                        complaints.complaint_status = 'in_progress'
+                        complaints.work_started_at = NOW()
+                    */
 
-                Expected POST:
-                assignment_id = assignmentId
+                    showWarningModal("Start Work backend is not connected yet. Next we will create the process file.");
 
-                Expected backend update:
-                complaint_assignments.assignment_status = 'in_progress'
-                complaints.complaint_status = 'in_progress'
-                complaints.work_started_at = NOW()
-            */
-
-            alert("Start Work backend is not connected yet. Next we will create the process file.");
-
-            button.disabled = false;
-            button.innerHTML = '<i class="bi bi-wrench"></i> Start Work';
+                    button.disabled = false;
+                    button.innerHTML = '<i class="bi bi-wrench"></i> Start Work';
+                }
+            });
         });
     });
 });

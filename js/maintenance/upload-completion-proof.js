@@ -72,14 +72,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 for (const file of files) {
                     if (!isAllowedFile(file)) {
-                        alert("Unsupported file type: " + file.name);
+                        showWarningModal("Unsupported file type: " + file.name);
                         fileInput.value = "";
                         previewGrid.innerHTML = "";
                         return;
                     }
 
                     if (file.size > maxFileSize) {
-                        alert("Each file must be 25MB or less: " + file.name);
+                        showWarningModal("Each file must be 25MB or less: " + file.name);
                         fileInput.value = "";
                         previewGrid.innerHTML = "";
                         return;
@@ -101,68 +101,71 @@ document.addEventListener("DOMContentLoaded", function () {
             const noteValue = noteInput ? noteInput.value.trim() : "";
 
             if (files.length === 0) {
-                alert("Please upload at least one after-work photo or video.");
+                showWarningModal("Please upload at least one after-work photo or video.");
                 return;
             }
 
             for (const file of files) {
                 if (!isAllowedFile(file)) {
-                    alert("Unsupported file type: " + file.name);
+                    showWarningModal("Unsupported file type: " + file.name);
                     return;
                 }
 
                 if (file.size > maxFileSize) {
-                    alert("Each file must be 25MB or less: " + file.name);
+                    showWarningModal("Each file must be 25MB or less: " + file.name);
                     return;
                 }
             }
 
             if (noteValue === "") {
-                alert("Please write work completion notes.");
+                showWarningModal("Please write work completion notes.");
                 return;
             }
 
-            const confirmed = confirm("Submit proof to Inspector? This will mark the complaint as Solved by Team.");
+            showConfirmModal({
+                title: "Submit Proof",
+                message: "Submit proof to Inspector? This will mark the complaint as Solved by Team.",
+                confirmText: "Submit",
+                cancelText: "Cancel",
+                type: "success",
+                onConfirm: function() {
+                    isSubmitting = true;
 
-            if (!confirmed) {
-                return;
-            }
+                    const formData = new FormData(form);
 
-            isSubmitting = true;
+                    submitButton.disabled = true;
+                    submitButton.classList.add("is-loading");
+                    submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting to Inspector...';
 
-            const formData = new FormData(form);
+                    fetch("upload-completion-proof.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            showWarningModal(data.message || "Request processed.");
 
-            submitButton.disabled = true;
-            submitButton.classList.add("is-loading");
-            submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting to Inspector...';
+                            if (data.success) {
+                                window.location.href = "upload-completion-proof.php";
+                            } else {
+                                isSubmitting = false;
+                                submitButton.disabled = false;
+                                submitButton.classList.remove("is-loading");
+                                submitButton.innerHTML = '<i class="bi bi-send"></i> Submit to Inspector';
+                            }
+                        })
+                        .catch(function () {
+                            showWarningModal("Failed to submit proof. Please try again.");
 
-            fetch("upload-completion-proof.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    alert(data.message || "Request processed.");
-
-                    if (data.success) {
-                        window.location.href = "upload-completion-proof.php";
-                    } else {
-                        isSubmitting = false;
-                        submitButton.disabled = false;
-                        submitButton.classList.remove("is-loading");
-                        submitButton.innerHTML = '<i class="bi bi-send"></i> Submit to Inspector';
-                    }
-                })
-                .catch(function () {
-                    alert("Failed to submit proof. Please try again.");
-
-                    isSubmitting = false;
-                    submitButton.disabled = false;
-                    submitButton.classList.remove("is-loading");
-                    submitButton.innerHTML = '<i class="bi bi-send"></i> Submit to Inspector';
-                });
+                            isSubmitting = false;
+                            submitButton.disabled = false;
+                            submitButton.classList.remove("is-loading");
+                            submitButton.innerHTML = '<i class="bi bi-send"></i> Submit to Inspector';
+                        });
+                }
+            });
         });
     });
 });

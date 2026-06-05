@@ -46,7 +46,7 @@ function cs_get_discussion_context($conn, $complaintId) {
     if ($context["status"] === "rejected_by_central") {
         // Find the central officer who rejected it from complaint_status_logs
         $sql = "SELECT action_by_user_id FROM complaint_status_logs 
-                WHERE complaint_id = ? AND action_by_role = 'central_officer' AND status_to = 'rejected_by_central' 
+                WHERE complaint_id = ? AND action_by_role = 'central_officer' AND new_status = 'rejected_by_central' 
                 ORDER BY log_id DESC LIMIT 1";
         $stmt = mysqli_prepare($conn, $sql);
         if ($stmt) {

@@ -50,9 +50,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                         
                         $notifSql = "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read) 
-                                     VALUES (?, ?, ?, 'system', 'Support Request Replied', ?, 0)";
+                                     VALUES (?, ?, ?, 'ward_reply_support_request', 'Ward Officer Replied to Support Request', ?, 0)";
                         $notifStmt = mysqli_prepare($conn, $notifSql);
-                        $msg = "Ward Officer replied to your support request for " . $row["complaint_code"];
+                        $msg = "Ward Officer replied to your support request for complaint " . $row["complaint_code"] . ". Please check the related complaint.";
                         mysqli_stmt_bind_param($notifStmt, "iiis", $leaderUserId, $wardOfficerUserId, $complaintId, $msg);
                         mysqli_stmt_execute($notifStmt);
                     }

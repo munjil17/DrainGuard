@@ -1,5 +1,5 @@
 <?php
-$pageTitle = "Settings";
+$pageTitle = "Team Profile";
 $activePage = "settings";
 
 require_once "../../config.php";
@@ -208,7 +208,7 @@ $availabilityLabel = ucfirst((string)$teamInfo['availability_status']);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Settings | DrainGuard</title>
+    <title>Team Profile | DrainGuard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -217,6 +217,7 @@ $availabilityLabel = ucfirst((string)$teamInfo['availability_status']);
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/settings.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -228,7 +229,7 @@ $availabilityLabel = ucfirst((string)$teamInfo['availability_status']);
 
             <section class="settings-page">
                 <div class="page-heading">
-                    <h1>Settings</h1>
+                    <h1>Team Profile</h1>
                     <p>Manage team and member profiles</p>
                 </div>
 
@@ -381,5 +382,6 @@ $availabilityLabel = ucfirst((string)$teamInfo['availability_status']);
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/settings.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

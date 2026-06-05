@@ -83,8 +83,8 @@
 /* TOOLBAR */
 
 .hra-toolbar {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(135px, 1fr)) 90px;
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 22px;
     padding: 18px;
@@ -94,9 +94,8 @@
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
 }
 
-.hra-toolbar select,
-.hra-clear-btn {
-    width: 100%;
+.hra-toolbar select {
+    flex: 1 1 180px;
     height: 52px;
     border: 1.6px solid #D7E2EF;
     border-radius: 14px;
@@ -106,23 +105,30 @@
     outline: none;
     box-sizing: border-box;
     transition: 0.22s ease;
-}
-
-.hra-toolbar select {
     padding: 0 12px;
     cursor: pointer;
 }
 
 .hra-clear-btn {
-    border: none;
-    background: #0F172A;
-    color: #FFFFFF;
-    font-weight: 800;
+    flex: 0 0 110px;
+    height: 52px;
+    border: 1.6px solid #D7E2EF;
+    border-radius: 14px;
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
+    transition: 0.22s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .hra-clear-btn:hover {
-    background: #1E293B;
+    background: #E2E8F0;
+    border-color: #CBD5E1;
+    color: #0F172A;
 }
 
 .hra-toolbar select:focus {
@@ -344,6 +350,9 @@
     font-weight: 800;
     cursor: pointer;
     transition: 0.22s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .hra-load-more-btn:hover {
@@ -581,9 +590,7 @@ body {
 /* RESPONSIVE */
 
 @media (max-width: 1300px) {
-    .hra-toolbar {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+    /* Kept empty or other overrides */
 }
 
 @media (max-width: 1200px) {
@@ -616,11 +623,11 @@ body {
     }
 
     .hra-toolbar {
-        grid-template-columns: 1fr 1fr;
+        gap: 10px;
     }
 
     .hra-clear-btn {
-        grid-column: 1 / -1;
+        flex: 1 1 100%;
     }
 
     .hra-detail-grid {
@@ -636,6 +643,10 @@ body {
     .hra-detail-grid,
     .hra-drain-item {
         grid-template-columns: 1fr;
+    }
+
+    .hra-toolbar select {
+        flex: 1 1 100%;
     }
 
     .hra-card-top {

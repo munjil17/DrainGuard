@@ -115,6 +115,7 @@ $assignedWardDisplay = "N/A";
 $officerSql = "
     SELECT
         wo.assigned_ward_id,
+        wo.city_cor_id,
         w.ward_no,
         w.ward_name,
         cc.city_cor_name
@@ -138,6 +139,7 @@ if ($officerStmt) {
 
     if ($officerData) {
         $assignedWardId = (int)$officerData["assigned_ward_id"];
+        $assignedCityCorId = (int)$officerData["city_cor_id"];
         $assignedWardDisplay = wardDisplayName($officerData["ward_no"], $officerData["ward_name"]);
         $assignedCityCorp = $officerData["city_cor_name"] ?? "Unknown City Corp";
     }
@@ -183,14 +185,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
                     c.complaint_code,
                     c.user_id AS citizen_user_id,
                     c.complaint_status,
-                    ca.ward_id,
+                    l.ward_id,
                     ca.assigned_by AS central_user_id
                 FROM complaints c
-                INNER JOIN complaint_assignments ca
+                INNER JOIN locations l
+                    ON c.loc_id = l.loc_id
+                LEFT JOIN complaint_assignments ca
                     ON c.complaint_id = ca.complaint_id
                 WHERE c.complaint_id = ?
                 AND c.complaint_status = 'pending_verification'
-                AND ca.ward_id = ?
+                AND l.ward_id = ? AND l.city_cor_id = ?
+                ORDER BY ca.assignment_id DESC
                 LIMIT 1
             ";
 
@@ -200,7 +205,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
                 throw new Exception("Complaint check failed: " . mysqli_error($conn));
             }
 
-            mysqli_stmt_bind_param($checkStmt, "ii", $complaintId, $assignedWardId);
+            mysqli_stmt_bind_param($checkStmt, "iii", $complaintId, $assignedWardId, $assignedCityCorId);
             mysqli_stmt_execute($checkStmt);
 
             $checkResult = mysqli_stmt_get_result($checkStmt);
@@ -266,26 +271,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
             $complaintCode = $complaintRow['complaint_code'] ?? 'Unknown';
             
             if ($action === "verify") {
-                $citNotifType = "status_update";
-                $citTitle = "Complaint Verified";
-                $citMsg = "Your complaint #$complaintCode has been verified by the Ward Officer.";
-                $cenNotifType = "complaint_received";
-                $cenTitle = "Ward Accepted Complaint";
-                $cenMsg = "Complaint #$complaintCode routed by you has been verified by the Ward Officer.";
+                $citNotifType = "ward_accept_verify";
+                $citTitle = "Complaint Verified by Ward Officer";
+                $citMsg = "Your complaint has been verified by the Ward Officer and moved forward in the workflow.";
+                $cenNotifType = "ward_accept_verify";
+                $cenTitle = "Complaint Verified by Ward Officer";
+                $cenMsg = "Ward Officer has verified complaint {$complaintCode}. Please check the complaint status from the Central Complaints page.";
             } elseif ($action === "reject") {
-                $citNotifType = "status_update";
-                $citTitle = "Complaint Rejected";
-                $citMsg = "Your complaint #$complaintCode was rejected by the Ward Officer.";
-                $cenNotifType = "complaint_rejected";
-                $cenTitle = "Ward Rejected Complaint";
-                $cenMsg = "Complaint #$complaintCode routed by you was rejected by the Ward Officer.";
+                $citNotifType = "ward_reject";
+                $citTitle = "Complaint Rejected by Ward Officer";
+                $reasonAdd = !empty($reasonText) ? " Reason: " . $reasonText : "";
+                $citMsg = "Your complaint has been rejected by the Ward Officer." . $reasonAdd;
+                $cenNotifType = "ward_reject";
+                $cenTitle = "Complaint Rejected by Ward Officer";
+                $cenMsg = "Ward Officer has rejected complaint {$complaintCode}. Please check the complaint from the Central Complaints page." . $reasonAdd;
             } else {
-                $citNotifType = "status_update";
-                $citTitle = "Complaint Marked Duplicate";
-                $citMsg = "Your complaint #$complaintCode was marked as a duplicate.";
-                $cenNotifType = "complaint_rejected";
-                $cenTitle = "Ward Marked Duplicate";
-                $cenMsg = "Complaint #$complaintCode routed by you was marked as a duplicate.";
+                $citNotifType = "ward_duplicate";
+                $citTitle = "Complaint Marked as Duplicate";
+                $reasonAdd = !empty($reasonText) ? " Information: " . $reasonText : "";
+                $citMsg = "Your complaint has been marked as a duplicate by the Ward Officer." . $reasonAdd;
+                $cenNotifType = "ward_duplicate";
+                $cenTitle = "Complaint Marked as Duplicate";
+                $cenMsg = "Ward Officer marked complaint {$complaintCode} as duplicate. Please check the complaint from the Central Complaints page." . $reasonAdd;
             }
 
             if ($citizenUserId > 0) {
@@ -359,14 +366,11 @@ if ($assignedWardId > 0) {
         INNER JOIN users u
             ON c.user_id = u.user_id
 
-        INNER JOIN complaint_assignments ca
-            ON c.complaint_id = ca.complaint_id
-
-        INNER JOIN wards w
-            ON ca.ward_id = w.ward_id
-
         INNER JOIN locations l
             ON c.loc_id = l.loc_id
+
+        INNER JOIN wards w
+            ON l.ward_id = w.ward_id
 
         LEFT JOIN areas a
             ON l.area_id = a.area_id
@@ -381,7 +385,7 @@ if ($assignedWardId > 0) {
             ON c.issue_id = i.issue_id
 
         WHERE c.complaint_status = 'pending_verification'
-        AND ca.ward_id = ?
+        AND l.ward_id = ? AND l.city_cor_id = ?
 
         ORDER BY
             CASE
@@ -396,7 +400,7 @@ if ($assignedWardId > 0) {
     $stmt = mysqli_prepare($conn, $sql);
 
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "i", $assignedWardId);
+        mysqli_stmt_bind_param($stmt, "ii", $assignedWardId, $assignedCityCorId);
         mysqli_stmt_execute($stmt);
 
         $result = mysqli_stmt_get_result($stmt);
@@ -486,6 +490,7 @@ foreach ($verificationComplaints as $item) {
     <link rel="stylesheet" href="../../css/ward/topbar.css">
     <link rel="stylesheet" href="../../css/ward/verification-queue.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="ward">
@@ -835,5 +840,6 @@ foreach ($verificationComplaints as $item) {
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/verification-queue.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

@@ -154,7 +154,7 @@ $sidebarInitial = strtoupper(substr($userName, 0, 1));
 
         <a href="<?php echo $baseUrl; ?>/high-risk-zones.php" class="dg-central-menu-link <?php echo ($activePage === 'high-risk-zones') ? 'active' : ''; ?>">
             <i class="bi bi-exclamation-triangle"></i>
-            <span>High Risk Zones</span>
+            <span>Risk Zones</span>
         </a>
 
         <a href="<?php echo $baseUrl; ?>/reports.php" class="dg-central-menu-link <?php echo ($activePage === 'reports') ? 'active' : ''; ?>">
@@ -162,9 +162,9 @@ $sidebarInitial = strtoupper(substr($userName, 0, 1));
             <span>Reports</span>
         </a>
 
-        <a href="<?php echo $baseUrl; ?>/settings.php" class="dg-central-menu-link <?php echo ($activePage === 'settings') ? 'active' : ''; ?>">
-            <i class="bi bi-gear"></i>
-            <span>Settings</span>
+        <a href="<?php echo $baseUrl; ?>/team-feedback.php" class="dg-central-menu-link <?php echo ($activePage === 'team-feedback') ? 'active' : ''; ?>">
+            <i class="bi bi-star-half"></i>
+            <span>Team Feedback</span>
         </a>
 
     </nav>

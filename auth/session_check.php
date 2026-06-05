@@ -86,6 +86,30 @@ if (
     exit();
 }
 
+// Active suspension & ban check
+global $conn;
+if (isset($conn) && !empty($_SESSION["user_id"])) {
+    require_once __DIR__ . "/../includes/disciplinary_helpers.php";
+    restoreExpiredSuspension($conn, $_SESSION["user_id"]);
+
+    $checkStatusSql = "SELECT user_status, login_access FROM users WHERE user_id = ?";
+    $checkStatusStmt = mysqli_prepare($conn, $checkStatusSql);
+    if ($checkStatusStmt) {
+        mysqli_stmt_bind_param($checkStatusStmt, "i", $_SESSION["user_id"]);
+        mysqli_stmt_execute($checkStatusStmt);
+        $resStatus = mysqli_stmt_get_result($checkStatusStmt);
+        if ($rowStatus = mysqli_fetch_assoc($resStatus)) {
+            if ((int)$rowStatus["login_access"] !== 1 || strtolower(trim($rowStatus["user_status"])) !== "active") {
+                // Suspended or banned while logged in
+                session_destroy();
+                header("Location: " . $baseUrl . "auth/login.php");
+                exit();
+            }
+        }
+        mysqli_stmt_close($checkStatusStmt);
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Role Redirect Map

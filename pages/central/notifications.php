@@ -52,7 +52,7 @@ if (isset($_GET["read_id"])) {
     $redirectType = trim($_GET["redirect"] ?? "");
 
     if ($readId > 0 && $userId > 0 && isset($conn) && $conn instanceof mysqli) {
-        $readSql = "SELECT is_read, related_complaint_id FROM central_notifications WHERE notification_id = ? AND recipient_user_id = ?";
+        $readSql = "SELECT cn.is_read, cn.related_complaint_id, c.complaint_code FROM central_notifications cn LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id WHERE cn.notification_id = ? AND cn.recipient_user_id = ?";
         $readStmt = mysqli_prepare($conn, $readSql);
         
         if ($readStmt) {
@@ -73,8 +73,8 @@ if (isset($_GET["read_id"])) {
                 mysqli_stmt_close($readStmt);
                 
                 if ($redirectType === "complaints") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?open_complaint=" . urlencode($readRow["related_complaint_id"]) : "";
-                    $url = "complaints.php" . $complaintIdParam;
+                    $highlightParam = $readRow["complaint_code"] ? "?highlight=" . urlencode($readRow["complaint_code"]) : ($readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "");
+                    $url = "complaints.php" . $highlightParam;
                 } else if ($redirectType === "discussion") {
                     $complaintIdParam = $readRow["related_complaint_id"] ? "?id=" . urlencode($readRow["related_complaint_id"]) : "";
                     $url = "discussion.php" . $complaintIdParam;
@@ -108,6 +108,9 @@ $allowedTypes = [
     "complaint_submitted",
     "complaint_received",
     "complaint_rejected",
+    "ward_accept_verify",
+    "ward_reject",
+    "ward_duplicate",
     "comment_reply",
     "inspector_report",
     "team_update"
@@ -229,6 +232,7 @@ function nt_build_query($overrides = [])
   
     <link rel="stylesheet" href="../../css/central/notifications.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -271,6 +275,9 @@ function nt_build_query($overrides = [])
                             <option value="complaint_submitted" <?php echo $filterType === "complaint_submitted" ? "selected" : ""; ?>>Complaint Submitted</option>
                             <option value="complaint_received" <?php echo $filterType === "complaint_received" ? "selected" : ""; ?>>Complaint Received</option>
                             <option value="complaint_rejected" <?php echo $filterType === "complaint_rejected" ? "selected" : ""; ?>>Complaint Rejected</option>
+                            <option value="ward_accept_verify" <?php echo $filterType === "ward_accept_verify" ? "selected" : ""; ?>>Ward Verified</option>
+                            <option value="ward_reject" <?php echo $filterType === "ward_reject" ? "selected" : ""; ?>>Ward Rejected</option>
+                            <option value="ward_duplicate" <?php echo $filterType === "ward_duplicate" ? "selected" : ""; ?>>Ward Duplicate</option>
                             <option value="comment_reply" <?php echo $filterType === "comment_reply" ? "selected" : ""; ?>>Comment Reply</option>
                             <option value="inspector_report" <?php echo $filterType === "inspector_report" ? "selected" : ""; ?>>Field Report</option>
                             <option value="team_update" <?php echo $filterType === "team_update" ? "selected" : ""; ?>>Team Update</option>
@@ -422,5 +429,6 @@ function nt_build_query($overrides = [])
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/notifications.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

@@ -439,8 +439,16 @@ try {
         INNER JOIN locations l   ON c.loc_id = l.loc_id
         LEFT  JOIN areas a       ON l.area_id = a.area_id
         LEFT  JOIN issues i      ON c.issue_id = i.issue_id
-        LEFT  JOIN complaint_assignments ca ON c.complaint_id = ca.complaint_id
-        LEFT  JOIN maintenance_teams mt ON ca.maintenance_team_id = mt.maintenance_team_id
+        LEFT JOIN (
+            SELECT ca1.*
+            FROM complaint_assignments ca1
+            INNER JOIN (
+                SELECT complaint_id, MAX(assignment_id) as latest_id
+                FROM complaint_assignments
+                GROUP BY complaint_id
+            ) ca2 ON ca1.assignment_id = ca2.latest_id
+        ) ca ON c.complaint_id = ca.complaint_id
+        LEFT JOIN maintenance_teams mt ON ca.maintenance_team_id = mt.maintenance_team_id
         LEFT JOIN (
             SELECT msr1.*
             FROM maintenance_support_requests msr1
@@ -518,6 +526,7 @@ foreach ($verifiedComplaints as $ci) {
     <link rel="stylesheet" href="../../css/ward/topbar.css">
     <link rel="stylesheet" href="../../css/ward/local-team-assignment.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="ward">
@@ -558,37 +567,6 @@ foreach ($verifiedComplaints as $ci) {
             </div>
         <?php endif; ?>
 
-        <div class="lta-summary-grid">
-            <div class="lta-summary-card">
-                <div class="lta-summary-icon pending">
-                    <i class="bi bi-check2-square"></i>
-                </div>
-                <div>
-                    <h2><?= $totalVerified; ?></h2>
-                    <p>Verified Complaints</p>
-                </div>
-            </div>
-
-            <div class="lta-summary-card">
-                <div class="lta-summary-icon team">
-                    <i class="bi bi-people"></i>
-                </div>
-                <div>
-                    <h2><?= $totalTeams; ?></h2>
-                    <p>Available Teams</p>
-                </div>
-            </div>
-
-            <div class="lta-summary-card">
-                <div class="lta-summary-icon high">
-                    <i class="bi bi-exclamation-triangle"></i>
-                </div>
-                <div>
-                    <h2><?= $highPriorityCount; ?></h2>
-                    <p>High Priority</p>
-                </div>
-            </div>
-        </div>
 
         <div class="lta-toolbar">
             <div class="lta-search-box">
@@ -617,6 +595,7 @@ foreach ($verifiedComplaints as $ci) {
                         class="lta-card"
                         data-search="<?= safeText($searchText); ?>"
                         data-priority="<?= safeText($priority); ?>"
+                        data-complaint-code="<?= safeText($cCode); ?>"
                     >
                         <div class="lta-card-top">
                             <div class="lta-card-top-left">
@@ -727,8 +706,10 @@ foreach ($verifiedComplaints as $ci) {
                                             <form method="POST" action="reply_support.php" style="margin-top: 15px;">
                                                 <input type="hidden" name="support_request_id" value="<?= $complaint["support_request_id"]; ?>">
                                                 <input type="hidden" name="redirect_to" value="local-team-assignment.php">
-                                                <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team..." style="width:100%; box-sizing: border-box; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
-                                                <button type="submit" style="margin-top: 10px; background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
+                                                <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team..." style="width:100%; box-sizing:border-box; resize:vertical; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
+                                                <div style="text-align: left; margin-top: 10px;">
+                                                    <button type="submit" style="background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
+                                                </div>
                                             </form>
                                         <?php else: ?>
                                             <div style="margin-top: 15px; background: #e2e3e5; padding: 10px; border-radius: 4px;">
@@ -782,5 +763,6 @@ foreach ($verifiedComplaints as $ci) {
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/local-team-assignment.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

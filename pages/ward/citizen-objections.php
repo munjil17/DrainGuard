@@ -311,6 +311,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 rr.reopen_id,
                 rr.complaint_id,
                 rr.request_status,
+                rr.requested_by,
                 c.complaint_status
             FROM reopen_requests rr
             INNER JOIN complaints c ON c.complaint_id = rr.complaint_id
@@ -355,6 +356,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // CRITICAL FIX: Set maintenance proof to rejected so they can re-upload
             mysqli_query($conn, "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after'");
 
+            require_once "../../includes/disciplinary_helpers.php";
+            $inspectorId = woFetchOne($conn, "SELECT inspector_user_id FROM inspection_logs WHERE complaint_id = ? ORDER BY log_id DESC LIMIT 1", "i", [$complaintId])['inspector_user_id'] ?? null;
+            $teamId = woFetchOne($conn, "SELECT maintenance_team_id FROM complaint_assignments WHERE complaint_id = ? ORDER BY assignment_id DESC LIMIT 1", "i", [$complaintId])['maintenance_team_id'] ?? null;
+            
+            if ($teamId) {
+                $teamLeaderId = woFetchOne($conn, "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND role = 'team_leader' AND status = 'active' LIMIT 1", "i", [$teamId])['user_id'] ?? null;
+                if ($teamLeaderId) {
+                    addDemerit($conn, $teamLeaderId, null, 'team_leader', 'team_leader', $complaintId, $teamId, 'citizen_objection_true', $wardNote, $userId, 'ward_officer');
+                }
+                
+                $members = woFetchAll($conn, "SELECT user_id, member_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND status = 'active' AND role != 'team_leader'", "i", [$teamId]);
+                foreach ($members as $member) {
+                    applyTeamMemberWarningOrDemerit($conn, $member['member_id'], $member['user_id'], $teamId, $complaintId, 'citizen_objection_true', $wardNote, $userId, 'ward_officer');
+                }
+            }
+            if ($inspectorId) {
+                addDemerit($conn, $inspectorId, null, 'inspector', 'inspector', $complaintId, $teamId, 'citizen_objection_true', $wardNote, $userId, 'ward_officer');
+            }
+
+            $citNotifMsg = "Your objection has been accepted. The complaint is reopened.";
+            $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Objection Accepted', ?, 0, NOW())";
+            $notifStmt = mysqli_prepare($conn, $citNotifSql);
+            if ($notifStmt) {
+                mysqli_stmt_bind_param($notifStmt, "iiis", $allowedRequest['requested_by'], $userId, $complaintId, $citNotifMsg);
+                mysqli_stmt_execute($notifStmt);
+                mysqli_stmt_close($notifStmt);
+            }
+
         } else {
             $newRequestStatus = 'rejected';
             $newComplaintStatus = 'final_rejected';
@@ -377,6 +406,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             mysqli_stmt_bind_param($stmt, "ssii", $newRequestStatus, $wardNote, $userId, $reopenId);
             mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
+
+            require_once "../../includes/disciplinary_helpers.php";
+            $citizenUserId = $allowedRequest['requested_by'];
+            if ($citizenUserId) {
+                addDemerit($conn, $citizenUserId, null, 'citizen', 'citizen', $complaintId, null, 'citizen_objection_false', $wardNote, $userId, 'ward_officer');
+            }
+
+            $citNotifMsg = "Your objection has been rejected. The complaint will remain closed. You have received 1 demerit point for a false objection.";
+            $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Objection Rejected', ?, 0, NOW())";
+            $notifStmt = mysqli_prepare($conn, $citNotifSql);
+            if ($notifStmt) {
+                mysqli_stmt_bind_param($notifStmt, "iiis", $citizenUserId, $userId, $complaintId, $citNotifMsg);
+                mysqli_stmt_execute($notifStmt);
+                mysqli_stmt_close($notifStmt);
+            }
         }
 
         $stmt = mysqli_prepare(
@@ -577,7 +621,9 @@ $objectionSql = "
         a.area_name,
 
         latest_proof.uploaded_at AS approved_at,
-        latest_proof.proof_note AS maintenance_proof_note
+        latest_proof.proof_note AS maintenance_proof_note,
+
+        f.rating AS citizen_rating
 
     FROM reopen_requests rr
 
@@ -591,18 +637,23 @@ $objectionSql = "
     LEFT JOIN areas a ON a.area_id = l.area_id
     LEFT JOIN wards w ON w.ward_id = ca.ward_id
 
-    LEFT JOIN (
-        SELECT mp1.*
-        FROM maintenance_proofs mp1
-        INNER JOIN (
-            SELECT complaint_id, MAX(proof_id) AS latest_proof_id
-            FROM maintenance_proofs
-            WHERE proof_stage = 'after'
-            GROUP BY complaint_id
-        ) latest ON latest.latest_proof_id = mp1.proof_id
-    ) latest_proof ON latest_proof.complaint_id = c.complaint_id
+        LEFT JOIN (
+            SELECT mp1.*
+            FROM maintenance_proofs mp1
+            INNER JOIN (
+                SELECT complaint_id, MAX(proof_id) AS latest_proof_id
+                FROM maintenance_proofs
+                WHERE proof_stage = 'after'
+                GROUP BY complaint_id
+            ) latest ON latest.latest_proof_id = mp1.proof_id
+        ) latest_proof ON latest_proof.complaint_id = c.complaint_id
 
-    $whereSql
+        LEFT JOIN feedbacks f 
+            ON f.complaint_id = rr.complaint_id 
+            AND f.user_id = rr.requested_by 
+            AND f.feedback_type = 'false_completion'
+
+        $whereSql
 
     GROUP BY rr.reopen_id
 
@@ -667,15 +718,16 @@ foreach ($objections as $item) {
     <link rel="stylesheet" href="../../css/ward/citizen-objections.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
-<body>
+<body class="ward">
 
     <div class="ward-layout">
 
         <?php include __DIR__ . '/../../includes/ward/sidebar.php'; ?>
 
-        <main class="main-content">
+        <main class="ward-main">
 
             <?php include __DIR__ . '/../../includes/ward/topbar.php'; ?>
 
@@ -808,6 +860,21 @@ foreach ($objections as $item) {
                                     <div>
                                         <span>Citizen Phone</span>
                                         <strong><?php echo woText($item['citizen_phone'] ?: 'N/A'); ?></strong>
+                                    </div>
+
+
+                                    <div>
+                                        <span>Citizen Rating</span>
+                                        <strong>
+                                            <?php 
+                                            $rating = (int)($item['citizen_rating'] ?? 0);
+                                            if ($rating > 0) {
+                                                echo $rating . ' / 5 <i class="bi bi-star-fill text-warning"></i>';
+                                            } else {
+                                                echo 'N/A';
+                                            }
+                                            ?>
+                                        </strong>
                                     </div>
 
                                 </div>
@@ -976,7 +1043,6 @@ foreach ($objections as $item) {
             </section>
 
             <?php
-            $footerPath = __DIR__ . '/../../includes/ward/footer.php';
 
             if (file_exists($footerPath)) {
                 include $footerPath;
@@ -990,6 +1056,7 @@ foreach ($objections as $item) {
     <script src="../../js/ward/sidebar.js"></script>
     <script src="../../js/ward/citizen-objections.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

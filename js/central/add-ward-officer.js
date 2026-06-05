@@ -141,14 +141,14 @@ document.addEventListener("DOMContentLoaded", function () {
         form.addEventListener("submit", function (event) {
             if (cityCorSelect && cityCorSelect.value.trim() === "") {
                 event.preventDefault();
-                alert("Please select city corporation.");
+                showWarningModal("Please select city corporation.");
                 cityCorSelect.focus();
                 return;
             }
 
             if (wardSelect && wardSelect.value.trim() === "") {
                 event.preventDefault();
-                alert("Please select assigned ward.");
+                showWarningModal("Please select assigned ward.");
                 wardSelect.focus();
                 return;
             }
@@ -164,14 +164,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (password.value.trim().length < 6) {
                     event.preventDefault();
-                    alert("Password must be at least 6 characters.");
+                    showWarningModal("Password must be at least 6 characters.");
                     password.focus();
                     return;
                 }
 
                 if (password.value !== confirmPassword.value) {
                     event.preventDefault();
-                    alert("Password and confirm password do not match.");
+                    showWarningModal("Password and confirm password do not match.");
                     confirmPassword.focus();
                 }
             }

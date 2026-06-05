@@ -71,16 +71,15 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     return $rows;
 }
 
-function riskLevel($urgency, $count30)
+function riskLevel($urgency)
 {
     $urgency = strtolower(trim((string)$urgency));
-    $count30 = (int)$count30;
 
-    if ($urgency === "high" || $count30 >= 10) {
+    if ($urgency === "high") {
         return "High";
     }
 
-    if ($urgency === "medium" || $count30 >= 5) {
+    if ($urgency === "medium") {
         return "Medium";
     }
 
@@ -218,19 +217,22 @@ try {
 
         FROM risk r
 
-        INNER JOIN wards w
-            ON r.ward_id = w.ward_id
-
-        LEFT JOIN areas a
-            ON r.area_id = a.area_id
-
         LEFT JOIN complaints c
             ON r.last_complaint_id = c.complaint_id
+
+        LEFT JOIN locations l
+            ON c.loc_id = l.loc_id
+
+        INNER JOIN wards w
+            ON l.ward_id = w.ward_id
+
+        LEFT JOIN areas a
+            ON l.area_id = a.area_id
 
         LEFT JOIN issues i
             ON c.issue_id = i.issue_id
 
-        WHERE r.ward_id = ?
+        WHERE l.ward_id = ?
         AND r.risk_status = 'Active'
 
         ORDER BY
@@ -255,7 +257,7 @@ $highRiskCount = 0;
 $totalComplaintsInRiskZones = 0;
 
 foreach ($riskZones as $zone) {
-    $level = riskLevel($zone["urgency_level"] ?? "Low", $zone["complaint_count_30_days"] ?? 0);
+    $level = riskLevel($zone["urgency_level"] ?? "Low");
 
     if ($level === "High") {
         $highRiskCount++;
@@ -277,9 +279,9 @@ foreach ($riskZones as $zone) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/ward/sidebar.css">
     <link rel="stylesheet" href="../../css/ward/topbar.css">
-    <link rel="stylesheet" href="../../css/ward/footer.css">
     <link rel="stylesheet" href="../../css/ward/ward-risk-zones.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="ward">
@@ -291,13 +293,18 @@ foreach ($riskZones as $zone) {
 
     <section class="wrz-page">
 
-        <div class="wrz-header">
+        <div class="wrz-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h1>Ward Risk Zones</h1>
                 <p>
                     Monitor areas with repeated drainage complaints in
-                    Ward <?= safeText($wardNo); ?><?= $wardName ? " - " . safeText($wardName) : ""; ?>.
+                    Ward <?= safeText($wardNo); ?><?= ($wardName && strcasecmp($wardName, "Ward " . $wardNo) !== 0 && strcasecmp($wardName, $wardNo) !== 0) ? " - " . safeText($wardName) : ""; ?>.
                 </p>
+            </div>
+
+            <div class="wrz-count-card" style="background: #fff; padding: 16px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e2e8f0;">
+                <span id="visibleComplaintsCount" style="display: block; font-size: 24px; font-weight: 800; color: #0ea5e9;"><?php echo $totalComplaintsInRiskZones; ?></span>
+                <small style="color: #64748b; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Total Complaints</small>
             </div>
         </div>
 
@@ -308,37 +315,7 @@ foreach ($riskZones as $zone) {
             </div>
         <?php endif; ?>
 
-        <div class="wrz-summary-grid">
-            <div class="wrz-summary-card">
-                <div class="wrz-summary-icon total">
-                    <i class="bi bi-geo-alt"></i>
-                </div>
-                <div>
-                    <h2><?= $totalRiskZones; ?></h2>
-                    <p>Total Risk Zones</p>
-                </div>
-            </div>
 
-            <div class="wrz-summary-card">
-                <div class="wrz-summary-icon high">
-                    <i class="bi bi-exclamation-triangle"></i>
-                </div>
-                <div>
-                    <h2><?= $highRiskCount; ?></h2>
-                    <p>High Risk Areas</p>
-                </div>
-            </div>
-
-            <div class="wrz-summary-card">
-                <div class="wrz-summary-icon complaint">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-                <div>
-                    <h2><?= $totalComplaintsInRiskZones; ?></h2>
-                    <p>Total Complaints in Risk Zones</p>
-                </div>
-            </div>
-        </div>
 
         <div class="wrz-toolbar">
             <div class="wrz-search-box">
@@ -360,7 +337,7 @@ foreach ($riskZones as $zone) {
                 <?php foreach ($riskZones as $zone): ?>
                     <?php
                         $areaName = $zone["area_name"] ?: "Unknown Area";
-                        $level = riskLevel($zone["urgency_level"] ?? "Low", $zone["complaint_count_30_days"] ?? 0);
+                        $level = riskLevel($zone["urgency_level"] ?? "Low");
                         $class = riskClass($level);
                         $count30 = (int)($zone["complaint_count_30_days"] ?? 0);
                         $countWeek = (int)($zone["complaint_count_this_week"] ?? 0);
@@ -423,11 +400,6 @@ foreach ($riskZones as $zone) {
                             </div>
                         </div>
 
-                        <div class="wrz-action-box">
-                            <span>Suggested Action</span>
-                            <p><?= safeText($action); ?></p>
-                        </div>
-
                         <div class="wrz-actions">
                             <button type="button"
                                     class="wrz-btn view-details"
@@ -441,10 +413,6 @@ foreach ($riskZones as $zone) {
                                     data-action="<?= safeText($action); ?>">
                                 View Details
                             </button>
-
-                            <a href="local-team-assignment.php" class="wrz-btn take-action">
-                                Take Action
-                            </a>
                         </div>
 
                     </article>
@@ -462,7 +430,6 @@ foreach ($riskZones as $zone) {
 
     </section>
 
-    <?php include "../../includes/ward/footer.php"; ?>
 </main>
 
 <div class="wrz-modal-overlay" id="wrzModalOverlay">
@@ -517,5 +484,6 @@ foreach ($riskZones as $zone) {
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/ward-risk-zones.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

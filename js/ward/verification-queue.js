@@ -204,11 +204,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     verifyButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
-            const confirmed = confirm("Accept and verify this complaint? Status will become Verified.");
+            event.preventDefault();
+            const form = this.closest("form");
 
-            if (!confirmed) {
-                event.preventDefault();
-            }
+            showConfirmModal({
+                title: "Verify Complaint",
+                message: "Accept and verify this complaint? Status will become Verified.",
+                confirmText: "Verify",
+                cancelText: "Cancel",
+                type: "success",
+                onConfirm: function() {
+                    form.submit();
+                }
+            });
         });
     });
 
@@ -261,7 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
     reasonSubmit.addEventListener("click", function() {
         const reason = reasonInput.value.trim();
         if (reason === "") {
-            alert("Please provide a reason.");
+            showWarningModal("Please provide a reason.");
             reasonInput.focus();
             return;
         }

@@ -140,6 +140,25 @@ mysqli_stmt_close($stmt);
 | Account & Access Check
 |--------------------------------------------------------------------------
 */
+
+// Check if there is an expired suspension that needs to be restored
+require_once __DIR__ . "/../includes/disciplinary_helpers.php";
+restoreExpiredSuspension($conn, $user["user_id"]);
+
+// Fetch the latest login_access and user_status in case it was restored
+$checkStatusSql = "SELECT user_status, login_access FROM users WHERE user_id = ?";
+$checkStatusStmt = mysqli_prepare($conn, $checkStatusSql);
+if ($checkStatusStmt) {
+    mysqli_stmt_bind_param($checkStatusStmt, "i", $user["user_id"]);
+    mysqli_stmt_execute($checkStatusStmt);
+    $resStatus = mysqli_stmt_get_result($checkStatusStmt);
+    if ($rowStatus = mysqli_fetch_assoc($resStatus)) {
+        $user["user_status"] = $rowStatus["user_status"];
+        $user["login_access"] = $rowStatus["login_access"];
+    }
+    mysqli_stmt_close($checkStatusStmt);
+}
+
 if (strtolower(trim($user["user_status"] ?? "")) !== "active") {
     $_SESSION["email_error"] = "Your account is inactive. Please contact support.";
     redirect_to("auth/login.php");

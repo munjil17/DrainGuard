@@ -533,6 +533,7 @@ foreach ($complaints as $item) {
     <link rel="stylesheet" href="../../css/ward/topbar.css">
     <link rel="stylesheet" href="../../css/ward/ward-complaints.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="ward">
@@ -849,5 +850,6 @@ foreach ($complaints as $item) {
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/ward-complaints.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

@@ -41,14 +41,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const dateValue = dateInput ? dateInput.value.trim() : "";
 
             if (reasonValue === "") {
-                alert("Delay reason is required.");
+                showWarningModal("Delay reason is required.");
                 if (reasonInput) reasonInput.focus();
                 return false;
             }
 
             if (requestType === "deadline_extension") {
                 if (dateValue === "") {
-                    alert("Please select expected new completion deadline.");
+                    showWarningModal("Please select expected new completion deadline.");
                     if (dateInput) dateInput.focus();
                     return false;
                 }
@@ -59,12 +59,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 today.setHours(0, 0, 0, 0);
 
                 if (Number.isNaN(selectedDate.getTime())) {
-                    alert("Invalid new deadline date.");
+                    showWarningModal("Invalid new deadline date.");
                     return false;
                 }
 
                 if (selectedDate <= today) {
-                    alert("New deadline must be a future date.");
+                    showWarningModal("New deadline must be a future date.");
                     return false;
                 }
             }
@@ -91,14 +91,43 @@ document.addEventListener("DOMContentLoaded", function () {
                 confirmMessage = "Submit deadline extension request to Ward Officer?";
             }
 
-            const confirmed = confirm(confirmMessage);
+            showConfirmModal({
+                title: "Confirm Delay Action",
+                message: confirmMessage,
+                confirmText: "Confirm",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    isSubmitting = true;
+                    setLoading();
 
-            if (!confirmed) {
-                return;
-            }
+                    const formData = new FormData(form);
 
-            isSubmitting = true;
-            setLoading();
+                    fetch("delayed-tasks.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            showWarningModal(data.message || "Request processed.");
+
+                            if (data.success) {
+                                window.location.href = "delayed-tasks.php";
+                            } else {
+                                isSubmitting = false;
+                                resetButton();
+                            }
+                        })
+                        .catch(function () {
+                            showWarningModal("Failed to submit request. Please try again.");
+
+                            isSubmitting = false;
+                            resetButton();
+                        });
+                }
+            });
 
             const formData = new FormData(form);
 
@@ -110,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     return response.json();
                 })
                 .then(function (data) {
-                    alert(data.message || "Request processed.");
+                    showWarningModal(data.message || "Request processed.");
 
                     if (data.success) {
                         window.location.href = "delayed-tasks.php";
@@ -120,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .catch(function () {
-                    alert("Failed to submit request. Please try again.");
+                    showWarningModal("Failed to submit request. Please try again.");
 
                     isSubmitting = false;
                     resetButton();

@@ -37,13 +37,13 @@ document.addEventListener("DOMContentLoaded", function () {
             if (actionType === "feedback") {
                 if (ratingValue < 1) {
                     event.preventDefault();
-                    alert("Please select a rating before submitting feedback.");
+                    showWarningModal("Please select a rating before submitting feedback.");
                     return;
                 }
 
                 if (textValue.length < 5) {
                     event.preventDefault();
-                    alert("Please write a short feedback message.");
+                    showWarningModal("Please write a short feedback message.");
                     return;
                 }
             }
@@ -51,24 +51,32 @@ document.addEventListener("DOMContentLoaded", function () {
             if (actionType === "citizen_objection") {
                 if (ratingValue < 1) {
                     event.preventDefault();
-                    alert("Please select a rating before submitting your objection.");
+                    showWarningModal("Please select a rating before submitting your objection.");
                     return;
                 }
 
                 if (textValue.length < 10) {
                     event.preventDefault();
-                    alert("Please clearly explain why the problem is still not solved.");
+                    showWarningModal("Please clearly explain why the problem is still not solved.");
                     return;
                 }
 
-                const confirmReport = confirm(
-                    "Submit this objection to Ward Officer? The complaint will be marked as disputed until reviewed."
-                );
-
-                if (!confirmReport) {
-                    event.preventDefault();
-                    return;
-                }
+                event.preventDefault();
+                showConfirmModal({
+                    title: "Submit Objection",
+                    message: "Submit this objection to Ward Officer? The complaint will be marked as disputed until reviewed.",
+                    confirmText: "Submit",
+                    cancelText: "Cancel",
+                    type: "warning",
+                    onConfirm: function() {
+                        if (clickedButton) {
+                            clickedButton.innerHTML = "Processing...";
+                            clickedButton.style.pointerEvents = "none";
+                        }
+                        form.submit();
+                    }
+                });
+                return;
             }
 
             if (clickedButton) {

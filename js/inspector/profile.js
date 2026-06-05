@@ -16,13 +16,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
             if (!allowedTypes.includes(file.type)) {
-                alert("Only JPG, PNG, or WEBP image is allowed.");
+                showWarningModal("Only JPG, PNG, or WEBP image is allowed.");
                 this.value = "";
                 return;
             }
 
             if (file.size > 3 * 1024 * 1024) {
-                alert("Profile image must be less than 3MB.");
+                showWarningModal("Profile image must be less than 3MB.");
                 this.value = "";
                 return;
             }
@@ -40,14 +40,20 @@ document.addEventListener("DOMContentLoaded", function () {
                     profilePlaceholder.style.display = "none";
                 }
 
-                const confirmUpload = confirm("Upload this image as your profile picture?");
-
-                if (confirmUpload) {
-                    profileImageForm.submit();
-                } else {
-                    profileImageInput.value = "";
-                    window.location.reload();
-                }
+                showConfirmModal({
+                    title: "Upload Profile Picture",
+                    message: "Upload this image as your profile picture?",
+                    confirmText: "Upload",
+                    cancelText: "Cancel",
+                    type: "confirm",
+                    onConfirm: function() {
+                        profileImageForm.submit();
+                    },
+                    onCancel: function() {
+                        profileImageInput.value = "";
+                        window.location.reload();
+                    }
+                });
             };
 
             reader.readAsDataURL(file);
@@ -70,21 +76,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (fullNameValue.length < 3) {
                 event.preventDefault();
-                alert("Full name must be at least 3 characters.");
+                showWarningModal("Full name must be at least 3 characters.");
                 fullName.focus();
                 return;
             }
 
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
                 event.preventDefault();
-                alert("Please enter a valid email address.");
+                showWarningModal("Please enter a valid email address.");
                 email.focus();
                 return;
             }
 
             if (phoneValue.length < 8 || phoneValue.length > 20) {
                 event.preventDefault();
-                alert("Phone number must be between 8 and 20 characters.");
+                showWarningModal("Phone number must be between 8 and 20 characters.");
                 phone.focus();
                 return;
             }

@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $errorMessage = "Invalid request.";
     } else {
         $checkSql = "
-            SELECT complaint_id, complaint_status
+            SELECT complaint_id, complaint_code, complaint_status
             FROM complaints
             WHERE complaint_id = ?
             AND user_id = ?
@@ -170,6 +170,57 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                                     if (mysqli_stmt_execute($insertStmt)) {
                                         $successMessage = "Feedback submitted successfully.";
+                                        
+                                        $teamSql = "SELECT maintenance_team_id FROM complaint_assignments WHERE complaint_id = ? AND maintenance_team_id IS NOT NULL ORDER BY assigned_at DESC LIMIT 1";
+                                        $teamStmt = mysqli_prepare($conn, $teamSql);
+                                        if ($teamStmt) {
+                                            mysqli_stmt_bind_param($teamStmt, "i", $complaintId);
+                                            mysqli_stmt_execute($teamStmt);
+                                            $teamRes = mysqli_stmt_get_result($teamStmt);
+                                            if ($teamRes && $tRow = mysqli_fetch_assoc($teamRes)) {
+                                                $teamId = (int)$tRow['maintenance_team_id'];
+                                                
+                                                $revDupSql = "SELECT review_id FROM maintenance_team_reviews WHERE complaint_id = ? AND citizen_user_id = ? AND maintenance_team_id = ?";
+                                                $revDupStmt = mysqli_prepare($conn, $revDupSql);
+                                                if ($revDupStmt) {
+                                                    mysqli_stmt_bind_param($revDupStmt, "iii", $complaintId, $userId, $teamId);
+                                                    mysqli_stmt_execute($revDupStmt);
+                                                    $rdupRes = mysqli_stmt_get_result($revDupStmt);
+                                                    if (!$rdupRes || mysqli_num_rows($rdupRes) === 0) {
+                                                        $rType = ($rating >= 4) ? 'good_work' : 'satisfied';
+                                                        $revIns = mysqli_prepare($conn, "INSERT INTO maintenance_team_reviews (complaint_id, citizen_user_id, maintenance_team_id, rating, review_text, review_type) VALUES (?, ?, ?, ?, ?, ?)");
+                                                        if ($revIns) {
+                                                            mysqli_stmt_bind_param($revIns, "iiiiss", $complaintId, $userId, $teamId, $rating, $feedbackText, $rType);
+                                                            mysqli_stmt_execute($revIns);
+                                                            mysqli_stmt_close($revIns);
+                                                            
+                                                            $tlSql = "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND role = 'team_leader' LIMIT 1";
+                                                            $tlStmt = mysqli_prepare($conn, $tlSql);
+                                                            if ($tlStmt) {
+                                                                mysqli_stmt_bind_param($tlStmt, "i", $teamId);
+                                                                mysqli_stmt_execute($tlStmt);
+                                                                $tlRes = mysqli_stmt_get_result($tlStmt);
+                                                                if ($tlRes && $tlRow = mysqli_fetch_assoc($tlRes)) {
+                                                                    $tlId = (int)$tlRow['user_id'];
+                                                                    $cCode = $complaintRow['complaint_code'] ?? "ID:$complaintId";
+                                                                    $msg = "Your team received a new citizen review for complaint $cCode.";
+                                                                    $notifIns = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read) VALUES (?, ?, 'system', 'New Citizen Review', ?, 0)");
+                                                                    if ($notifIns) {
+                                                                        mysqli_stmt_bind_param($notifIns, "iis", $tlId, $complaintId, $msg);
+                                                                        mysqli_stmt_execute($notifIns);
+                                                                        mysqli_stmt_close($notifIns);
+                                                                    }
+                                                                }
+                                                                mysqli_stmt_close($tlStmt);
+                                                            }
+                                                        }
+                                                    }
+                                                    mysqli_stmt_close($revDupStmt);
+                                                }
+                                            }
+                                            mysqli_stmt_close($teamStmt);
+                                        }
+
                                     } else {
                                         $errorMessage = "Feedback submission failed.";
                                     }
@@ -271,6 +322,84 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     mysqli_stmt_execute($updateStmt);
                                     mysqli_stmt_close($updateStmt);
 
+                                    // Fetch assigned Ward Officer to notify
+                                    $wardOfficerIdSql = "
+                                        SELECT wo.user_id, c.complaint_code 
+                                        FROM complaint_assignments ca
+                                        INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
+                                        INNER JOIN ward_officers wo ON wo.assigned_ward_id = ca.ward_id AND wo.city_cor_id = ca.city_cor_id
+                                        WHERE ca.complaint_id = ?
+                                        LIMIT 1
+                                    ";
+                                    $woStmt = mysqli_prepare($conn, $wardOfficerIdSql);
+                                    if ($woStmt) {
+                                        mysqli_stmt_bind_param($woStmt, "i", $complaintId);
+                                        mysqli_stmt_execute($woStmt);
+                                        $woResult = mysqli_stmt_get_result($woStmt);
+                                        if ($woRow = mysqli_fetch_assoc($woResult)) {
+                                            $wardUserId = (int)$woRow['user_id'];
+                                            $cCode = $woRow['complaint_code'];
+                                            $msg = "Citizen submitted an objection for complaint {$cCode}. Please review.";
+                                            
+                                            $notifSql = "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Citizen Objection', ?, 0, NOW())";
+                                            $notifStmt = mysqli_prepare($conn, $notifSql);
+                                            if ($notifStmt) {
+                                                mysqli_stmt_bind_param($notifStmt, "iiis", $wardUserId, $userId, $complaintId, $msg);
+                                                mysqli_stmt_execute($notifStmt);
+                                                mysqli_stmt_close($notifStmt);
+                                            }
+                                        }
+                                        mysqli_stmt_close($woStmt);
+                                    }
+
+                                    $teamSql = "SELECT maintenance_team_id FROM complaint_assignments WHERE complaint_id = ? AND maintenance_team_id IS NOT NULL ORDER BY assigned_at DESC LIMIT 1";
+                                    $teamStmt = mysqli_prepare($conn, $teamSql);
+                                    if ($teamStmt) {
+                                        mysqli_stmt_bind_param($teamStmt, "i", $complaintId);
+                                        mysqli_stmt_execute($teamStmt);
+                                        $teamRes = mysqli_stmt_get_result($teamStmt);
+                                        if ($teamRes && $tRow = mysqli_fetch_assoc($teamRes)) {
+                                            $teamId = (int)$tRow['maintenance_team_id'];
+                                            $revDupSql = "SELECT review_id FROM maintenance_team_reviews WHERE complaint_id = ? AND citizen_user_id = ? AND maintenance_team_id = ?";
+                                            $revDupStmt = mysqli_prepare($conn, $revDupSql);
+                                            if ($revDupStmt) {
+                                                mysqli_stmt_bind_param($revDupStmt, "iii", $complaintId, $userId, $teamId);
+                                                mysqli_stmt_execute($revDupStmt);
+                                                $rdupRes = mysqli_stmt_get_result($revDupStmt);
+                                                if (!$rdupRes || mysqli_num_rows($rdupRes) === 0) {
+                                                    $rType = 'objection';
+                                                    $revIns = mysqli_prepare($conn, "INSERT INTO maintenance_team_reviews (complaint_id, citizen_user_id, maintenance_team_id, rating, review_text, review_type) VALUES (?, ?, ?, ?, ?, ?)");
+                                                    if ($revIns) {
+                                                        mysqli_stmt_bind_param($revIns, "iiiiss", $complaintId, $userId, $teamId, $rating, $feedbackText, $rType);
+                                                        mysqli_stmt_execute($revIns);
+                                                        mysqli_stmt_close($revIns);
+                                                        
+                                                        $tlSql = "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND role = 'team_leader' LIMIT 1";
+                                                        $tlStmt = mysqli_prepare($conn, $tlSql);
+                                                        if ($tlStmt) {
+                                                            mysqli_stmt_bind_param($tlStmt, "i", $teamId);
+                                                            mysqli_stmt_execute($tlStmt);
+                                                            $tlRes = mysqli_stmt_get_result($tlStmt);
+                                                            if ($tlRes && $tlRow = mysqli_fetch_assoc($tlRes)) {
+                                                                $tlId = (int)$tlRow['user_id'];
+                                                                $msg = "Your team received a new citizen review for complaint ID:$complaintId.";
+                                                                $notifIns = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read) VALUES (?, ?, 'system', 'New Citizen Review', ?, 0)");
+                                                                if ($notifIns) {
+                                                                    mysqli_stmt_bind_param($notifIns, "iis", $tlId, $complaintId, $msg);
+                                                                    mysqli_stmt_execute($notifIns);
+                                                                    mysqli_stmt_close($notifIns);
+                                                                }
+                                                            }
+                                                            mysqli_stmt_close($tlStmt);
+                                                        }
+                                                    }
+                                                }
+                                                mysqli_stmt_close($revDupStmt);
+                                            }
+                                        }
+                                        mysqli_stmt_close($teamStmt);
+                                    }
+
                                     mysqli_commit($conn);
 
                                     $successMessage = "Objection submitted successfully. Ward Officer will review it first.";
@@ -347,8 +476,14 @@ $sql = "
         AND rr.request_type = 'citizen_objection'
         AND rr.request_status IN ('pending', 'sent_to_inspector')
 
+    LEFT JOIN feedbacks f
+        ON f.complaint_id = c.complaint_id 
+        AND f.user_id = c.user_id 
+        AND f.feedback_type = 'feedback'
+
     WHERE c.user_id = ?
     AND c.complaint_status IN ('closed', 'disputed')
+    AND f.feedback_id IS NULL
 
     ORDER BY c.updated_at DESC
 ";
@@ -390,6 +525,7 @@ if ($stmt) {
 
     <!-- Page CSS -->
     <link rel="stylesheet" href="../../css/citizen/feedback-reopen.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="citizen">
@@ -588,5 +724,6 @@ if ($stmt) {
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/citizen/feedback-reopen.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

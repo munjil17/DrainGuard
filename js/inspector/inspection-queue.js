@@ -67,26 +67,37 @@ document.addEventListener("DOMContentLoaded", function () {
             if (action === "false_completion") {
                 if (!note || note.value.trim().length < 10) {
                     event.preventDefault();
-                    alert("Please write a clear inspector note before confirming false completion.");
+                    showWarningModal("Please write a clear inspector note before confirming false completion.");
                     return;
                 }
 
                 message = "Confirm false completion? This will send the case back to Ward Officer for local team assignment and apply accountability penalties.";
             }
 
-            if (!confirm(message)) {
-                event.preventDefault();
-                return;
-            }
+            event.preventDefault();
 
-            let hiddenAction = form.querySelector('input[name="inspection_action"][type="hidden"]');
+            showConfirmModal({
+                title: "Confirm Inspection Action",
+                message: message,
+                confirmText: "Confirm",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    let hiddenAction = form.querySelector('input[name="inspection_action"][type="hidden"]');
 
-            if (!hiddenAction) {
-                hiddenAction = document.createElement("input");
-                hiddenAction.type = "hidden";
-                hiddenAction.name = "inspection_action";
-                form.appendChild(hiddenAction);
-            }
+                    if (!hiddenAction) {
+                        hiddenAction = document.createElement("input");
+                        hiddenAction.type = "hidden";
+                        hiddenAction.name = "inspection_action";
+                        form.appendChild(hiddenAction);
+                    }
+
+                    hiddenAction.value = action;
+                    clickedButton.innerHTML = "Processing...";
+                    clickedButton.style.pointerEvents = "none";
+                    form.submit();
+                }
+            });
 
             hiddenAction.value = action;
 

@@ -136,6 +136,7 @@ if ($currentUserId) {
         "SELECT 
             wo.ward_officer_id,
             wo.user_id,
+            wo.city_cor_id,
             wo.assigned_ward_id,
             wo.full_name,
             wo.user_mail,
@@ -156,6 +157,7 @@ if (!$wardOfficer && !empty($currentUserMail)) {
         "SELECT 
             wo.ward_officer_id,
             wo.user_id,
+            wo.city_cor_id,
             wo.assigned_ward_id,
             wo.full_name,
             wo.user_mail,
@@ -181,6 +183,7 @@ if (!$wardOfficer) {
         "SELECT 
             wo.ward_officer_id,
             wo.user_id,
+            wo.city_cor_id,
             wo.assigned_ward_id,
             wo.full_name,
             wo.user_mail,
@@ -199,6 +202,7 @@ if (!$wardOfficer) {
 
 $wardOfficerId = (int)$wardOfficer['ward_officer_id'];
 $wardId = (int)$wardOfficer['assigned_ward_id'];
+$cityCorId = (int)$wardOfficer['city_cor_id'];
 $wardNo = $wardOfficer['ward_no'] ?? '';
 $wardName = $wardOfficer['ward_name'] ?? '';
 $userName = $wardOfficer['full_name'] ?? ($_SESSION['user_name'] ?? 'Ward Officer');
@@ -213,126 +217,235 @@ $_SESSION['user_role_label'] = "Ward Operations";
 */
 $totalComplaints = scalarCount(
     $conn,
-    "SELECT COUNT(DISTINCT ca.complaint_id) AS total
-    FROM complaint_assignments ca
-    WHERE ca.ward_id = ?",
-    "i",
-    [$wardId]
+    "SELECT COUNT(DISTINCT c.complaint_id) AS total
+    FROM complaints c
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status NOT IN ('submitted', 'received', 'rejected_by_central')",
+    "ii",
+    [$wardId, $cityCorId]
 );
 
 $pendingVerification = scalarCount(
     $conn,
-    "SELECT COUNT(DISTINCT ca.complaint_id) AS total
-    FROM complaint_assignments ca
-    INNER JOIN complaints c ON ca.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND (
-        ca.assignment_status = 'ward_assigned'
-        OR c.complaint_status IN ('submitted', 'received', 'pending_verification')
-    )",
-    "i",
-    [$wardId]
+    "SELECT COUNT(DISTINCT c.complaint_id) AS total
+    FROM complaints c
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status = 'pending_verification'",
+    "ii",
+    [$wardId, $cityCorId]
+);
+
+$verifiedCases = scalarCount(
+    $conn,
+    "SELECT COUNT(DISTINCT c.complaint_id) AS total
+    FROM complaints c
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status = 'verified_by_ward'",
+    "ii",
+    [$wardId, $cityCorId]
 );
 
 $assignedCases = scalarCount(
     $conn,
-    "SELECT COUNT(DISTINCT ca.complaint_id) AS total
-    FROM complaint_assignments ca
-    WHERE ca.ward_id = ?
-    AND ca.assignment_status = 'team_assigned'",
-    "i",
-    [$wardId]
+    "SELECT COUNT(DISTINCT c.complaint_id) AS total
+    FROM complaints c
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status = 'team_assigned'",
+    "ii",
+    [$wardId, $cityCorId]
 );
 
 $inProgressCases = scalarCount(
     $conn,
-    "SELECT COUNT(DISTINCT ca.complaint_id) AS total
-    FROM complaint_assignments ca
-    LEFT JOIN maintenance_updates mu ON ca.assignment_id = mu.assignment_id
-    WHERE ca.ward_id = ?
-    AND (
-        ca.assignment_status = 'in_progress'
-        OR mu.work_status IN ('started', 'in_progress')
-    )",
-    "i",
-    [$wardId]
+    "SELECT COUNT(DISTINCT c.complaint_id) AS total
+    FROM complaints c
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status = 'in_progress'",
+    "ii",
+    [$wardId, $cityCorId]
 );
 
-$solvedCases = scalarCount(
+$duplicateCases = scalarCount(
     $conn,
-    "SELECT COUNT(DISTINCT ca.complaint_id) AS total
-    FROM complaint_assignments ca
-    INNER JOIN maintenance_updates mu ON ca.assignment_id = mu.assignment_id
-    WHERE ca.ward_id = ?
-    AND mu.work_status = 'completed'",
-    "i",
-    [$wardId]
+    "SELECT COUNT(DISTINCT c.complaint_id) AS total
+    FROM complaints c
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND (c.is_repeat_complaint = 1 OR c.complaint_status = 'duplicate')",
+    "ii",
+    [$wardId, $cityCorId]
 );
 
-$reopenedCases = scalarCount(
+$rejectedCases = scalarCount(
     $conn,
-    "SELECT COUNT(DISTINCT ca.complaint_id) AS total
-    FROM complaint_assignments ca
-    INNER JOIN complaints c ON ca.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND (
-        c.is_repeat_complaint = 1
-        OR c.parent_complaint_id IS NOT NULL
-    )",
-    "i",
-    [$wardId]
+    "SELECT COUNT(DISTINCT c.complaint_id) AS total
+    FROM complaints c
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status = 'rejected_by_ward'",
+    "ii",
+    [$wardId, $cityCorId]
 );
 
-$delayedCases = scalarCount(
-    $conn,
-    "SELECT COUNT(DISTINCT ca.complaint_id) AS total
-    FROM complaint_assignments ca
-    INNER JOIN maintenance_updates mu ON ca.assignment_id = mu.assignment_id
-    WHERE ca.ward_id = ?
-    AND mu.delayed_at IS NOT NULL",
-    "i",
-    [$wardId]
-);
-
-$wardRiskZones = scalarCount(
+$totalTeams = scalarCount(
     $conn,
     "SELECT COUNT(*) AS total
-    FROM risk
-    WHERE ward_id = ?
-    AND risk_status = 'Active'",
+    FROM maintenance_teams mt
+    INNER JOIN wards w ON mt.anchal_id = w.anchal_id AND mt.city_cor_id = w.city_cor_id
+    WHERE w.ward_id = ?",
+    "i",
+    [$wardId]
+);
+
+$wardOfficersCount = scalarCount(
+    $conn,
+    "SELECT COUNT(*) AS total
+    FROM ward_officers
+    WHERE assigned_ward_id = ?",
     "i",
     [$wardId]
 );
 
 /*
 |--------------------------------------------------------------------------
-| New Complaints Waiting for Verification
+| A. Recent Complaints for Verification
 |--------------------------------------------------------------------------
 */
-$newComplaints = fetchAllRows(
+$recentVerification = fetchAllRows(
     $conn,
     "SELECT 
         c.complaint_id,
         c.complaint_code,
         c.problem_description,
         c.submitted_at,
+        c.complaint_status,
         i.issue_name,
-        i.priority,
         a.area_name
-    FROM complaint_assignments ca
-    INNER JOIN complaints c ON ca.complaint_id = c.complaint_id
+    FROM complaints c
     LEFT JOIN issues i ON c.issue_id = i.issue_id
-    LEFT JOIN locations l ON c.loc_id = l.loc_id
+    INNER JOIN locations l ON c.loc_id = l.loc_id
     LEFT JOIN areas a ON l.area_id = a.area_id
-    WHERE ca.ward_id = ?
-    AND (
-        ca.assignment_status = 'ward_assigned'
-        OR c.complaint_status IN ('submitted', 'received', 'pending_verification')
-    )
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status = 'pending_verification'
     ORDER BY c.submitted_at DESC
-    LIMIT 3",
-    "i",
-    [$wardId]
+    LIMIT 4",
+    "ii",
+    [$wardId, $cityCorId]
+);
+
+/*
+|--------------------------------------------------------------------------
+| B. Recent Ward Complaints
+|--------------------------------------------------------------------------
+*/
+$recentWardComplaints = fetchAllRows(
+    $conn,
+    "SELECT 
+        c.complaint_id,
+        c.complaint_code,
+        c.problem_description,
+        c.submitted_at,
+        c.complaint_status,
+        i.issue_name,
+        a.area_name
+    FROM complaints c
+    LEFT JOIN issues i ON c.issue_id = i.issue_id
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    LEFT JOIN areas a ON l.area_id = a.area_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status NOT IN ('submitted', 'received', 'rejected_by_central')
+    ORDER BY c.submitted_at DESC
+    LIMIT 4",
+    "ii",
+    [$wardId, $cityCorId]
+);
+
+/*
+|--------------------------------------------------------------------------
+| C. Local Team Assignment Waiting
+|--------------------------------------------------------------------------
+*/
+$teamAssignmentWaiting = fetchAllRows(
+    $conn,
+    "SELECT 
+        c.complaint_id,
+        c.complaint_code,
+        c.problem_description,
+        c.submitted_at,
+        c.complaint_status,
+        i.issue_name,
+        a.area_name,
+        mt.team_name,
+        ca.deadline_at
+    FROM complaints c
+    LEFT JOIN issues i ON c.issue_id = i.issue_id
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    LEFT JOIN areas a ON l.area_id = a.area_id
+    LEFT JOIN complaint_assignments ca ON c.complaint_id = ca.complaint_id AND ca.assignment_status = 'team_assigned'
+    LEFT JOIN maintenance_teams mt ON ca.maintenance_team_id = mt.maintenance_team_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status IN ('verified_by_ward', 'team_assigned')
+    ORDER BY c.submitted_at DESC
+    LIMIT 4",
+    "ii",
+    [$wardId, $cityCorId]
+);
+
+/*
+|--------------------------------------------------------------------------
+| D. Recent In Progress Cases
+|--------------------------------------------------------------------------
+*/
+$recentInProgress = fetchAllRows(
+    $conn,
+    "SELECT 
+        c.complaint_id,
+        c.complaint_code,
+        c.problem_description,
+        c.submitted_at,
+        c.complaint_status,
+        i.issue_name,
+        a.area_name,
+        mt.team_name,
+        ca.deadline_at
+    FROM complaints c
+    LEFT JOIN issues i ON c.issue_id = i.issue_id
+    INNER JOIN locations l ON c.loc_id = l.loc_id
+    LEFT JOIN areas a ON l.area_id = a.area_id
+    LEFT JOIN complaint_assignments ca ON c.complaint_id = ca.complaint_id
+    LEFT JOIN maintenance_teams mt ON ca.maintenance_team_id = mt.maintenance_team_id
+    WHERE l.ward_id = ? AND l.city_cor_id = ?
+    AND c.complaint_status = 'in_progress'
+    ORDER BY c.submitted_at DESC
+    LIMIT 4",
+    "ii",
+    [$wardId, $cityCorId]
+);
+
+/*
+|--------------------------------------------------------------------------
+| E. Recent Local Reports
+|--------------------------------------------------------------------------
+*/
+$recentReports = fetchAllRows(
+    $conn,
+    "SELECT 
+        report_id,
+        report_name,
+        report_type,
+        generated_at,
+        file_path
+    FROM generated_reports
+    WHERE ward_id = ? AND city_cor_id = ?
+    ORDER BY generated_at DESC
+    LIMIT 4",
+    "ii",
+    [$wardId, $cityCorId]
 );
 ?>
 
@@ -349,9 +462,9 @@ $newComplaints = fetchAllRows(
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/ward/sidebar.css">
     <link rel="stylesheet" href="../../css/ward/topbar.css">
-    <link rel="stylesheet" href="../../css/ward/footer.css">
     <link rel="stylesheet" href="../../css/ward/dashboard.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="ward">
@@ -381,7 +494,7 @@ $newComplaints = fetchAllRows(
                     <i class="bi bi-file-earmark-text"></i>
                 </div>
                 <h2><?= $totalComplaints; ?></h2>
-                <p>Ward Total Complaints</p>
+                <p>Ward Total Complaint</p>
             </div>
 
             <div class="kpi-card" data-search="pending verification">
@@ -392,12 +505,20 @@ $newComplaints = fetchAllRows(
                 <p>Pending Verification</p>
             </div>
 
-            <div class="kpi-card" data-search="assigned cases">
-                <div class="kpi-icon purple">
-                    <i class="bi bi-people"></i>
+            <div class="kpi-card" data-search="verified by ward">
+                <div class="kpi-icon green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <h2><?= $verifiedCases; ?></h2>
+                <p>Verified By Ward</p>
+            </div>
+
+            <div class="kpi-card" data-search="assigned to team">
+                <div class="kpi-icon pink">
+                    <i class="bi bi-person-workspace"></i>
                 </div>
                 <h2><?= $assignedCases; ?></h2>
-                <p>Assigned Cases</p>
+                <p>Assigned To Team</p>
             </div>
 
             <div class="kpi-card" data-search="in progress cases">
@@ -405,73 +526,63 @@ $newComplaints = fetchAllRows(
                     <i class="bi bi-graph-up-arrow"></i>
                 </div>
                 <h2><?= $inProgressCases; ?></h2>
-                <p>In Progress Cases</p>
+                <p>In Progress</p>
             </div>
 
-            <div class="kpi-card" data-search="solved cases">
-                <div class="kpi-icon green">
-                    <i class="bi bi-check-circle"></i>
-                </div>
-                <h2><?= $solvedCases; ?></h2>
-                <p>Solved Cases</p>
-            </div>
-
-            <div class="kpi-card" data-search="reopened cases">
+            <div class="kpi-card" data-search="duplicate cases">
                 <div class="kpi-icon yellow">
-                    <i class="bi bi-exclamation-triangle"></i>
+                    <i class="bi bi-files"></i>
                 </div>
-                <h2><?= $reopenedCases; ?></h2>
-                <p>Reopened Cases</p>
+                <h2><?= $duplicateCases; ?></h2>
+                <p>Duplicate</p>
             </div>
 
-            <div class="kpi-card" data-search="delayed cases">
+            <div class="kpi-card" data-search="rejected by ward">
                 <div class="kpi-icon red">
-                    <i class="bi bi-clock-history"></i>
+                    <i class="bi bi-x-circle"></i>
                 </div>
-                <h2><?= $delayedCases; ?></h2>
-                <p>Delayed Cases</p>
+                <h2><?= $rejectedCases; ?></h2>
+                <p>Rejected By The Ward</p>
             </div>
 
-            <div class="kpi-card" data-search="ward risk zones">
-                <div class="kpi-icon pink">
-                    <i class="bi bi-geo-alt"></i>
+            <div class="kpi-card" data-search="total team in this ward">
+                <div class="kpi-icon purple">
+                    <i class="bi bi-people"></i>
                 </div>
-                <h2><?= $wardRiskZones; ?></h2>
-                <p>Ward Risk Zones</p>
+                <h2><?= $totalTeams; ?></h2>
+                <p>Total Team In This Ward</p>
             </div>
+
+
 
         </div>
 
-        <div class="verification-panel">
+        <div class="verification-panel" style="margin-top: 24px;">
             <div class="panel-header">
-                <h2>New Complaints Waiting for Verification</h2>
+                <h2>Recent Complaints for Verification</h2>
                 <a href="verification-queue.php">
-                    View Queue
+                    View All
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </div>
 
-            <div class="complaint-list" id="dashboardComplaintList">
-                <?php if (!empty($newComplaints)): ?>
-                    <?php foreach ($newComplaints as $complaint): ?>
+            <div class="complaint-list" id="dashboardVerificationList">
+                <?php if (!empty($recentVerification)): ?>
+                    <?php foreach ($recentVerification as $complaint): ?>
                         <?php
-                        $priority = $complaint['priority'] ?? 'Low';
-                        $priorityClass = priorityClass($priority);
                         $complaintTitle = $complaint['issue_name'] ?: $complaint['problem_description'];
                         $areaName = $complaint['area_name'] ?: 'Area not specified';
                         ?>
 
-                        <div class="complaint-item"
-                             data-search="<?= htmlspecialchars(strtolower($complaint['complaint_code'] . ' ' . $complaintTitle . ' ' . $areaName . ' ' . $priority)); ?>">
-
+                        <div class="complaint-item">
                             <div class="complaint-info">
                                 <div class="complaint-code-row">
                                     <span class="complaint-code">
                                         <?= htmlspecialchars($complaint['complaint_code']); ?>
                                     </span>
 
-                                    <span class="priority-badge <?= $priorityClass; ?>">
-                                        <?= htmlspecialchars($priority); ?>
+                                    <span class="priority-badge medium">
+                                        <?= ucwords(str_replace('_', ' ', $complaint['complaint_status'])); ?>
                                     </span>
                                 </div>
 
@@ -484,8 +595,7 @@ $newComplaints = fetchAllRows(
                                 </p>
                             </div>
 
-                            <a class="verify-btn"
-                               href="verification-queue.php?complaint_id=<?= (int)$complaint['complaint_id']; ?>">
+                            <a class="verify-btn" href="verification-queue.php?complaint_id=<?= (int)$complaint['complaint_id']; ?>">
                                 Verify
                             </a>
                         </div>
@@ -500,14 +610,214 @@ $newComplaints = fetchAllRows(
             </div>
         </div>
 
+        <div class="verification-panel" style="margin-top: 24px;">
+            <div class="panel-header">
+                <h2>Recent Ward Complaints</h2>
+                <a href="ward-complaints.php">
+                    View All
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+
+            <div class="complaint-list">
+                <?php if (!empty($recentWardComplaints)): ?>
+                    <?php foreach ($recentWardComplaints as $complaint): ?>
+                        <?php
+                        $complaintTitle = $complaint['issue_name'] ?: $complaint['problem_description'];
+                        $areaName = $complaint['area_name'] ?: 'Area not specified';
+                        ?>
+
+                        <div class="complaint-item">
+                            <div class="complaint-info">
+                                <div class="complaint-code-row">
+                                    <span class="complaint-code">
+                                        <?= htmlspecialchars($complaint['complaint_code']); ?>
+                                    </span>
+                                    <span class="priority-badge low">
+                                        <?= ucwords(str_replace('_', ' ', $complaint['complaint_status'])); ?>
+                                    </span>
+                                </div>
+                                <h3><?= htmlspecialchars($complaintTitle); ?></h3>
+                                <p>
+                                    <?= htmlspecialchars($areaName); ?>
+                                    <span>·</span>
+                                    <?= htmlspecialchars(timeAgo($complaint['submitted_at'])); ?>
+                                </p>
+                            </div>
+                            <a class="verify-btn" style="background:#F8FAFC; color:#64748B; border:1px solid #D7E2EF;" href="ward-complaints.php">
+                                Details
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <i class="bi bi-folder2-open"></i>
+                        <h3>No ward complaints</h3>
+                        <p>No complaints currently in workflow.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="verification-panel" style="margin-top: 24px;">
+            <div class="panel-header">
+                <h2>Local Team Assignment Waiting</h2>
+                <a href="local-team-assignment.php">
+                    View All
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+
+            <div class="complaint-list">
+                <?php if (!empty($teamAssignmentWaiting)): ?>
+                    <?php foreach ($teamAssignmentWaiting as $complaint): ?>
+                        <?php
+                        $complaintTitle = $complaint['issue_name'] ?: $complaint['problem_description'];
+                        $areaName = $complaint['area_name'] ?: 'Area not specified';
+                        $teamName = $complaint['team_name'] ?: 'No team assigned';
+                        $deadline = $complaint['deadline_at'] ? date("d M Y", strtotime($complaint['deadline_at'])) : 'No deadline';
+                        ?>
+
+                        <div class="complaint-item">
+                            <div class="complaint-info">
+                                <div class="complaint-code-row">
+                                    <span class="complaint-code">
+                                        <?= htmlspecialchars($complaint['complaint_code']); ?>
+                                    </span>
+                                    <span class="priority-badge high">
+                                        <?= ucwords(str_replace('_', ' ', $complaint['complaint_status'])); ?>
+                                    </span>
+                                </div>
+                                <h3><?= htmlspecialchars($complaintTitle); ?></h3>
+                                <p>
+                                    <?= htmlspecialchars($areaName); ?>
+                                    <span>·</span>
+                                    Team: <?= htmlspecialchars($teamName); ?>
+                                    <span>·</span>
+                                    Deadline: <?= htmlspecialchars($deadline); ?>
+                                </p>
+                            </div>
+                            <a class="verify-btn" href="local-team-assignment.php">
+                                Assign
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <i class="bi bi-people"></i>
+                        <h3>No assignments pending</h3>
+                        <p>All verified cases have been started by teams.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="verification-panel" style="margin-top: 24px;">
+            <div class="panel-header">
+                <h2>Recent In Progress Cases</h2>
+                <a href="in-progress-cases.php">
+                    View All
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+
+            <div class="complaint-list">
+                <?php if (!empty($recentInProgress)): ?>
+                    <?php foreach ($recentInProgress as $complaint): ?>
+                        <?php
+                        $complaintTitle = $complaint['issue_name'] ?: $complaint['problem_description'];
+                        $areaName = $complaint['area_name'] ?: 'Area not specified';
+                        $teamName = $complaint['team_name'] ?: 'Unknown team';
+                        ?>
+
+                        <div class="complaint-item">
+                            <div class="complaint-info">
+                                <div class="complaint-code-row">
+                                    <span class="complaint-code">
+                                        <?= htmlspecialchars($complaint['complaint_code']); ?>
+                                    </span>
+                                    <span class="priority-badge medium">
+                                        <?= ucwords(str_replace('_', ' ', $complaint['complaint_status'])); ?>
+                                    </span>
+                                </div>
+                                <h3><?= htmlspecialchars($complaintTitle); ?></h3>
+                                <p>
+                                    <?= htmlspecialchars($areaName); ?>
+                                    <span>·</span>
+                                    Team: <?= htmlspecialchars($teamName); ?>
+                                </p>
+                            </div>
+                            <a class="verify-btn" href="in-progress-cases.php">
+                                Track
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <i class="bi bi-gear-wide-connected"></i>
+                        <h3>No in-progress cases</h3>
+                        <p>No active work currently happening in this ward.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="verification-panel" style="margin-top: 24px; margin-bottom: 40px;">
+            <div class="panel-header">
+                <h2>Recent Local Reports</h2>
+                <a href="local-reports.php">
+                    View All
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+
+            <div class="complaint-list">
+                <?php if (!empty($recentReports)): ?>
+                    <?php foreach ($recentReports as $report): ?>
+                        <div class="complaint-item">
+                            <div class="complaint-info">
+                                <div class="complaint-code-row">
+                                    <span class="complaint-code">
+                                        REP-<?= htmlspecialchars($report['report_id']); ?>
+                                    </span>
+                                    <span class="priority-badge low">
+                                        <?= ucwords(str_replace('_', ' ', $report['report_type'])); ?>
+                                    </span>
+                                </div>
+                                <h3><?= htmlspecialchars($report['report_name']); ?></h3>
+                                <p>
+                                    Generated: <?= htmlspecialchars(timeAgo($report['generated_at'])); ?>
+                                </p>
+                            </div>
+                            <?php if (!empty($report['file_path'])): ?>
+                                <a class="verify-btn" style="background:#F8FAFC; color:#64748B; border:1px solid #D7E2EF;" href="<?= htmlspecialchars($report['file_path']); ?>" target="_blank">
+                                    <i class="bi bi-download"></i> View
+                                </a>
+                            <?php else: ?>
+                                <button class="verify-btn" style="background:#F1F5F9; color:#94A3B8; border:1px solid #E2E8F0;" disabled>
+                                    No File
+                                </button>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <i class="bi bi-bar-chart"></i>
+                        <h3>No recent reports</h3>
+                        <p>Generate a report to see it here.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
     </section>
 
-    <?php include "../../includes/ward/footer.php"; ?>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/dashboard.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

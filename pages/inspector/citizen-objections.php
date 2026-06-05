@@ -285,143 +285,6 @@ if (isset($_GET['error'])) {
 }
 
 /* =========================
-   Inspector Decision Action
-========================= */
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $reopenId = isset($_POST['reopen_id']) ? (int) $_POST['reopen_id'] : 0;
-    $complaintId = isset($_POST['complaint_id']) ? (int) $_POST['complaint_id'] : 0;
-    $decision = trim($_POST['objection_action'] ?? '');
-    $inspectorNote = trim($_POST['inspector_note'] ?? '');
-
-    $allowedDecisions = ['reopen', 'reject'];
-
-    if ($reopenId <= 0 || $complaintId <= 0 || !in_array($decision, $allowedDecisions, true)) {
-        header("Location: citizen-objections.php" . coBuildQuery($search, $areaId, $sort, $page, '', 'invalid_action'));
-        exit();
-    }
-
-    mysqli_begin_transaction($conn);
-
-    try {
-        $allowedRequest = coFetchOne(
-            $conn,
-            "SELECT 
-                rr.reopen_id,
-                rr.complaint_id,
-                rr.request_type,
-                rr.request_status,
-                c.complaint_status
-            FROM reopen_requests rr
-            INNER JOIN complaints c ON c.complaint_id = rr.complaint_id
-            INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-            WHERE rr.reopen_id = ?
-            AND rr.complaint_id = ?
-            AND ca.ward_id = ?
-            AND rr.request_type = 'citizen_objection'
-            AND rr.request_status = 'sent_to_inspector'
-            AND c.complaint_status = 'disputed'
-            LIMIT 1",
-            "iii",
-            [$reopenId, $complaintId, $assignedWardId]
-        );
-
-        if (!$allowedRequest) {
-            throw new Exception("This objection is not available for inspector decision.");
-        }
-
-        if ($decision === 'reopen') {
-            /*
-                Inspector approves citizen objection.
-                Inspector does NOT assign same/different team.
-                Ward Officer will decide same/different team in Local Team Assignment.
-            */
-            $newRequestStatus = 'sent_to_ward_for_reassign';
-            $newComplaintStatus = 'verified';
-            $redirectStatus = 'sent_to_ward';
-            $reviewAction = 'reopen_complaint';
-        } else {
-            /*
-                Inspector rejects citizen objection.
-                Complaint remains solved/closed.
-            */
-            $newRequestStatus = 'rejected';
-            $newComplaintStatus = 'closed';
-            $redirectStatus = 'rejected';
-            $reviewAction = 'reject_objection';
-        }
-
-        $stmt = mysqli_prepare(
-            $conn,
-            "UPDATE reopen_requests
-            SET request_status = ?,
-                inspector_note = ?,
-                handled_by = ?,
-                handled_at = NOW()
-            WHERE reopen_id = ?"
-        );
-
-        if (!$stmt) {
-            throw new Exception(mysqli_error($conn));
-        }
-
-        mysqli_stmt_bind_param($stmt, "ssii", $newRequestStatus, $inspectorNote, $userId, $reopenId);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
-
-        $stmt = mysqli_prepare(
-            $conn,
-            "UPDATE complaints
-            SET complaint_status = ?,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE complaint_id = ?"
-        );
-
-        if (!$stmt) {
-            throw new Exception(mysqli_error($conn));
-        }
-
-        mysqli_stmt_bind_param($stmt, "si", $newComplaintStatus, $complaintId);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
-
-        $reviewStmt = mysqli_prepare(
-            $conn,
-            "INSERT INTO objection_reviews
-            (reopen_id, complaint_id, reviewed_by, reviewer_role, review_action, review_note)
-            VALUES (?, ?, ?, 'inspector', ?, ?)"
-        );
-
-        if (!$reviewStmt) {
-            throw new Exception(mysqli_error($conn));
-        }
-
-        mysqli_stmt_bind_param(
-            $reviewStmt,
-            "iiiss",
-            $reopenId,
-            $complaintId,
-            $userId,
-            $reviewAction,
-            $inspectorNote
-        );
-
-        mysqli_stmt_execute($reviewStmt);
-        mysqli_stmt_close($reviewStmt);
-
-        mysqli_commit($conn);
-
-        header("Location: citizen-objections.php" . coBuildQuery($search, $areaId, $sort, $page, $redirectStatus, ''));
-        exit();
-
-    } catch (Exception $e) {
-        mysqli_rollback($conn);
-        header("Location: citizen-objections.php" . coBuildQuery($search, $areaId, $sort, $page, '', 'action_failed'));
-        exit();
-    }
-}
-
-/* =========================
    Area Dropdown
 ========================= */
 
@@ -442,8 +305,7 @@ $areaRows = coFetchAll(
 $countWhereSql = "
     WHERE ca.ward_id = ?
     AND rr.request_type = 'citizen_objection'
-    AND rr.request_status = 'sent_to_inspector'
-    AND c.complaint_status = 'disputed'
+    AND c.complaint_status IN ('disputed', 'closed')
 ";
 
 $countTypes = "i";
@@ -510,8 +372,7 @@ if ($page > $totalPages) {
 $whereSql = "
     WHERE ca.ward_id = ?
     AND rr.request_type = 'citizen_objection'
-    AND rr.request_status = 'sent_to_inspector'
-    AND c.complaint_status = 'disputed'
+    AND c.complaint_status IN ('disputed', 'closed')
 ";
 
 $types = "i";
@@ -683,6 +544,7 @@ foreach ($objections as $item) {
     <link rel="stylesheet" href="../../css/inspector/citizen-objections.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -828,111 +690,88 @@ foreach ($objections as $item) {
 
                                 </div>
 
-                                <div class="reason-box citizen-reason">
-                                    <span>Citizen Objection Reason</span>
-                                    <p><?php echo coText($item['reason'] ?: 'No objection reason provided.'); ?></p>
-                                </div>
+                                <details class="objection-details" style="margin-top: 16px;">
+                                    <summary class="action-btn reject-btn" style="width: 100%; justify-content: center; background: #f1f5f9; color: #334155; list-style: none; user-select: none; border: 1px solid #e2e8f0;">
+                                        <i class="bi bi-eye"></i> View / Hide Details
+                                    </summary>
+                                    
+                                    <div class="details-content" style="margin-top: 16px; border-top: 1px solid #E2E8F0; padding-top: 16px;">
 
-                                <div class="reason-box ward-note">
-                                    <span>Ward Officer Note</span>
-                                    <p><?php echo coText($item['ward_note'] ?: 'No ward note provided.'); ?></p>
-                                </div>
+                                        <div class="reason-box citizen-reason">
+                                            <span>Citizen Objection Reason</span>
+                                            <p><?php echo coText($item['reason'] ?: 'No objection reason provided.'); ?></p>
+                                        </div>
 
-                                <div class="media-grid-wrap">
+                                        <div class="reason-box ward-note">
+                                            <span>Ward Officer Note</span>
+                                            <p><?php echo coText($item['ward_note'] ?: 'No ward note provided.'); ?></p>
+                                        </div>
 
-                                    <div class="media-section">
-                                        <h4>
-                                            <i class="bi bi-image"></i>
-                                            Original Complaint Media
-                                        </h4>
+                                        <div class="media-grid-wrap">
 
-                                        <div class="media-grid">
-                                            <?php if (!empty($citizenBefore)): ?>
-                                                <?php foreach ($citizenBefore as $media): ?>
-                                                    <?php $path = coMediaPath($media['media_path']); ?>
-
-                                                    <div class="media-box">
-                                                        <?php if ($media['media_type'] === 'video'): ?>
-                                                            <video controls>
-                                                                <source src="<?php echo coText($path); ?>">
-                                                            </video>
-                                                        <?php else: ?>
-                                                            <img src="<?php echo coText($path); ?>" alt="Complaint media">
-                                                        <?php endif; ?>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <div class="empty-media">
+                                            <div class="media-section">
+                                                <h4>
                                                     <i class="bi bi-image"></i>
-                                                    <span>No before media</span>
+                                                    Original Complaint Media
+                                                </h4>
+
+                                                <div class="media-grid">
+                                                    <?php if (!empty($citizenBefore)): ?>
+                                                        <?php foreach ($citizenBefore as $media): ?>
+                                                            <?php $path = coMediaPath($media['media_path']); ?>
+
+                                                            <div class="media-box">
+                                                                <?php if ($media['media_type'] === 'video'): ?>
+                                                                    <video controls>
+                                                                        <source src="<?php echo coText($path); ?>">
+                                                                    </video>
+                                                                <?php else: ?>
+                                                                    <img src="<?php echo coText($path); ?>" alt="Complaint media">
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    <?php else: ?>
+                                                        <div class="empty-media">
+                                                            <i class="bi bi-image"></i>
+                                                            <span>No before media</span>
+                                                        </div>
+                                                    <?php endif; ?>
                                                 </div>
-                                            <?php endif; ?>
+                                            </div>
+
+                                            <div class="media-section">
+                                                <h4>
+                                                    <i class="bi bi-check2-circle"></i>
+                                                    Maintenance Completion Proof
+                                                </h4>
+
+                                                <div class="media-grid">
+                                                    <?php if (!empty($teamAfter)): ?>
+                                                        <?php foreach ($teamAfter as $proof): ?>
+                                                            <?php $path = coMediaPath($proof['media_path']); ?>
+
+                                                            <div class="media-box">
+                                                                <?php if ($proof['media_type'] === 'video'): ?>
+                                                                    <video controls>
+                                                                        <source src="<?php echo coText($path); ?>">
+                                                                    </video>
+                                                                <?php else: ?>
+                                                                    <img src="<?php echo coText($path); ?>" alt="Maintenance proof">
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    <?php else: ?>
+                                                        <div class="empty-media">
+                                                            <i class="bi bi-image"></i>
+                                                            <span>No after proof</span>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
-
-                                    <div class="media-section">
-                                        <h4>
-                                            <i class="bi bi-check2-circle"></i>
-                                            Maintenance Completion Proof
-                                        </h4>
-
-                                        <div class="media-grid">
-                                            <?php if (!empty($teamAfter)): ?>
-                                                <?php foreach ($teamAfter as $proof): ?>
-                                                    <?php $path = coMediaPath($proof['media_path']); ?>
-
-                                                    <div class="media-box">
-                                                        <?php if ($proof['media_type'] === 'video'): ?>
-                                                            <video controls>
-                                                                <source src="<?php echo coText($path); ?>">
-                                                            </video>
-                                                        <?php else: ?>
-                                                            <img src="<?php echo coText($path); ?>" alt="Maintenance proof">
-                                                        <?php endif; ?>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <div class="empty-media">
-                                                    <i class="bi bi-image"></i>
-                                                    <span>No after proof</span>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <form method="POST" action="citizen-objections.php" class="objection-actions">
-                                    <input type="hidden" name="reopen_id" value="<?php echo (int) $item['reopen_id']; ?>">
-                                    <input type="hidden" name="complaint_id" value="<?php echo (int) $item['complaint_id']; ?>">
-                                    <input type="hidden" name="search" value="<?php echo coText($search); ?>">
-                                    <input type="hidden" name="area_id" value="<?php echo coText($areaId); ?>">
-                                    <input type="hidden" name="sort" value="<?php echo coText($sort); ?>">
-                                    <input type="hidden" name="page" value="<?php echo (int) $page; ?>">
-
-                                    <label class="note-label" for="inspector_note_<?php echo (int) $item['reopen_id']; ?>">
-                                        Inspector Investigation Notes
-                                    </label>
-
-                                    <textarea
-                                        id="inspector_note_<?php echo (int) $item['reopen_id']; ?>"
-                                        name="inspector_note"
-                                        class="inspector-note"
-                                        rows="3"
-                                        placeholder="Write field verification note or decision reason..."><?php echo coText($item['inspector_note'] ?? ''); ?></textarea>
-
-                                    <div class="action-row">
-                                        <button type="submit" name="objection_action" value="reopen" class="action-btn reopen-btn">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
-                                            Reopen Complaint
-                                        </button>
-
-                                        <button type="submit" name="objection_action" value="reject" class="action-btn reject-btn">
-                                            <i class="bi bi-x-circle"></i>
-                                            Reject Objection
-                                        </button>
-                                    </div>
-                                </form>
+                                </details>
 
                             </article>
 
@@ -943,7 +782,7 @@ foreach ($objections as $item) {
                         <div class="empty-state">
                             <i class="bi bi-check2-circle"></i>
                             <h3>No Citizen Objection Found</h3>
-                            <p>No Ward-forwarded citizen objection is waiting for inspector review.</p>
+                            <p>No citizen objection is currently available for your assigned ward.</p>
                         </div>
 
                     <?php endif; ?>
@@ -998,7 +837,6 @@ foreach ($objections as $item) {
 
             <?php
             $footerPath = __DIR__ . '/../../includes/inspector/footer.php';
-
             if (file_exists($footerPath)) {
                 include $footerPath;
             }
@@ -1011,6 +849,7 @@ foreach ($objections as $item) {
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/citizen-objections.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

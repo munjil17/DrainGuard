@@ -54,7 +54,7 @@ if (isset($_GET["read_id"])) {
     $redirectType = trim($_GET["redirect"] ?? "");
 
     if ($readId > 0 && $userId > 0 && isset($conn) && $conn instanceof mysqli) {
-        $readSql = "SELECT is_read, related_complaint_id FROM inspector_notifications WHERE notification_id = ? AND recipient_user_id = ?";
+        $readSql = "SELECT inn.is_read, inn.related_complaint_id, inn.notification_type, c.complaint_code FROM inspector_notifications inn LEFT JOIN complaints c ON inn.related_complaint_id = c.complaint_id WHERE inn.notification_id = ? AND inn.recipient_user_id = ?";
         $readStmt = mysqli_prepare($conn, $readSql);
         
         if ($readStmt) {
@@ -90,6 +90,24 @@ if (isset($_GET["read_id"])) {
                     header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
                     exit;
                 }
+                
+                if ($redirectType === "instruction") {
+                    $mapSql = "SELECT instruction_id FROM instruction_notifications_map WHERE notification_id = ? AND role_type = 'inspector' LIMIT 1";
+                    $mapStmt = mysqli_prepare($conn, $mapSql);
+                    if ($mapStmt) {
+                        mysqli_stmt_bind_param($mapStmt, "i", $readId);
+                        mysqli_stmt_execute($mapStmt);
+                        $mapResult = mysqli_stmt_get_result($mapStmt);
+                        $mapRow = $mapResult ? mysqli_fetch_assoc($mapResult) : null;
+                        mysqli_stmt_close($mapStmt);
+                        
+                        if ($mapRow) {
+                            header("Location: instruction-details.php?id=" . urlencode($mapRow["instruction_id"]));
+                            exit;
+                        }
+                    }
+                }
+                
                 header("Location: notifications.php");
                 exit;
             }
@@ -126,7 +144,8 @@ $allowedTypes = [
     "inspection_decision",
     "comment_reply",
     "system",
-    "alert"
+    "alert",
+    "central_instruction"
 ];
 
 $filterType = trim($_GET["type"] ?? "all");
@@ -250,6 +269,7 @@ function nt_build_query($overrides = [])
     <link rel="stylesheet" href="../../css/inspector/topbar.css">
   
     <link rel="stylesheet" href="../../css/inspector/notifications.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -302,6 +322,7 @@ function nt_build_query($overrides = [])
                             <option value="comment_reply" <?php echo $filterType === "comment_reply" ? "selected" : ""; ?>>Comment Reply</option>
                             <option value="system" <?php echo $filterType === "system" ? "selected" : ""; ?>>System Message</option>
                             <option value="alert" <?php echo $filterType === "alert" ? "selected" : ""; ?>>Alert</option>
+                            <option value="central_instruction" <?php echo $filterType === "central_instruction" ? "selected" : ""; ?>>Central Instruction</option>
                         </select>
                     </div>
 
@@ -338,7 +359,9 @@ function nt_build_query($overrides = [])
                             $isUnread = ((int)$notification["is_read"] === 0);
 
                             $linkUrl = "notifications.php?read_id=" . (int)$notification["notification_id"];
-                            if (!empty($notification["complaint_code"])) {
+                            if ($notificationType === 'central_instruction') {
+                                $linkUrl .= "&redirect=instruction";
+                            } elseif (!empty($notification["complaint_code"])) {
                                 if ($notificationType === 'comment_reply') {
                                     $linkUrl .= "&redirect=discussion";
                                 } elseif ($notification["notification_title"] === 'Inspection Required') {
@@ -475,5 +498,6 @@ function nt_build_query($overrides = [])
     });
 </script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

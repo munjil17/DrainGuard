@@ -35,6 +35,7 @@ function nt_icon($type)
     $type = strtolower(trim((string)$type));
     if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
     if (in_array($type, ['system', 'alert', 'task_delayed', 'task_deadline_warning'])) return 'bi-exclamation-triangle';
+    if ($type === 'ward_reply_support_request') return 'bi-reply-all';
     if ($type === 'comment_reply') return 'bi-chat-dots';
     return "bi-bell";
 }
@@ -44,6 +45,7 @@ function nt_type_class($type)
     $type = strtolower(trim((string)$type));
     if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'type-track';
     if (in_array($type, ['system', 'alert', 'task_delayed', 'task_deadline_warning'])) return 'type-objection';
+    if ($type === 'ward_reply_support_request') return 'type-alert';
     if ($type === 'comment_reply') return 'type-reply';
     return "type-system";
 }
@@ -53,7 +55,7 @@ if (isset($_GET["read_id"])) {
     $redirectType = trim($_GET["redirect"] ?? "");
 
     if ($readId > 0 && $userId > 0 && isset($conn) && $conn instanceof mysqli) {
-        $readSql = "SELECT is_read, related_complaint_id FROM maintenance_notifications WHERE notification_id = ? AND recipient_user_id = ?";
+        $readSql = "SELECT mn.is_read, mn.related_complaint_id, c.complaint_code FROM maintenance_notifications mn LEFT JOIN complaints c ON mn.related_complaint_id = c.complaint_id WHERE mn.notification_id = ? AND mn.recipient_user_id = ?";
         $readStmt = mysqli_prepare($conn, $readSql);
         
         if ($readStmt) {
@@ -81,6 +83,12 @@ if (isset($_GET["read_id"])) {
                 
                 if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
                     header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
+                    exit;
+                }
+
+                if ($redirectType === "in-progress-work") {
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    header("Location: in-progress-work.php" . $complaintIdParam);
                     exit;
                 }
                 header("Location: notifications.php");
@@ -112,6 +120,7 @@ $allowedTypes = [
     "verified",
     "rejected",
     "comment_reply",
+    "ward_reply_support_request",
     "system",
     "alert",
     "task_delayed",
@@ -176,7 +185,8 @@ $listSql = "
         mn.notification_message,
         mn.is_read,
         mn.created_at,
-        c.complaint_code
+        c.complaint_code,
+        c.complaint_status
     FROM maintenance_notifications mn
     LEFT JOIN complaints c ON mn.related_complaint_id = c.complaint_id
     {$whereSql}
@@ -239,6 +249,7 @@ function nt_build_query($overrides = [])
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
   
     <link rel="stylesheet" href="../../css/maintenance/notifications.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -283,6 +294,7 @@ function nt_build_query($overrides = [])
                             <option value="verified" <?php echo $filterType === "verified" ? "selected" : ""; ?>>Verified</option>
                             <option value="rejected" <?php echo $filterType === "rejected" ? "selected" : ""; ?>>Rejected</option>
                             <option value="comment_reply" <?php echo $filterType === "comment_reply" ? "selected" : ""; ?>>Comment Reply</option>
+                            <option value="ward_reply_support_request" <?php echo $filterType === "ward_reply_support_request" ? "selected" : ""; ?>>Ward Officer Reply</option>
                             <option value="task_delayed" <?php echo $filterType === "task_delayed" ? "selected" : ""; ?>>Task Delayed</option>
                             <option value="task_deadline_warning" <?php echo $filterType === "task_deadline_warning" ? "selected" : ""; ?>>Deadline Warning</option>
                             <option value="system" <?php echo $filterType === "system" ? "selected" : ""; ?>>System Message</option>
@@ -326,6 +338,12 @@ function nt_build_query($overrides = [])
                             if (!empty($notification["complaint_code"])) {
                                 if ($notificationType === 'comment_reply') {
                                     $linkUrl .= "&redirect=discussion";
+                                } elseif ($notificationType === 'ward_reply_support_request') {
+                                    if (isset($notification["complaint_status"]) && $notification["complaint_status"] === 'in_progress') {
+                                        $linkUrl .= "&redirect=in-progress-work";
+                                    } else {
+                                        $linkUrl .= "&redirect=assigned-tasks";
+                                    }
                                 } else {
                                     $linkUrl .= "&redirect=assigned-tasks";
                                 }
@@ -458,5 +476,6 @@ function nt_build_query($overrides = [])
     });
 </script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

@@ -172,10 +172,7 @@ if (isset($conn) && $conn && isset($_SESSION["user_id"])) {
             <span>Local Reports</span>
         </a>
 
-        <a href="settings.php" class="menu-link <?php echo ($activePage === 'settings') ? 'active' : ''; ?>">
-            <i class="bi bi-gear"></i>
-            <span>Settings</span>
-        </a>
+
 
     </nav>
 

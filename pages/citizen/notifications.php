@@ -55,7 +55,11 @@ function nt_icon($type)
     if (
         $type === "complaint_accepted" ||
         $type === "complaint_rejected" ||
-        $type === "complaint_status_updated"
+        $type === "complaint_status_updated" ||
+        $type === "ward_accept_verify" ||
+        $type === "ward_reject" ||
+        $type === "ward_duplicate" ||
+        $type === "maintenance_start_work"
     ) {
         return "bi-signpost-split";
     }
@@ -83,7 +87,11 @@ function nt_type_class($type)
     if (
         $type === "complaint_accepted" ||
         $type === "complaint_rejected" ||
-        $type === "complaint_status_updated"
+        $type === "complaint_status_updated" ||
+        $type === "ward_accept_verify" ||
+        $type === "ward_reject" ||
+        $type === "ward_duplicate" ||
+        $type === "maintenance_start_work"
     ) {
         return "type-track";
     }
@@ -110,6 +118,10 @@ function nt_type_label($type)
         "complaint_accepted" => "Complaint Accepted",
         "complaint_rejected" => "Complaint Rejected",
         "complaint_status_updated" => "Track Update",
+        "ward_accept_verify" => "Ward Verified",
+        "ward_reject" => "Ward Rejected",
+        "ward_duplicate" => "Ward Duplicate",
+        "maintenance_start_work" => "Work Started",
         "objection_submitted" => "Objection Submitted",
         "objection_under_review" => "Objection Under Review",
         "objection_reopened" => "Complaint Reopened",
@@ -173,7 +185,7 @@ if ($readId > 0) {
             mysqli_stmt_close($readStmt);
 
             if ($redirectType === "track" && !empty($readRow["complaint_code"])) {
-                header("Location: track-complaint.php?code=" . urlencode($readRow["complaint_code"]));
+                header("Location: track-complaint.php?code=" . urlencode($readRow["complaint_code"]) . "&highlight=1");
                 exit;
             } else if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
                 header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
@@ -215,11 +227,15 @@ $allowedTypes = [
     "complaint_accepted",
     "complaint_rejected",
     "complaint_status_updated",
+    "ward_accept_verify",
+    "ward_reject",
+    "ward_duplicate",
     "objection_submitted",
     "objection_under_review",
     "objection_reopened",
     "objection_final_rejected",
-    "comment_reply"
+    "comment_reply",
+    "maintenance_start_work"
 ];
 
 $filterType = trim($_GET["type"] ?? "all");
@@ -416,6 +432,10 @@ function nt_build_query($overrides = [])
                             <option value="complaint_accepted" <?php echo $filterType === "complaint_accepted" ? "selected" : ""; ?>>Complaint Accepted</option>
                             <option value="complaint_rejected" <?php echo $filterType === "complaint_rejected" ? "selected" : ""; ?>>Complaint Rejected</option>
                             <option value="complaint_status_updated" <?php echo $filterType === "complaint_status_updated" ? "selected" : ""; ?>>Track Update</option>
+                            <option value="ward_accept_verify" <?php echo $filterType === "ward_accept_verify" ? "selected" : ""; ?>>Ward Verified</option>
+                            <option value="ward_reject" <?php echo $filterType === "ward_reject" ? "selected" : ""; ?>>Ward Rejected</option>
+                            <option value="ward_duplicate" <?php echo $filterType === "ward_duplicate" ? "selected" : ""; ?>>Ward Duplicate</option>
+                            <option value="maintenance_start_work" <?php echo $filterType === "maintenance_start_work" ? "selected" : ""; ?>>Work Started</option>
                             <option value="objection_submitted" <?php echo $filterType === "objection_submitted" ? "selected" : ""; ?>>Objection Submitted</option>
                             <option value="objection_under_review" <?php echo $filterType === "objection_under_review" ? "selected" : ""; ?>>Objection Under Review</option>
                             <option value="objection_reopened" <?php echo $filterType === "objection_reopened" ? "selected" : ""; ?>>Objection Reopened</option>

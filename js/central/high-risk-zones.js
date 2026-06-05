@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const area = button.dataset.area || "this area";
             const ward = button.dataset.ward || "selected ward";
 
-            alert(`Alert feature will be connected later.\nArea: ${area}\nWard: ${ward}`);
+            showWarningModal(`Alert feature will be connected later.\nArea: ${area}\nWard: ${ward}`);
         });
     });
 

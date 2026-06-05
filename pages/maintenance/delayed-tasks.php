@@ -375,6 +375,7 @@ $totalDelayedTasks = count($delayedTasks);
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/delayed-tasks.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -551,26 +552,13 @@ $totalDelayedTasks = count($delayedTasks);
                     <?php endif; ?>
                 </div>
 
-                <div class="guideline-box">
-                    <div class="guideline-icon">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
 
-                    <div>
-                        <h2>Deadline Extension Guidelines</h2>
-                        <ul>
-                            <li>Notify ward officer immediately when delay is anticipated.</li>
-                            <li>Provide clear reason and realistic new completion deadline.</li>
-                            <li>Use deadline extension only when official deadline change is needed.</li>
-                            <li>Request support or additional resources if needed.</li>
-                        </ul>
-                    </div>
-                </div>
             </section>
         </main>
     </div>
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/delayed-tasks.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

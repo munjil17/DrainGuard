@@ -531,7 +531,8 @@ foreach ($inProgressCases as $caseItem) {
 
                                 <tr class="ipc-row <?= $scheduleClass === 'delayed' ? 'is-delayed' : ''; ?>"
                                     data-search="<?= safeText($searchText); ?>"
-                                    data-status="<?= safeText($scheduleClass); ?>">
+                                    data-status="<?= safeText($scheduleClass); ?>"
+                                    data-complaint-code="<?= safeText($complaintCode); ?>">
 
                                     <td>
                                         <span class="ipc-code"><?= safeText($complaintCode); ?></span>

@@ -21,13 +21,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const maxSize = 2 * 1024 * 1024;
 
             if (!allowedTypes.includes(file.type)) {
-                alert("Only JPG, PNG, or WEBP image is allowed.");
+                showWarningModal("Only JPG, PNG, or WEBP image is allowed.");
                 profileImageInput.value = "";
                 return;
             }
 
             if (file.size > maxSize) {
-                alert("Profile photo must be less than 2MB.");
+                showWarningModal("Profile photo must be less than 2MB.");
                 profileImageInput.value = "";
                 return;
             }

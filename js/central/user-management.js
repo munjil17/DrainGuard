@@ -67,4 +67,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     filterUsers();
+
+    const deleteForms = document.querySelectorAll(".um-delete-form");
+    deleteForms.forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            showConfirmModal({
+                title: "Delete User",
+                message: "Are you sure you want to delete this user? This will delete the user from users table and related role table.",
+                confirmText: "Delete",
+                cancelText: "Cancel",
+                type: "danger",
+                onConfirm: function () {
+                    form.submit();
+                }
+            });
+        });
+    });
 });

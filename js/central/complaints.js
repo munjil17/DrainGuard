@@ -124,10 +124,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     acceptForms.forEach(function (form) {
         form.addEventListener("submit", function (event) {
-            const ok = confirm("Accept this complaint and mark it as Received?");
-            if (!ok) {
-                event.preventDefault();
-            }
+            event.preventDefault();
+            const form = this;
+            showConfirmModal({
+                title: "Accept Complaint",
+                message: "Accept this complaint and mark it as Received?",
+                confirmText: "Accept",
+                cancelText: "Cancel",
+                type: "success",
+                onConfirm: function() {
+                    form.submit();
+                }
+            });
         });
     });
 
@@ -368,10 +376,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            const ok = confirm("Reject this complaint? The citizen will see this reason.");
-            if (!ok) {
-                event.preventDefault();
-            }
+            event.preventDefault();
+            showConfirmModal({
+                title: "Reject Complaint",
+                message: "Reject this complaint? The citizen will see this reason.",
+                confirmText: "Reject",
+                cancelText: "Cancel",
+                type: "danger",
+                onConfirm: function() {
+                    rejectForm.submit();
+                }
+            });
         });
     }
 

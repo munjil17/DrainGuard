@@ -351,6 +351,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_user_id"])) {
     mysqli_begin_transaction($conn);
 
     try {
+        mysqli_query($conn, "SET FOREIGN_KEY_CHECKS=0");
         $deleteOwnSql = "";
 
         if ($deleteRole === "inspector") {
@@ -393,11 +394,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_user_id"])) {
         mysqli_stmt_close($deleteUserStmt);
 
         mysqli_commit($conn);
+        mysqli_query($conn, "SET FOREIGN_KEY_CHECKS=1");
 
         setUserManagementFlash("success", "User deleted successfully.");
 
     } catch (Exception $e) {
         mysqli_rollback($conn);
+        mysqli_query($conn, "SET FOREIGN_KEY_CHECKS=1");
         setUserManagementFlash("error", $e->getMessage());
     }
 }
@@ -495,9 +498,10 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
-    <link rel="stylesheet" href="../../css/central/footer.css">
+   
     <link rel="stylesheet" href="../../css/central/user-management.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -710,7 +714,6 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
                                             <form
                                                 method="POST"
                                                 class="um-delete-form"
-                                                onsubmit="return confirm('Are you sure you want to delete this user? This will delete the user from users table and related role table.');"
                                             >
                                                 <input type="hidden" name="delete_user_id" value="<?php echo (int)$user["user_id"]; ?>">
 
@@ -737,7 +740,7 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
 
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
+       
 
     </main>
 
@@ -746,5 +749,6 @@ if ($countResult && mysqli_num_rows($countResult) > 0) {
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/user-management.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

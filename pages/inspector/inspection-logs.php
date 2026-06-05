@@ -241,7 +241,7 @@ if ($page < 1) {
 $perPage = 10;
 $offset = ($page - 1) * $perPage;
 
-$allowedDecisions = ['', 'approved', 'false_completion', 'sent_to_ward_for_reassign', 'rejected_objection'];
+$allowedDecisions = ['', 'approved', 'false_completion'];
 $allowedDateRanges = ['all', '7_days', '30_days', '90_days'];
 $allowedSorts = ['newest', 'oldest'];
 
@@ -472,6 +472,7 @@ $logs = ilFetchAll(
     <link rel="stylesheet" href="../../css/inspector/inspection-logs.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -513,31 +514,7 @@ $logs = ilFetchAll(
                         <i class="bi bi-exclamation-triangle"></i>
                         <div>
                             <span><?php echo $falseCount; ?></span>
-                            <p>False Completion</p>
-                        </div>
-                    </div>
-
-                    <div class="summary-card warning">
-                        <i class="bi bi-arrow-return-left"></i>
-                        <div>
-                            <span><?php echo $sentWardCount; ?></span>
-                            <p>Sent to Ward</p>
-                        </div>
-                    </div>
-
-                    <div class="summary-card">
-                        <i class="bi bi-x-circle"></i>
-                        <div>
-                            <span><?php echo $rejectionCount; ?></span>
-                            <p>Rejected Objection</p>
-                        </div>
-                    </div>
-
-                    <div class="summary-card">
-                        <i class="bi bi-graph-up-arrow"></i>
-                        <div>
-                            <span><?php echo $approvalRate; ?>%</span>
-                            <p>Approval Rate</p>
+                            <p>False Proof Submitted</p>
                         </div>
                     </div>
 
@@ -555,9 +532,7 @@ $logs = ilFetchAll(
                     <select name="decision" class="filter-control">
                         <option value="">All Decisions</option>
                         <option value="approved" <?php echo ($decision === 'approved') ? 'selected' : ''; ?>>Approved</option>
-                        <option value="false_completion" <?php echo ($decision === 'false_completion') ? 'selected' : ''; ?>>False Completion</option>
-                        <option value="sent_to_ward_for_reassign" <?php echo ($decision === 'sent_to_ward_for_reassign') ? 'selected' : ''; ?>>Sent to Ward</option>
-                        <option value="rejected_objection" <?php echo ($decision === 'rejected_objection') ? 'selected' : ''; ?>>Rejected Objection</option>
+                        <option value="false_completion" <?php echo ($decision === 'false_completion') ? 'selected' : ''; ?>>False Proof Submitted</option>
                     </select>
 
                     <select name="area_id" class="filter-control">
@@ -582,6 +557,10 @@ $logs = ilFetchAll(
                         <option value="newest" <?php echo ($sort === 'newest') ? 'selected' : ''; ?>>Sort by: Newest</option>
                         <option value="oldest" <?php echo ($sort === 'oldest') ? 'selected' : ''; ?>>Sort by: Oldest</option>
                     </select>
+
+                    <a href="inspection-logs.php" class="clear-filter-btn">
+                        <i class="bi bi-x-circle" style="margin-right: 5px;"></i> Clear
+                    </a>
 
                 </form>
 
@@ -718,7 +697,6 @@ $logs = ilFetchAll(
 
             <?php
             $footerPath = __DIR__ . '/../../includes/inspector/footer.php';
-
             if (file_exists($footerPath)) {
                 include $footerPath;
             }
@@ -753,6 +731,7 @@ $logs = ilFetchAll(
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/inspection-logs.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

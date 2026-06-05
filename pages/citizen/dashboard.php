@@ -18,235 +18,6 @@ function citizen_dash_safe($value)
     return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
 }
 
-function citizen_dash_table_exists($conn, $tableName)
-{
-    $sql = "
-        SELECT COUNT(*) AS total
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME = ?
-    ";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
-    if (!$stmt) {
-        return false;
-    }
-
-    mysqli_stmt_bind_param($stmt, "s", $tableName);
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-    $row = $result ? mysqli_fetch_assoc($result) : null;
-
-    mysqli_stmt_close($stmt);
-
-    return ((int)($row["total"] ?? 0)) > 0;
-}
-
-function citizen_dash_column_exists($conn, $tableName, $columnName)
-{
-    $sql = "
-        SELECT COUNT(*) AS total
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME = ?
-        AND COLUMN_NAME = ?
-    ";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
-    if (!$stmt) {
-        return false;
-    }
-
-    mysqli_stmt_bind_param($stmt, "ss", $tableName, $columnName);
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-    $row = $result ? mysqli_fetch_assoc($result) : null;
-
-    mysqli_stmt_close($stmt);
-
-    return ((int)($row["total"] ?? 0)) > 0;
-}
-
-function citizen_dash_first_existing_column($conn, $tableName, $columns)
-{
-    foreach ($columns as $column) {
-        if (citizen_dash_column_exists($conn, $tableName, $column)) {
-            return $column;
-        }
-    }
-
-    return "";
-}
-
-function citizen_dash_count_complaints($conn, $userId, $statusValues = [])
-{
-    if (!citizen_dash_table_exists($conn, "complaints")) {
-        return 0;
-    }
-
-    $userColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "citizen_id",
-        "user_id",
-        "created_by"
-    ]);
-
-    $statusColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "complaint_status",
-        "status"
-    ]);
-
-    $whereParts = [];
-    $types = "";
-    $params = [];
-
-    if ($userColumn !== "" && $userId > 0) {
-        $whereParts[] = "`$userColumn` = ?";
-        $types .= "i";
-        $params[] = $userId;
-    }
-
-    if ($statusColumn !== "" && !empty($statusValues)) {
-        $placeholders = implode(",", array_fill(0, count($statusValues), "?"));
-        $whereParts[] = "LOWER(`$statusColumn`) IN ($placeholders)";
-        $types .= str_repeat("s", count($statusValues));
-
-        foreach ($statusValues as $status) {
-            $params[] = strtolower($status);
-        }
-    }
-
-    $whereSql = !empty($whereParts) ? "WHERE " . implode(" AND ", $whereParts) : "";
-
-    $sql = "SELECT COUNT(*) AS total FROM complaints $whereSql";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
-    if (!$stmt) {
-        return 0;
-    }
-
-    if (!empty($params)) {
-        mysqli_stmt_bind_param($stmt, $types, ...$params);
-    }
-
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-    $row = $result ? mysqli_fetch_assoc($result) : null;
-
-    mysqli_stmt_close($stmt);
-
-    return (int)($row["total"] ?? 0);
-}
-
-function citizen_dash_recent_complaints($conn, $userId, $limit = 3)
-{
-    if (!citizen_dash_table_exists($conn, "complaints")) {
-        return [];
-    }
-
-    $userColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "citizen_id",
-        "user_id",
-        "created_by"
-    ]);
-
-    $titleColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "complaint_title",
-        "issue_title",
-        "issue",
-        "description",
-        "complaint_description"
-    ]);
-
-    $areaColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "area_name",
-        "area",
-        "complaint_area",
-        "location",
-        "address"
-    ]);
-
-    $statusColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "complaint_status",
-        "status"
-    ]);
-
-    $dateColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "created_at",
-        "complaint_date",
-        "submitted_at",
-        "date"
-    ]);
-
-    $idColumn = citizen_dash_first_existing_column($conn, "complaints", [
-        "complaint_id",
-        "id"
-    ]);
-
-    $selectParts = [];
-
-    $selectParts[] = $titleColumn !== "" ? "`$titleColumn` AS title" : "'' AS title";
-    $selectParts[] = $areaColumn !== "" ? "`$areaColumn` AS area" : "'' AS area";
-    $selectParts[] = $statusColumn !== "" ? "`$statusColumn` AS status_text" : "'Pending' AS status_text";
-    $selectParts[] = $dateColumn !== "" ? "`$dateColumn` AS created_date" : "NULL AS created_date";
-
-    $whereSql = "";
-    $types = "";
-    $params = [];
-
-    if ($userColumn !== "" && $userId > 0) {
-        $whereSql = "WHERE `$userColumn` = ?";
-        $types = "i";
-        $params[] = $userId;
-    }
-
-    $orderSql = "";
-
-    if ($dateColumn !== "") {
-        $orderSql = "ORDER BY `$dateColumn` DESC";
-    } elseif ($idColumn !== "") {
-        $orderSql = "ORDER BY `$idColumn` DESC";
-    }
-
-    $sql = "
-        SELECT " . implode(", ", $selectParts) . "
-        FROM complaints
-        $whereSql
-        $orderSql
-        LIMIT ?
-    ";
-
-    $stmt = mysqli_prepare($conn, $sql);
-
-    if (!$stmt) {
-        return [];
-    }
-
-    $types .= "i";
-    $params[] = $limit;
-
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-    mysqli_stmt_execute($stmt);
-
-    $result = mysqli_stmt_get_result($stmt);
-    $rows = [];
-
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $rows[] = $row;
-        }
-    }
-
-    mysqli_stmt_close($stmt);
-
-    return $rows;
-}
-
 function citizen_dash_status_class($status)
 {
     $status = strtolower(trim((string)$status));
@@ -255,64 +26,108 @@ function citizen_dash_status_class($status)
         return "solved";
     }
 
-    if (str_contains($status, "verify") || str_contains($status, "accept")) {
+    if (str_contains($status, "verify") || str_contains($status, "accept") || str_contains($status, "assign")) {
         return "verified";
+    }
+    
+    if (str_contains($status, "reject") || str_contains($status, "duplicate")) {
+        return "rejected"; // assuming there's a rejected style, else it might default to neutral
     }
 
     return "progress";
 }
 
-$totalComplaints = citizen_dash_count_complaints($conn, $userId);
-$pendingComplaints = citizen_dash_count_complaints($conn, $userId, ["pending", "submitted", "waiting"]);
-$progressComplaints = citizen_dash_count_complaints($conn, $userId, ["in progress", "assigned", "working", "processing"]);
-$solvedComplaints = citizen_dash_count_complaints($conn, $userId, ["solved", "closed", "completed", "complete"]);
+// 1. Fetch Recent Complaints
+$recentComplaints = [];
+$recentComplaintsSql = "
+    SELECT 
+        c.complaint_code,
+        i.issue_name AS title,
+        a.area_name AS area,
+        c.complaint_status AS status_text,
+        c.submitted_at AS created_date
+    FROM complaints c
+    LEFT JOIN issues i ON c.issue_id = i.issue_id
+    LEFT JOIN locations l ON c.loc_id = l.loc_id
+    LEFT JOIN areas a ON l.area_id = a.area_id
+    WHERE c.user_id = ?
+    ORDER BY c.submitted_at DESC
+    LIMIT 5
+";
+$stmt = mysqli_prepare($conn, $recentComplaintsSql);
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $userId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $recentComplaints[] = $row;
+        }
+    }
+    mysqli_stmt_close($stmt);
+}
 
-$recentComplaints = citizen_dash_recent_complaints($conn, $userId, 3);
+// 2. Check Pending Feedback
+$pendingFeedbackCount = 0;
+$feedbackSql = "
+    SELECT COUNT(*) AS pending
+    FROM complaints c
+    LEFT JOIN feedbacks f ON c.complaint_id = f.complaint_id AND f.feedback_type = 'feedback'
+    WHERE c.user_id = ? 
+      AND c.complaint_status IN ('solved_by_team', 'closed')
+      AND f.feedback_id IS NULL
+";
+$stmt = mysqli_prepare($conn, $feedbackSql);
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $userId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    if ($result && $row = mysqli_fetch_assoc($result)) {
+        $pendingFeedbackCount = (int)$row['pending'];
+    }
+    mysqli_stmt_close($stmt);
+}
 
-$kpiCards = [
-    [
-        "icon" => "bi-file-earmark-text",
-        "color" => "cyan",
-        "value" => $totalComplaints,
-        "label" => "Total Complaints"
-    ],
-    [
-        "icon" => "bi-clock",
-        "color" => "blue",
-        "value" => $pendingComplaints,
-        "label" => "Pending Verification"
-    ],
-    [
-        "icon" => "bi-exclamation-triangle",
-        "color" => "orange",
-        "value" => $progressComplaints,
-        "label" => "In Progress"
-    ],
-    [
-        "icon" => "bi-check-circle",
-        "color" => "green",
-        "value" => $solvedComplaints,
-        "label" => "Solved / Closed"
-    ]
-];
-
-$riskAreas = [
-    [
-        "class" => "critical",
-        "title" => "Sector 15",
-        "text" => "Repeated waterlogging complaints"
-    ],
-    [
-        "class" => "warning",
-        "title" => "Ward 3",
-        "text" => "Drainage overflow reported frequently"
-    ],
-    [
-        "class" => "stable",
-        "title" => "Park Avenue",
-        "text" => "Recently resolved maintenance zone"
-    ]
-];
+// 3. Fetch High Risk Areas
+$riskAreas = [];
+$riskAreasSql = "
+    SELECT 
+        r.urgency_level,
+        a.area_name,
+        r.complaint_count_30_days,
+        r.risk_status
+    FROM risk r
+    LEFT JOIN areas a ON r.area_id = a.area_id
+    WHERE r.risk_status = 'Active'
+    ORDER BY 
+        CASE r.urgency_level 
+            WHEN 'High' THEN 1 
+            WHEN 'Medium' THEN 2 
+            WHEN 'Low' THEN 3 
+            ELSE 4 
+        END ASC,
+        r.complaint_count_30_days DESC
+    LIMIT 3
+";
+$stmt = mysqli_prepare($conn, $riskAreasSql);
+if ($stmt) {
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $class = "stable";
+            if ($row['urgency_level'] === 'High') $class = "critical";
+            elseif ($row['urgency_level'] === 'Medium') $class = "warning";
+            
+            $riskAreas[] = [
+                "class" => $class,
+                "title" => $row['area_name'] ?: "Unknown Area",
+                "text" => "{$row['complaint_count_30_days']} recent complaints reported here."
+            ];
+        }
+    }
+    mysqli_stmt_close($stmt);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -328,9 +143,24 @@ $riskAreas = [
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/citizen/sidebar.css">
     <link rel="stylesheet" href="../../css/citizen/topbar.css">
-    <link rel="stylesheet" href="../../css/citizen/footer.css">
     <link rel="stylesheet" href="../../css/citizen/dashboard.css">
     <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
+    
+    <style>
+        /* Adjust layout to be clean without KPI cards */
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .dashboard-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            align-items: stretch;
+        }
+    </style>
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="citizen">
@@ -350,18 +180,7 @@ $riskAreas = [
                 <p>Track and manage your drainage complaints easily.</p>
             </div>
 
-            <div class="kpi-grid">
-                <?php foreach ($kpiCards as $card): ?>
-                    <div class="kpi-card">
-                        <div class="kpi-icon <?php echo citizen_dash_safe($card["color"]); ?>">
-                            <i class="bi <?php echo citizen_dash_safe($card["icon"]); ?>"></i>
-                        </div>
-
-                        <h2><?php echo number_format((int)$card["value"]); ?></h2>
-                        <p><?php echo citizen_dash_safe($card["label"]); ?></p>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+            <!-- Removed KPI Grid -->
 
             <div class="panel complaints-panel">
                 <div class="panel-header">
@@ -384,13 +203,13 @@ $riskAreas = [
                             <?php if (!empty($recentComplaints)): ?>
                                 <?php foreach ($recentComplaints as $complaint): ?>
                                     <?php
-                                    $statusText = $complaint["status_text"] ?? "Pending";
+                                    $statusText = ucwords(str_replace('_', ' ', $complaint["status_text"] ?? "Pending"));
                                     $statusClass = citizen_dash_status_class($statusText);
 
                                     $dateText = "N/A";
                                     if (!empty($complaint["created_date"])) {
                                         $timestamp = strtotime($complaint["created_date"]);
-                                        $dateText = $timestamp ? date("M d", $timestamp) : $complaint["created_date"];
+                                        $dateText = $timestamp ? date("M d, Y", $timestamp) : $complaint["created_date"];
                                     }
                                     ?>
 
@@ -407,7 +226,8 @@ $riskAreas = [
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="4" class="empty-table-cell">
+                                    <td colspan="4" class="empty-table-cell" style="text-align: center; padding: 30px; color: #64748b;">
+                                        <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
                                         No complaints found yet. Submit your first complaint to start tracking.
                                     </td>
                                 </tr>
@@ -419,7 +239,7 @@ $riskAreas = [
 
             <div class="dashboard-row">
 
-                <div class="panel track-panel">
+                <div class="panel track-panel" style="flex: 1;">
                     <div class="mini-heading">
                         <div class="mini-icon">
                             <i class="bi bi-search"></i>
@@ -443,39 +263,56 @@ $riskAreas = [
                     <small class="track-error" id="trackComplaintError"></small>
                 </div>
 
-                <div class="feedback-card">
+                <?php if ($pendingFeedbackCount > 0): ?>
+                <div class="feedback-card" style="flex: 1;">
                     <div class="feedback-icon">
                         <i class="bi bi-chat-left"></i>
                     </div>
 
                     <div>
                         <h2>Feedback Reminder</h2>
-                        <p>You may have solved complaints waiting for your feedback.</p>
+                        <p>You have <?php echo $pendingFeedbackCount; ?> solved complaint(s) waiting for your feedback.</p>
                         <a href="feedback-reopen.php">Give Feedback <i class="bi bi-chevron-right"></i></a>
                     </div>
                 </div>
+                <?php else: ?>
+                <div class="feedback-card" style="flex: 1; opacity: 0.8; background: #f8fafc; border: 1px dashed #cbd5e1;">
+                    <div class="feedback-icon" style="background: #e2e8f0; color: #64748b;">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+
+                    <div>
+                        <h2 style="color: #475569;">All Caught Up!</h2>
+                        <p style="color: #64748b;">No pending feedback at the moment.</p>
+                    </div>
+                </div>
+                <?php endif; ?>
 
             </div>
 
             <div class="panel risk-panel">
                 <div class="panel-header">
                     <h2>High Risk Areas</h2>
-                    <a href="high-risk-areas.php">View More <i class="bi bi-chevron-right"></i></a>
+                    <a href="high-risk-areas.php">View All <i class="bi bi-chevron-right"></i></a>
                 </div>
 
                 <div class="risk-grid">
-                    <?php foreach ($riskAreas as $risk): ?>
-                        <div class="risk-item <?php echo citizen_dash_safe($risk["class"]); ?>">
-                            <h3><?php echo citizen_dash_safe($risk["title"]); ?></h3>
-                            <p><?php echo citizen_dash_safe($risk["text"]); ?></p>
+                    <?php if (!empty($riskAreas)): ?>
+                        <?php foreach ($riskAreas as $risk): ?>
+                            <div class="risk-item <?php echo citizen_dash_safe($risk["class"]); ?>">
+                                <h3><?php echo citizen_dash_safe($risk["title"]); ?></h3>
+                                <p><?php echo citizen_dash_safe($risk["text"]); ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #64748b;">
+                            No high risk areas identified currently.
                         </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
 
         </section>
-
-        <?php require_once "../../includes/citizen/footer.php"; ?>
 
     </main>
 
@@ -483,6 +320,16 @@ $riskAreas = [
 
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/citizen/dashboard.js"></script>
+<script>
+    document.getElementById('trackComplaintForm').addEventListener('submit', function(e) {
+        var input = document.getElementById('trackComplaintInput').value.trim();
+        if(!input) {
+            e.preventDefault();
+            window.location.href = 'track-complaint.php';
+        }
+    });
+</script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

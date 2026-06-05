@@ -523,6 +523,7 @@ $isTeamLeader = strtolower((string)$profile['role']) === 'team_leader';
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/profile.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -685,5 +686,6 @@ $isTeamLeader = strtolower((string)$profile['role']) === 'team_leader';
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/profile.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

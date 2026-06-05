@@ -314,6 +314,7 @@ foreach ($drainRecords as $record) {
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/drain-area-reference.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -523,5 +524,6 @@ foreach ($drainRecords as $record) {
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/drain-area-reference.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

@@ -341,7 +341,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
                 c.user_id AS citizen_id, 
                 c.loc_id,
                 ca.maintenance_team_id,
-                (SELECT assigned_by FROM complaint_assignments WHERE complaint_id = c.complaint_id AND assignment_status = 'ward_assigned' LIMIT 1) AS central_officer_id
+                (SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = c.complaint_id AND u.user_role = 'central_officer' LIMIT 1) AS central_officer_id
             FROM complaints c
             INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
             WHERE c.complaint_id = ?
@@ -393,12 +393,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
 
         $notifTime = date('Y-m-d H:i:s');
 
+        $notifType = 'inspector_review_started';
+        $notifTitle = 'Inspector Review Started';
+        $baseMsg = "Inspector has started reviewing complaint {$complaintCode}.";
+
         // Citizen
         if ($citizenUserId > 0) {
-            $msg = "Inspector has started reviewing the completion proof for your complaint.";
-            $ins = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            $ins = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
             if ($ins) {
-                mysqli_stmt_bind_param($ins, "iiiss", $citizenUserId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_bind_param($ins, "iiissss", $citizenUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
                 mysqli_stmt_execute($ins);
                 mysqli_stmt_close($ins);
             }
@@ -406,10 +409,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
 
         // Central Officer
         if ($centralOfficerUserId > 0) {
-            $msg = "Inspector has started reviewing the completion proof for complaint {$complaintCode}.";
-            $ins = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            $ins = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
             if ($ins) {
-                mysqli_stmt_bind_param($ins, "iiiss", $centralOfficerUserId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_bind_param($ins, "iiissss", $centralOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
                 mysqli_stmt_execute($ins);
                 mysqli_stmt_close($ins);
             }
@@ -417,10 +419,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
 
         // Ward Officer
         if ($wardOfficerUserId > 0) {
-            $msg = "Inspector has started reviewing the completion proof for assigned complaint {$complaintCode}.";
-            $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
             if ($ins) {
-                mysqli_stmt_bind_param($ins, "iiiss", $wardOfficerUserId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_bind_param($ins, "iiissss", $wardOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
                 mysqli_stmt_execute($ins);
                 mysqli_stmt_close($ins);
             }
@@ -428,10 +429,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
 
         // Maintenance Team
         foreach ($maintenanceTeamMembers as $memberId) {
-            $msg = "Inspector has started reviewing the completion proof you submitted for complaint {$complaintCode}.";
-            $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Review Started', ?, 0, ?)");
+            $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
             if ($ins) {
-                mysqli_stmt_bind_param($ins, "iiiss", $memberId, $userId, $complaintId, $msg, $notifTime);
+                mysqli_stmt_bind_param($ins, "iiissss", $memberId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
                 mysqli_stmt_execute($ins);
                 mysqli_stmt_close($ins);
             }
@@ -672,6 +672,7 @@ $cases = solvedFetchAll($conn, $casesSql, $types, $params);
     <link rel="stylesheet" href="../../css/inspector/solved-cases.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -874,7 +875,6 @@ $cases = solvedFetchAll($conn, $casesSql, $types, $params);
 
             <?php
             $footerPath = __DIR__ . '/../../includes/inspector/footer.php';
-
             if (file_exists($footerPath)) {
                 include $footerPath;
             }
@@ -887,6 +887,7 @@ $cases = solvedFetchAll($conn, $casesSql, $types, $params);
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/solved-cases.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

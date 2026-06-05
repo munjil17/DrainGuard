@@ -185,6 +185,7 @@ $inspector = ipFetchOne(
         u.user_mail AS login_email,
         u.user_role,
         u.user_status,
+        u.user_password,
         u.login_access,
         u.last_active,
 
@@ -332,6 +333,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    if ($formType === 'password') {
+        $currentPassword = trim($_POST['current_password'] ?? '');
+        $newPassword = trim($_POST['new_password'] ?? '');
+        $confirmPassword = trim($_POST['confirm_password'] ?? '');
+
+        if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+            $errorMessage = "All password fields are required.";
+        } elseif (strlen($newPassword) < 8) {
+            $errorMessage = "New password must be at least 8 characters.";
+        } elseif ($newPassword !== $confirmPassword) {
+            $errorMessage = "New password and confirm password do not match.";
+        } elseif (!password_verify($currentPassword, $inspector['user_password'])) {
+            $errorMessage = "Current password is incorrect.";
+        } else {
+            $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+            $stmt = mysqli_prepare(
+                $conn,
+                "UPDATE users
+                SET user_password = ?
+                WHERE user_id = ?"
+            );
+
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "si", $newHash, $userId);
+
+                if (mysqli_stmt_execute($stmt)) {
+                    $successMessage = "Password changed successfully.";
+                    $inspector['user_password'] = $newHash;
+                } else {
+                    $errorMessage = "Password change failed.";
+                }
+
+                mysqli_stmt_close($stmt);
+            } else {
+                $errorMessage = "Password change failed.";
+            }
+        }
+    }
 }
 
 $coverageAreas = ipFetchAll(
@@ -374,6 +415,7 @@ $loginAccessLabel = ((int) ($inspector['login_access'] ?? 1) === 1) ? 'Enabled' 
     <link rel="stylesheet" href="../../css/inspector/profile.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -597,13 +639,66 @@ $loginAccessLabel = ((int) ($inspector['login_access'] ?? 1) === 1) ? 'Enabled' 
                         </div>
                     </div>
 
+                    <form method="POST" action="profile.php" class="profile-card profile-form-card" id="passwordForm">
+                        <input type="hidden" name="form_type" value="password">
+
+                        <div class="card-title-row">
+                            <div class="card-icon" style="color: #f97316; background: #fff7ed;">
+                                <i class="bi bi-lock"></i>
+                            </div>
+
+                            <div>
+                                <h2>Change Password</h2>
+                                <p>Use at least 8 characters for better account security.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-grid single" style="display: flex; flex-direction: column; gap: 20px;">
+
+                            <div class="form-group password-wrap" style="position: relative;">
+                                <label for="current_password">Current Password</label>
+                                <input
+                                    type="password"
+                                    id="current_password"
+                                    name="current_password"
+                                    autocomplete="current-password"
+                                    style="padding-right: 40px;">
+                            </div>
+
+                            <div class="form-group password-wrap" style="position: relative;">
+                                <label for="new_password">New Password</label>
+                                <input
+                                    type="password"
+                                    id="new_password"
+                                    name="new_password"
+                                    autocomplete="new-password"
+                                    style="padding-right: 40px;">
+                            </div>
+
+                            <div class="form-group password-wrap" style="position: relative;">
+                                <label for="confirm_password">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    id="confirm_password"
+                                    name="confirm_password"
+                                    autocomplete="new-password"
+                                    style="padding-right: 40px;">
+                            </div>
+
+                        </div>
+
+                        <button type="submit" class="warning-btn" style="width: 100%; margin-top: 25px; padding: 12px; background: #f59e0b; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                            <i class="bi bi-shield-lock"></i>
+                            Change Password
+                        </button>
+                    </form>
+
                 </div>
 
             </section>
 
             <?php
             $footerPath = __DIR__ . '/../../includes/inspector/footer.php';
-
             if (file_exists($footerPath)) {
                 include $footerPath;
             }
@@ -616,6 +711,7 @@ $loginAccessLabel = ((int) ($inspector['login_access'] ?? 1) === 1) ? 'Enabled' 
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/profile.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

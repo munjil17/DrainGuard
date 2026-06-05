@@ -106,6 +106,11 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
             <i class="bi bi-clock-history"></i>
             <span>Task History</span>
         </a>
+        
+        <a href="feedback.php" class="menu-link <?php echo ($activePage === 'feedback') ? 'active' : ''; ?>">
+            <i class="bi bi-star"></i>
+            <span>Feedback</span>
+        </a>
 
         <a href="delayed-tasks.php" class="menu-link">
             <i class="bi bi-exclamation-circle"></i>
@@ -118,8 +123,8 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
         </a>
 
         <a href="settings.php" class="menu-link">
-            <i class="bi bi-gear"></i>
-            <span>Settings</span>
+            <i class="bi bi-person-vcard"></i>
+            <span>Team Profile</span>
         </a>
 
     </nav>

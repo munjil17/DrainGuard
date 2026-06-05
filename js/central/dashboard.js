@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     assignButtons.forEach(function (button) {
         button.addEventListener("click", function () {
-            alert("Team assignment feature will be connected with backend later.");
+            showWarningModal("Team assignment feature will be connected with backend later.");
         });
     });
 });

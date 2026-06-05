@@ -124,6 +124,7 @@ unset($_SESSION["complaint_success"], $_SESSION["complaint_error"]);
     <link rel="stylesheet" href="../../css/citizen/topbar.css">
     <link rel="stylesheet" href="../../css/citizen/submit-complaint.css">
     <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="citizen">
@@ -331,5 +332,6 @@ unset($_SESSION["complaint_success"], $_SESSION["complaint_error"]);
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/citizen/submit-complaint.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

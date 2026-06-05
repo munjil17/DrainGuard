@@ -14,7 +14,7 @@ if (!function_exists('insertNotification')) {
     function insertNotification($conn, $table, $recipientId, $senderId, $complaintId, $type, $title, $message) {
         if ($recipientId <= 0) return false;
         
-        $sql = "INSERT INTO `$table` (user_id, sender_id, complaint_id, notification_type, title, message) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO `$table` (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
         $stmt = mysqli_prepare($conn, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param($stmt, "iiisss", $recipientId, $senderId, $complaintId, $type, $title, $message);
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
             c.complaint_code,
             c.user_id AS citizen_user_id,
             mt.team_name,
-            ca.assigned_by AS ward_officer_user_id,
+            ca.assigned_by AS assigned_by_user_id,
             ca.ward_id
         FROM complaint_assignments ca
         INNER JOIN complaints c
@@ -158,27 +158,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
 
         mysqli_stmt_close($updateComplaintStmt);
 
-        // Fetch central officer who might have routed it
+        // Fetch ward officer user ID based on ward_id
+        $wardOfficerUserId = 0;
         $wardId = (int)$taskRow['ward_id'];
-        $centralOfficerUserId = 0; // Default to 0
-        // Currently there's no direct route history table referenced in this app except maybe a previous row or central_officers table, 
-        // but we'll try to get it if we had a dedicated central_notifications table. 
-        // Since we don't know the exact central officer who routed it to this ward if 'assigned_by' is overwritten, 
-        // we'll skip it unless it's available. If you have a specific routing table, query it here.
+        $fetchWardSql = "SELECT user_id FROM ward_officers WHERE assigned_ward_id = ? LIMIT 1";
+        $stmtWard = mysqli_prepare($conn, $fetchWardSql);
+        if ($stmtWard) {
+            mysqli_stmt_bind_param($stmtWard, "i", $wardId);
+            mysqli_stmt_execute($stmtWard);
+            $resWard = mysqli_stmt_get_result($stmtWard);
+            if ($rowWard = mysqli_fetch_assoc($resWard)) {
+                $wardOfficerUserId = (int)$rowWard['user_id'];
+            }
+            mysqli_stmt_close($stmtWard);
+        }
+
+        // Fetch central officer user ID
+        $centralOfficerUserId = 0;
+        $fetchCentralSql = "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1";
+        $stmtCentral = mysqli_prepare($conn, $fetchCentralSql);
+        if ($stmtCentral) {
+            mysqli_stmt_bind_param($stmtCentral, "i", $complaintId);
+            mysqli_stmt_execute($stmtCentral);
+            $resCentral = mysqli_stmt_get_result($stmtCentral);
+            if ($rowCentral = mysqli_fetch_assoc($resCentral)) {
+                $centralOfficerUserId = (int)$rowCentral['assigned_by'];
+            }
+            mysqli_stmt_close($stmtCentral);
+        }
 
         $complaintCode = (string)$taskRow['complaint_code'];
         $teamName = (string)$taskRow['team_name'];
         $citizenUserId = (int)$taskRow['citizen_user_id'];
-        $wardOfficerUserId = (int)$taskRow['ward_officer_user_id'];
+
+        $notifType = "maintenance_start_work";
+        $notifTitle = "Maintenance Work Started";
+        $notifMessage = "Maintenance Team has started work on complaint {$complaintCode}.";
 
         // Send Notification to Citizen
         if ($citizenUserId > 0 && function_exists('insertNotification')) {
-            insertNotification($conn, "citizen_notifications", $citizenUserId, $userId, $complaintId, "work_started", "Work Started", "Maintenance team \"{$teamName}\" has started working on your complaint #{$complaintCode}.");
+            insertNotification($conn, "citizen_notifications", $citizenUserId, $userId, $complaintId, $notifType, $notifTitle, $notifMessage);
         }
 
         // Send Notification to Ward Officer
         if ($wardOfficerUserId > 0 && function_exists('insertNotification')) {
-            insertNotification($conn, "ward_notifications", $wardOfficerUserId, $userId, $complaintId, "work_started", "Work Started", "Maintenance team \"{$teamName}\" has started working on complaint #{$complaintCode}.");
+            insertNotification($conn, "ward_notifications", $wardOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $notifMessage);
+        }
+
+        // Send Notification to Central Officer
+        if ($centralOfficerUserId > 0 && function_exists('insertNotification')) {
+            insertNotification($conn, "central_notifications", $centralOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $notifMessage);
         }
 
         mysqli_commit($conn);
@@ -508,6 +537,7 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/assigned-tasks.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -924,5 +954,6 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/assigned-tasks.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

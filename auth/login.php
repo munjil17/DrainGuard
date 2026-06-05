@@ -64,6 +64,7 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <link rel="stylesheet" href="../css/global/login.css">
+    <link rel="stylesheet" href="../css/global/confirm-modal.css">
 </head>
 
 <body>
@@ -275,5 +276,6 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
 
 <script src="../js/global/login.js"></script>
 
+<script src="../js/global/confirm-modal.js"></script>
 </body>
 </html>

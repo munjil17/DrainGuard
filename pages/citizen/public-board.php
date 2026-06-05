@@ -238,6 +238,7 @@ ksort($affectedAreaOptions);
     <link rel="stylesheet" href="../../css/citizen/topbar.css">
     <link rel="stylesheet" href="../../css/citizen/public-board.css">
     <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="citizen">
@@ -600,5 +601,6 @@ ksort($affectedAreaOptions);
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/citizen/public-board.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

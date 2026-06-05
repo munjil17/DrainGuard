@@ -602,6 +602,7 @@ if ($complaint) {
     <link rel="stylesheet" href="../../css/citizen/track-complaint.css">
     <link rel="stylesheet" href="../../css/commentSystem/commentSystem.css">
     <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="citizen">
@@ -1061,5 +1062,6 @@ if ($complaint) {
 
 <script src="../../js/citizen/sidebar.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

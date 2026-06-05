@@ -889,7 +889,12 @@ function sc_update_risk_area(
     $urgencyLevel,
     $count7Days,
     $count30Days,
-    $countThisWeek
+    $countThisWeek,
+    $cityId,
+    $cityCorId,
+    $thanaId,
+    $wardId,
+    $areaId
 ) {
     $findSql = "
         SELECT risk_id
@@ -962,6 +967,11 @@ function sc_update_risk_area(
     $insertSql = "
         INSERT INTO risk (
             risk_area_key,
+            city_id,
+            city_cor_id,
+            thana_id,
+            ward_id,
+            area_id,
             urgency_level,
             risk_status,
             complaint_count_7_days,
@@ -971,7 +981,7 @@ function sc_update_risk_area(
             first_reported_at,
             last_reported_at
         )
-        VALUES (?, ?, 'Active', ?, ?, ?, ?, NOW(), NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'Active', ?, ?, ?, ?, NOW(), NOW())
     ";
 
     $insertStmt = mysqli_prepare($conn, $insertSql);
@@ -982,8 +992,13 @@ function sc_update_risk_area(
 
     mysqli_stmt_bind_param(
         $insertStmt,
-        "ssiiii",
+        "siiiiisiiii",
         $riskAreaKey,
+        $cityId,
+        $cityCorId,
+        $thanaId,
+        $wardId,
+        $areaId,
         $urgencyLevel,
         $count7Days,
         $count30Days,
@@ -1179,6 +1194,49 @@ try {
         "Citizen submitted a new complaint."
     );
 
+    // 1. Notify Central Officers
+    $centralNotifSql = "SELECT user_id FROM users WHERE user_role = 'central_officer' AND user_status = 'active'";
+    $centralNotifResult = mysqli_query($conn, $centralNotifSql);
+
+    if ($centralNotifResult) {
+        $insertCentralNotifSql = "
+            INSERT INTO central_notifications (
+                recipient_user_id, 
+                sender_user_id,
+                related_complaint_id, 
+                notification_type, 
+                notification_title, 
+                notification_message, 
+                is_read
+            ) VALUES (?, ?, ?, 'complaint_submitted', ?, ?, 0)
+        ";
+        $insertCentralNotifStmt = mysqli_prepare($conn, $insertCentralNotifSql);
+
+        if ($insertCentralNotifStmt) {
+            $notifTitle = "New Complaint Received";
+            $notifMessage = "A new complaint ($complaintCode) has been submitted by a citizen.";
+            $recipientId = 0;
+
+            mysqli_stmt_bind_param(
+                $insertCentralNotifStmt, 
+                "iiiss", 
+                $recipientId, 
+                $userId, 
+                $complaintId, 
+                $notifTitle, 
+                $notifMessage
+            );
+
+            while ($coRow = mysqli_fetch_assoc($centralNotifResult)) {
+                $recipientId = (int)$coRow['user_id'];
+                if (!mysqli_stmt_execute($insertCentralNotifStmt)) {
+                    throw new Exception("Central notification insert failed: " . mysqli_stmt_error($insertCentralNotifStmt));
+                }
+            }
+            mysqli_stmt_close($insertCentralNotifStmt);
+        }
+    }
+
     if (!empty($mediaFiles)) {
         sc_upload_media_files($conn, $complaintId, $userId, $mediaFiles, $savedUploadedFiles);
     }
@@ -1208,7 +1266,12 @@ try {
             $calculatedUrgency,
             $count7Days,
             $count30Days,
-            $countThisWeek
+            $countThisWeek,
+            $cityId,
+            $cityCorId,
+            $thanaId,
+            $wardId,
+            $areaId
         );
     }
 

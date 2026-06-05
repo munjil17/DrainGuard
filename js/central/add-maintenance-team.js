@@ -83,21 +83,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (teamName && teamName.value.trim().length < 3) {
                 event.preventDefault();
-                alert("Team name must be at least 3 characters.");
+                showWarningModal("Team name must be at least 3 characters.");
                 teamName.focus();
                 return;
             }
 
             if (cityCorSelect && cityCorSelect.value.trim() === "") {
                 event.preventDefault();
-                alert("Please select city corporation.");
+                showWarningModal("Please select city corporation.");
                 cityCorSelect.focus();
                 return;
             }
 
             if (anchalSelect && anchalSelect.value.trim() === "") {
                 event.preventDefault();
-                alert("Please select assigned anchal.");
+                showWarningModal("Please select assigned anchal.");
                 anchalSelect.focus();
             }
         });

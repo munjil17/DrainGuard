@@ -198,9 +198,9 @@ if (!$wardOfficer) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
-    <link rel="stylesheet" href="../../css/central/footer.css">
     <link rel="stylesheet" href="../../css/central/add-ward-officer.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -300,7 +300,6 @@ if (!$wardOfficer) {
 
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
 
     </main>
 
@@ -312,5 +311,6 @@ if (!$wardOfficer) {
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/edit-ward-officer.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

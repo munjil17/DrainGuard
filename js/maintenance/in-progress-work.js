@@ -183,12 +183,13 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             if (!activeSupportAssignmentId) {
-                alert("Support request data missing.");
+                showWarningModal("Support request data missing.");
                 return;
             }
 
             const formData = new FormData(supportForm);
             formData.append("assignment_id", activeSupportAssignmentId);
+            formData.append("source_page", "in_progress_work");
 
             if (submitSupportBtn) {
                 submitSupportBtn.classList.add("is-loading");
@@ -203,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     return response.json();
                 })
                 .then(function (data) {
-                    alert(data.message || "Support request processed.");
+                    showWarningModal(data.message || "Support request processed.");
 
                     if (data.success) {
                         closeSupportModal();
@@ -211,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .catch(function () {
-                    alert("Failed to send support request.");
+                    showWarningModal("Failed to send support request.");
                 })
                 .finally(function () {
                     if (submitSupportBtn) {

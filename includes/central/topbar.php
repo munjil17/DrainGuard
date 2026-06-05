@@ -133,7 +133,7 @@ $centralUnreadNotificationCount = 0;
 $centralTopbarNotifications = [];
 
 if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
-    $unreadSql = "SELECT COUNT(*) AS unread_total FROM central_notifications WHERE is_read = 0";
+    $unreadSql = "SELECT COUNT(*) AS unread_total FROM central_notifications WHERE is_read = 0 AND recipient_user_id = $loggedUserId";
     $unreadResult = mysqli_query($conn, $unreadSql);
     if ($unreadResult) {
         $unreadRow = mysqli_fetch_assoc($unreadResult);
@@ -152,6 +152,7 @@ if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
             c.complaint_code
         FROM central_notifications cn
         LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id
+        WHERE cn.recipient_user_id = $loggedUserId
         ORDER BY cn.created_at DESC, cn.notification_id DESC
         LIMIT 10
     ";
@@ -287,3 +288,10 @@ if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
 </header>
 
 <script src="../../js/central/topbar.js"></script>
+<!-- Global Notification Highlight -->
+<link rel='stylesheet' href='/DrainGuard/css/global/notification-target.css'>
+<script src='/DrainGuard/js/global/notification-target.js'></script>
+
+<!-- Global Confirm Modal -->
+<link rel='stylesheet' href='/DrainGuard/css/global/confirm-modal.css'>
+<script src='/DrainGuard/js/global/confirm-modal.js'></script>

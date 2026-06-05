@@ -70,7 +70,6 @@ $menuItems = [
     ['page' => 'track-complaint',  'href' => 'track-complaint.php',  'icon' => 'bi-geo-alt',              'label' => 'Track Complaint'],
     ['page' => 'high-risk-areas',  'href' => 'high-risk-areas.php',  'icon' => 'bi-exclamation-triangle', 'label' => 'Risk Areas'],
     ['page' => 'feedback-reopen',  'href' => 'feedback-reopen.php',  'icon' => 'bi-chat-left',            'label' => 'Feedback'],
-    ['page' => 'settings',         'href' => 'settings.php',         'icon' => 'bi-gear',                 'label' => 'Settings'],
 ];
 ?>
 

@@ -316,6 +316,7 @@ if ($settingsStmt) {
 
     <!-- Page CSS -->
     <link rel="stylesheet" href="../../css/citizen/settings.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 <body class="citizen">
 
@@ -466,5 +467,6 @@ if ($settingsStmt) {
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/citizen/settings.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

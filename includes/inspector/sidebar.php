@@ -163,10 +163,7 @@ $sidebarProfileImageSrc = inspectorSidebarImagePath($userProfileImage);
             <span>Inspection Logs</span>
         </a>
 
-        <a href="settings.php" class="menu-link <?php echo inspectorActive('settings', $activePage); ?>">
-            <i class="bi bi-gear"></i>
-            <span>Settings</span>
-        </a>
+
 
     </nav>
 

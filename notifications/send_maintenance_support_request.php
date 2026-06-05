@@ -137,8 +137,17 @@ try {
         $notifUrl = "/DrainGuard/pages/ward/in-progress-cases.php?highlight=" . $complaintCode;
     }
 
-    $notifTitle = "Maintenance Support Required";
-    $notifMessage = "Support requested for task " . $complaintCode . " by Maintenance Team.";
+    $sourcePage = trim($_POST['source_page'] ?? 'assigned_tasks');
+
+    if ($sourcePage === 'in_progress_work') {
+        $notifType = "maintenance_support_in_progress";
+        $notifTitle = "Support Requested for In Progress Work";
+        $notifMessage = "Maintenance Team requested support for in-progress complaint " . $complaintCode . ". Please check In Progress Cases.";
+    } else {
+        $notifType = "maintenance_support_assigned_task";
+        $notifTitle = "Support Requested for Assigned Task";
+        $notifMessage = "Maintenance Team requested support for assigned complaint " . $complaintCode . ". Please check Local Team Assignment.";
+    }
     
     $notifSql = "
         INSERT INTO ward_notifications (
@@ -149,11 +158,11 @@ try {
             notification_title, 
             notification_message, 
             is_read
-        ) VALUES (?, ?, ?, 'system', ?, ?, 0)
+        ) VALUES (?, ?, ?, ?, ?, ?, 0)
     ";
     
     $notifStmt = mysqli_prepare($conn, $notifSql);
-    mysqli_stmt_bind_param($notifStmt, "iiiss", $wardOfficerUserId, $userId, $complaintId, $notifTitle, $notifMessage);
+    mysqli_stmt_bind_param($notifStmt, "iiisss", $wardOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $notifMessage);
     mysqli_stmt_execute($notifStmt);
     mysqli_stmt_close($notifStmt);
 

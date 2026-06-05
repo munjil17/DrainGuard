@@ -133,14 +133,14 @@ document.addEventListener("DOMContentLoaded", function () {
         form.addEventListener("submit", function (event) {
             if (!reportType || reportType.value === "") {
                 event.preventDefault();
-                alert("Please select a report type.");
+                showWarningModal("Please select a report type.");
                 reportType.focus();
                 return;
             }
 
             if (!reportPeriod || reportPeriod.value === "") {
                 event.preventDefault();
-                alert("Please select a time period.");
+                showWarningModal("Please select a time period.");
                 reportPeriod.focus();
                 return;
             }
@@ -148,29 +148,35 @@ document.addEventListener("DOMContentLoaded", function () {
             if (reportPeriod.value === "custom_range") {
                 if (!startDate.value || !endDate.value) {
                     event.preventDefault();
-                    alert("Please select start date and end date.");
+                    showWarningModal("Please select start date and end date.");
                     return;
                 }
 
                 if (startDate.value > endDate.value) {
                     event.preventDefault();
-                    alert("Start date cannot be after end date.");
+                    showWarningModal("Start date cannot be after end date.");
                     return;
                 }
             }
 
             if (!exportFormat || exportFormat.value === "") {
                 event.preventDefault();
-                alert("Please select an export format.");
+                showWarningModal("Please select an export format.");
                 exportFormat.focus();
                 return;
             }
 
-            const confirmed = confirm("Generate and download this report now?");
-
-            if (!confirmed) {
-                event.preventDefault();
-            }
+            event.preventDefault();
+            showConfirmModal({
+                title: "Generate Report",
+                message: "Generate and download this report now?",
+                confirmText: "Generate",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    form.submit();
+                }
+            });
         });
     }
 });

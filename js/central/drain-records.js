@@ -12,27 +12,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const wardFilter = document.getElementById("wardFilter");
     const areaFilter = document.getElementById("areaFilter");
     const conditionFilter = document.getElementById("conditionFilter");
-    const riskFilter = document.getElementById("riskFilter");
     const clearBtn = document.getElementById("clearDrainFilters");
 
     const rows = Array.from(document.querySelectorAll(".dr-row"));
     const noResult = document.getElementById("drNoResult");
-
-    const modal = document.getElementById("drainDetailsModal");
-    const closeModalBtn = document.getElementById("closeDrainModal");
-
-    const modalDrainName = document.getElementById("modalDrainName");
-    const modalDrainCode = document.getElementById("modalDrainCode");
-    const modalDrainLocation = document.getElementById("modalDrainLocation");
-    const modalDrainWard = document.getElementById("modalDrainWard");
-    const modalDrainCondition = document.getElementById("modalDrainCondition");
-    const modalDrainRisk = document.getElementById("modalDrainRisk");
-    const modalDrainAddress = document.getElementById("modalDrainAddress");
-    const modalDrainCity = document.getElementById("modalDrainCity");
-    const modalDrainCorporation = document.getElementById("modalDrainCorporation");
-    const modalDrainUpdatedBy = document.getElementById("modalDrainUpdatedBy");
-    const modalDrainUpdatedRole = document.getElementById("modalDrainUpdatedRole");
-    const modalDrainUpdatedAt = document.getElementById("modalDrainUpdatedAt");
 
     function resetSelect(select, placeholder) {
         if (!select) return;
@@ -62,7 +45,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const wardValue = wardFilter ? wardFilter.value : "";
         const areaValue = areaFilter ? areaFilter.value : "";
         const conditionValue = conditionFilter ? conditionFilter.value : "";
-        const riskValue = riskFilter ? riskFilter.value : "";
 
         let visibleCount = 0;
 
@@ -73,7 +55,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const wardMatch = !wardValue || row.dataset.wardId === wardValue;
             const areaMatch = !areaValue || row.dataset.areaId === areaValue;
             const conditionMatch = !conditionValue || row.dataset.condition === conditionValue;
-            const riskMatch = !riskValue || row.dataset.risk === riskValue;
 
             if (
                 cityMatch &&
@@ -81,8 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 thanaMatch &&
                 wardMatch &&
                 areaMatch &&
-                conditionMatch &&
-                riskMatch
+                conditionMatch
             ) {
                 row.hidden = false;
                 visibleCount++;
@@ -104,36 +84,8 @@ document.addEventListener("DOMContentLoaded", function () {
         resetSelect(areaFilter, "All Area");
 
         if (conditionFilter) conditionFilter.value = "";
-        if (riskFilter) riskFilter.value = "";
 
         applyFilters();
-    }
-
-    function openModal(button) {
-        if (!modal || !button) return;
-
-        if (modalDrainName) modalDrainName.textContent = button.dataset.name || "Drain Details";
-        if (modalDrainCode) modalDrainCode.textContent = button.dataset.code || "Drain Code";
-        if (modalDrainLocation) modalDrainLocation.textContent = button.dataset.location || "-";
-        if (modalDrainWard) modalDrainWard.textContent = button.dataset.ward || "-";
-        if (modalDrainCondition) modalDrainCondition.textContent = button.dataset.condition || "-";
-        if (modalDrainRisk) modalDrainRisk.textContent = button.dataset.risk || "-";
-        if (modalDrainAddress) modalDrainAddress.textContent = button.dataset.address || "-";
-        if (modalDrainCity) modalDrainCity.textContent = button.dataset.city || "-";
-        if (modalDrainCorporation) modalDrainCorporation.textContent = button.dataset.corporation || "-";
-        if (modalDrainUpdatedBy) modalDrainUpdatedBy.textContent = button.dataset.updatedBy || "-";
-        if (modalDrainUpdatedRole) modalDrainUpdatedRole.textContent = button.dataset.updatedRole || "-";
-        if (modalDrainUpdatedAt) modalDrainUpdatedAt.textContent = button.dataset.updatedAt || "-";
-
-        modal.classList.add("show");
-        document.body.style.overflow = "hidden";
-    }
-
-    function closeModal() {
-        if (!modal) return;
-
-        modal.classList.remove("show");
-        document.body.style.overflow = "";
     }
 
     if (cityFilter) {
@@ -247,37 +199,9 @@ document.addEventListener("DOMContentLoaded", function () {
         conditionFilter.addEventListener("change", applyFilters);
     }
 
-    if (riskFilter) {
-        riskFilter.addEventListener("change", applyFilters);
-    }
-
     if (clearBtn) {
         clearBtn.addEventListener("click", clearFilters);
     }
-
-    document.querySelectorAll(".dr-view-btn").forEach(function (button) {
-        button.addEventListener("click", function () {
-            openModal(button);
-        });
-    });
-
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener("click", closeModal);
-    }
-
-    if (modal) {
-        modal.addEventListener("click", function (event) {
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-    }
-
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            closeModal();
-        }
-    });
 
     applyFilters();
 });

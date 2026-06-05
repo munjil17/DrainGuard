@@ -262,17 +262,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (bulkRouteBtn) {
         bulkRouteBtn.addEventListener("click", function () {
-            alert("Bulk route will be added later. For now, send complaints one by one.");
+            showWarningModal("Bulk route will be added later. For now, send complaints one by one.");
         });
     }
 
     document.querySelectorAll(".ra-route-btn").forEach(function (button) {
         button.addEventListener("click", function (event) {
-            const confirmed = confirm("Send this complaint to ward for verification? Tracking status will become Pending Verification.");
-
-            if (!confirmed) {
-                event.preventDefault();
-            }
+            event.preventDefault();
+            const form = this.closest("form");
+            showConfirmModal({
+                title: "Confirm Routing",
+                message: "Send this complaint to ward for verification? Tracking status will become Pending Verification.",
+                confirmText: "Route",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    if (form) form.submit();
+                }
+            });
         });
     });
 

@@ -15,16 +15,18 @@ $teamInfo = [
 ];
 
 $stats = [
-    'assigned_today' => 0,
-    'urgent_tasks' => 0,
-    'near_deadline' => 0,
+    'local_team_assigned' => 0,
+    'in_progress' => 0,
     'solved_by_team' => 0,
-    'awaiting_inspection' => 0,
-    'delayed_tasks' => 0
+    'inspector_closed' => 0,
+    'inspector_rejected' => 0,
+    'reopen' => 0
 ];
 
-$assignedTasks = [];
-$recentActivities = [];
+$assignedList = [];
+$inProgressList = [];
+$uploadProofList = [];
+$feedbackList = [];
 
 function e($value)
 {
@@ -48,28 +50,6 @@ function roleLabel($role)
     return 'Maintenance Team';
 }
 
-function statusLabel($status)
-{
-    $labels = [
-        'ward_assigned' => 'Ward Assigned',
-        'team_assigned' => 'Assigned',
-        'in_progress' => 'In Progress',
-        'completed' => 'Solved by Team',
-        'submitted' => 'Submitted',
-        'received' => 'Received',
-        'pending_verification' => 'Pending Verification',
-        'verified' => 'Verified',
-        'solved_by_team' => 'Solved by Team',
-        'inspector_verification' => 'Waiting Inspection',
-        'closed' => 'Closed',
-        'reopened' => 'Reopened',
-        'disputed' => 'Disputed',
-        'rejected' => 'Rejected'
-    ];
-
-    return $labels[$status] ?? ucwords(str_replace('_', ' ', (string)$status));
-}
-
 function priorityClass($priority)
 {
     $priority = strtolower((string)$priority);
@@ -83,29 +63,6 @@ function priorityClass($priority)
     }
 
     return 'priority-low';
-}
-
-function statusClass($status)
-{
-    $status = strtolower((string)$status);
-
-    if ($status === 'in_progress') {
-        return 'status-progress';
-    }
-
-    if ($status === 'completed' || $status === 'solved_by_team') {
-        return 'status-completed';
-    }
-
-    if ($status === 'inspector_verification') {
-        return 'status-inspection';
-    }
-
-    if ($status === 'reopened' || $status === 'disputed' || $status === 'rejected') {
-        return 'status-danger';
-    }
-
-    return 'status-assigned';
 }
 
 if ($userId > 0) {
@@ -145,44 +102,15 @@ if ($userId > 0) {
 $teamId = (int)$teamInfo['team_id'];
 
 if ($teamId > 0) {
+    // 1. KPI Stats
     $statsSql = "
         SELECT
-            SUM(CASE 
-                WHEN DATE(ca.assigned_at) = CURDATE() 
-                THEN 1 ELSE 0 
-            END) AS assigned_today,
-
-            SUM(CASE 
-                WHEN ca.assignment_priority = 'High'
-                AND ca.assignment_status IN ('team_assigned', 'in_progress')
-                THEN 1 ELSE 0 
-            END) AS urgent_tasks,
-
-            SUM(CASE 
-                WHEN ca.deadline_at IS NOT NULL
-                AND ca.deadline_at BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 2 DAY)
-                AND ca.assignment_status IN ('team_assigned', 'in_progress')
-                THEN 1 ELSE 0 
-            END) AS near_deadline,
-
-            SUM(CASE 
-                WHEN ca.assignment_status = 'completed'
-                OR c.complaint_status IN ('solved_by_team', 'inspector_verification', 'closed')
-                THEN 1 ELSE 0 
-            END) AS solved_by_team,
-
-            SUM(CASE 
-                WHEN c.complaint_status = 'inspector_verification'
-                THEN 1 ELSE 0 
-            END) AS awaiting_inspection,
-
-            SUM(CASE 
-                WHEN ca.deadline_at IS NOT NULL
-                AND ca.deadline_at < CURDATE()
-                AND ca.assignment_status IN ('team_assigned', 'in_progress')
-                THEN 1 ELSE 0 
-            END) AS delayed_tasks
-
+            SUM(CASE WHEN ca.assignment_status = 'team_assigned' THEN 1 ELSE 0 END) AS local_team_assigned,
+            SUM(CASE WHEN ca.assignment_status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
+            SUM(CASE WHEN c.complaint_status = 'solved_by_team' THEN 1 ELSE 0 END) AS solved_by_team,
+            SUM(CASE WHEN c.complaint_status = 'closed' THEN 1 ELSE 0 END) AS inspector_closed,
+            SUM(CASE WHEN c.complaint_status IN ('rejected', 'disputed') THEN 1 ELSE 0 END) AS inspector_rejected,
+            SUM(CASE WHEN c.complaint_status = 'reopened' THEN 1 ELSE 0 END) AS reopen
         FROM complaint_assignments ca
         INNER JOIN complaints c
             ON c.complaint_id = ca.complaint_id
@@ -207,102 +135,82 @@ if ($teamId > 0) {
         mysqli_stmt_close($statsStmt);
     }
 
-    $tasksSql = "
-        SELECT
-            ca.assignment_id,
-            ca.assignment_status,
-            ca.assigned_at,
-            ca.deadline_at,
-            ca.assignment_priority,
-            ca.task_note,
-            c.complaint_id,
-            c.complaint_code,
-            c.complaint_status,
-            c.address_description,
-            c.problem_description,
-            c.work_started_at,
-            c.submitted_at,
-            cm.media_path,
-            cm.media_type
+    // 2. Assigned Tasks (Limit 3)
+    $assignedSql = "
+        SELECT ca.assignment_id, ca.assignment_priority, ca.deadline_at, c.complaint_code, c.address_description
         FROM complaint_assignments ca
-        INNER JOIN complaints c
-            ON c.complaint_id = ca.complaint_id
-        LEFT JOIN (
-            SELECT complaint_id, MIN(media_id) AS first_media_id
-            FROM complaint_media
-            GROUP BY complaint_id
-        ) first_media
-            ON first_media.complaint_id = c.complaint_id
-        LEFT JOIN complaint_media cm
-            ON cm.media_id = first_media.first_media_id
-        WHERE ca.maintenance_team_id = ?
-        AND ca.assignment_status IN ('team_assigned', 'in_progress')
-        ORDER BY
-            CASE ca.assignment_priority
-                WHEN 'High' THEN 1
-                WHEN 'Medium' THEN 2
-                ELSE 3
-            END,
-            ca.deadline_at IS NULL,
-            ca.deadline_at ASC,
-            ca.assigned_at DESC
-        LIMIT 5
+        INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
+        WHERE ca.maintenance_team_id = ? AND ca.assignment_status = 'team_assigned'
+        ORDER BY ca.assigned_at DESC LIMIT 3
     ";
-
-    $tasksStmt = mysqli_prepare($conn, $tasksSql);
-
-    if ($tasksStmt) {
-        mysqli_stmt_bind_param($tasksStmt, "i", $teamId);
-        mysqli_stmt_execute($tasksStmt);
-        $tasksResult = mysqli_stmt_get_result($tasksStmt);
-
-        while ($tasksResult && $row = mysqli_fetch_assoc($tasksResult)) {
-            $assignedTasks[] = $row;
+    $assignedStmt = mysqli_prepare($conn, $assignedSql);
+    if ($assignedStmt) {
+        mysqli_stmt_bind_param($assignedStmt, "i", $teamId);
+        mysqli_stmt_execute($assignedStmt);
+        $res = mysqli_stmt_get_result($assignedStmt);
+        while ($res && $r = mysqli_fetch_assoc($res)) {
+            $assignedList[] = $r;
         }
-
-        mysqli_stmt_close($tasksStmt);
+        mysqli_stmt_close($assignedStmt);
     }
 
-    $activitySql = "
-        SELECT
-            ca.assignment_id,
-            ca.assignment_status,
-            ca.assignment_priority,
-            ca.assigned_at,
-            c.complaint_code,
-            c.complaint_status,
-            c.updated_at,
-            c.work_started_at
+    // 3. In Progress Work (Limit 3)
+    $inProgressSql = "
+        SELECT ca.assignment_id, ca.assignment_priority, c.complaint_code, c.address_description, c.work_started_at
         FROM complaint_assignments ca
-        INNER JOIN complaints c
-            ON c.complaint_id = ca.complaint_id
-        WHERE ca.maintenance_team_id = ?
-        ORDER BY COALESCE(c.updated_at, ca.assigned_at) DESC
-        LIMIT 5
+        INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
+        WHERE ca.maintenance_team_id = ? AND ca.assignment_status = 'in_progress'
+        ORDER BY c.work_started_at DESC, ca.assigned_at DESC LIMIT 3
     ";
-
-    $activityStmt = mysqli_prepare($conn, $activitySql);
-
-    if ($activityStmt) {
-        mysqli_stmt_bind_param($activityStmt, "i", $teamId);
-        mysqli_stmt_execute($activityStmt);
-        $activityResult = mysqli_stmt_get_result($activityStmt);
-
-        while ($activityResult && $row = mysqli_fetch_assoc($activityResult)) {
-            $recentActivities[] = $row;
+    $inProgressStmt = mysqli_prepare($conn, $inProgressSql);
+    if ($inProgressStmt) {
+        mysqli_stmt_bind_param($inProgressStmt, "i", $teamId);
+        mysqli_stmt_execute($inProgressStmt);
+        $res = mysqli_stmt_get_result($inProgressStmt);
+        while ($res && $r = mysqli_fetch_assoc($res)) {
+            $inProgressList[] = $r;
         }
-
-        mysqli_stmt_close($activityStmt);
+        mysqli_stmt_close($inProgressStmt);
     }
-}
 
-$todayTaskCount = $stats['assigned_today'];
-$delayRate = 0;
+    // 4. Upload Completion Proof (Limit 3)
+    $uploadSql = "
+        SELECT ca.assignment_id, c.complaint_code, c.address_description, c.work_started_at
+        FROM complaint_assignments ca
+        INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
+        WHERE ca.maintenance_team_id = ? AND ca.assignment_status = 'in_progress' AND c.complaint_status = 'in_progress'
+        ORDER BY c.work_started_at DESC LIMIT 3
+    ";
+    $uploadStmt = mysqli_prepare($conn, $uploadSql);
+    if ($uploadStmt) {
+        mysqli_stmt_bind_param($uploadStmt, "i", $teamId);
+        mysqli_stmt_execute($uploadStmt);
+        $res = mysqli_stmt_get_result($uploadStmt);
+        while ($res && $r = mysqli_fetch_assoc($res)) {
+            $uploadProofList[] = $r;
+        }
+        mysqli_stmt_close($uploadStmt);
+    }
 
-$totalActive = $stats['assigned_today'] + $stats['urgent_tasks'] + $stats['near_deadline'] + $stats['solved_by_team'];
-
-if ($totalActive > 0) {
-    $delayRate = round(($stats['delayed_tasks'] / $totalActive) * 100);
+    // 5. Feedback (Limit 3)
+    $feedbackSql = "
+        SELECT mtr.rating, mtr.created_at, c.complaint_code, u.user_name AS citizen_name
+        FROM maintenance_team_reviews mtr
+        LEFT JOIN complaints c ON mtr.complaint_id = c.complaint_id
+        LEFT JOIN users u ON mtr.citizen_user_id = u.user_id
+        WHERE mtr.maintenance_team_id = ?
+        ORDER BY mtr.created_at DESC LIMIT 3
+    ";
+    $feedbackStmt = mysqli_prepare($conn, $feedbackSql);
+    if ($feedbackStmt) {
+        mysqli_stmt_bind_param($feedbackStmt, "i", $teamId);
+        mysqli_stmt_execute($feedbackStmt);
+        $res = mysqli_stmt_get_result($feedbackStmt);
+        while ($res && $r = mysqli_fetch_assoc($res)) {
+            $feedbackList[] = $r;
+        }
+        mysqli_stmt_close($feedbackStmt);
+    }
 }
 ?>
 
@@ -319,6 +227,143 @@ if ($totalActive > 0) {
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/dashboard.css">
+    
+    <style>
+        .lists-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 30px;
+        }
+        
+        .list-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .list-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+        
+        .list-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .list-head h2 {
+            font-size: 1.15rem;
+            color: #1e293b;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        
+        .list-head a {
+            font-size: 0.9rem;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+        
+        .list-head a:hover {
+            color: #2563eb;
+        }
+        
+        .list-body {
+            padding: 8px 0;
+            flex: 1;
+        }
+        
+        .list-item {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+        
+        .list-item:hover {
+            background: #f8fafc;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-info {
+            flex: 1;
+            padding-right: 15px;
+            overflow: hidden;
+        }
+        
+        .item-info strong {
+            display: block;
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .item-info small {
+            display: block;
+            color: #64748b;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+        
+        .item-action {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: max-content;
+        }
+        
+        .empty-list {
+            padding: 40px 20px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .empty-list i {
+            font-size: 2rem;
+            color: #cbd5e1;
+        }
+        
+        @media (max-width: 992px) {
+            .lists-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -334,11 +379,6 @@ if ($totalActive > 0) {
                         <span class="md-hero-badge">Field Maintenance Team</span>
                         <h1><?php echo e($teamInfo['team_name']); ?> — Daily Work Queue</h1>
                         <p>Complete assigned tasks, upload work photos, and mark jobs as solved by team.</p>
-                    </div>
-
-                    <div class="md-hero-count">
-                        <span>Today's Tasks</span>
-                        <strong><?php echo e($todayTaskCount); ?></strong>
                     </div>
                 </div>
 
@@ -358,255 +398,161 @@ if ($totalActive > 0) {
                 <div class="md-kpi-grid">
                     <article class="md-kpi-card">
                         <div class="md-kpi-icon icon-info">
-                            <i class="bi bi-list-check"></i>
+                            <i class="bi bi-person-check"></i>
                         </div>
-                        <strong><?php echo e($stats['assigned_today']); ?></strong>
-                        <span>Assigned Jobs Today</span>
-                    </article>
-
-                    <article class="md-kpi-card">
-                        <div class="md-kpi-icon icon-danger">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                        <strong><?php echo e($stats['urgent_tasks']); ?></strong>
-                        <span>Urgent Tasks</span>
+                        <strong><?php echo e($stats['local_team_assigned']); ?></strong>
+                        <span>Local Team Assigned</span>
                     </article>
 
                     <article class="md-kpi-card">
                         <div class="md-kpi-icon icon-warning">
-                            <i class="bi bi-clock"></i>
+                            <i class="bi bi-hourglass-split"></i>
                         </div>
-                        <strong><?php echo e($stats['near_deadline']); ?></strong>
-                        <span>Tasks Near Deadline</span>
+                        <strong><?php echo e($stats['in_progress']); ?></strong>
+                        <span>In Progress</span>
                     </article>
 
                     <article class="md-kpi-card">
                         <div class="md-kpi-icon icon-success">
-                            <i class="bi bi-check-circle"></i>
+                            <i class="bi bi-tools"></i>
                         </div>
                         <strong><?php echo e($stats['solved_by_team']); ?></strong>
-                        <span>Solved by Team</span>
+                        <span>Solve by Team</span>
                     </article>
 
                     <article class="md-kpi-card">
-                        <div class="md-kpi-icon icon-eye">
-                            <i class="bi bi-eye"></i>
+                        <div class="md-kpi-icon icon-primary" style="color: #3b82f6; background: #eff6ff;">
+                            <i class="bi bi-check-circle-fill"></i>
                         </div>
-                        <strong><?php echo e($stats['awaiting_inspection']); ?></strong>
-                        <span>Awaiting Inspection</span>
+                        <strong><?php echo e($stats['inspector_closed']); ?></strong>
+                        <span>Inspector Accepted (Closed)</span>
+                    </article>
+
+                    <article class="md-kpi-card">
+                        <div class="md-kpi-icon icon-danger">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </div>
+                        <strong><?php echo e($stats['inspector_rejected']); ?></strong>
+                        <span>Inspector Rejected (Disputed)</span>
+                    </article>
+
+                    <article class="md-kpi-card">
+                        <div class="md-kpi-icon icon-warning" style="color: #d97706; background: #fef3c7;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </div>
+                        <strong><?php echo e($stats['reopen']); ?></strong>
+                        <span>Reopen</span>
                     </article>
                 </div>
 
-                <div class="md-section-card">
-                    <div class="md-section-head">
-                        <h2>Assigned Tasks</h2>
-                        <a href="assigned-tasks.php">
-                            View All Tasks
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </div>
-
-                    <div class="md-task-list">
-                        <?php if (count($assignedTasks) > 0): ?>
-                            <?php foreach ($assignedTasks as $task): ?>
-                                <?php
-                                $deadlineText = 'No deadline';
-
-                                if (!empty($task['deadline_at'])) {
-                                    $deadlineText = date("M d, Y", strtotime($task['deadline_at']));
-                                }
-
-                                $mediaPath = $task['media_path'] ?? '';
-                                $hasImage = !empty($mediaPath) && ($task['media_type'] ?? '') === 'image';
-                                ?>
-
-                                <article class="md-task-card">
-                                    <div class="md-task-media">
-                                        <?php if ($hasImage): ?>
-                                            <img src="../../<?php echo e($mediaPath); ?>" alt="Complaint media">
-                                        <?php else: ?>
-                                            <i class="bi bi-image"></i>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <div class="md-task-body">
-                                        <div class="md-task-meta">
-                                            <span class="task-code"><?php echo e($task['complaint_code']); ?></span>
-
-                                            <span class="priority-pill <?php echo e(priorityClass($task['assignment_priority'])); ?>">
-                                                <?php echo e($task['assignment_priority']); ?>
-                                            </span>
-
-                                            <span class="status-pill <?php echo e(statusClass($task['assignment_status'])); ?>">
-                                                <?php echo e(statusLabel($task['assignment_status'])); ?>
-                                            </span>
-                                        </div>
-
-                                        <h3>Drainage Complaint</h3>
-
-                                        <div class="md-task-location">
-                                            <span>
-                                                <i class="bi bi-geo-alt"></i>
-                                                <?php echo e($task['address_description'] ?: 'Address not provided'); ?>
-                                            </span>
-
-                                            <span>
-                                                <i class="bi bi-calendar-event"></i>
-                                                <?php echo e($deadlineText); ?>
-                                            </span>
-                                        </div>
-
-                                        <p>
-                                            <?php echo e($task['problem_description'] ?: $task['task_note'] ?: 'No problem description available.'); ?>
-                                        </p>
-
-                                        <div class="md-workflow">
-                                            <span class="done">Submitted</span>
-                                            <span class="done">Verified</span>
-                                            <span class="<?php echo $task['assignment_status'] === 'team_assigned' ? 'current' : 'done'; ?>">Assigned</span>
-                                            <span class="<?php echo $task['assignment_status'] === 'in_progress' ? 'current' : ''; ?>">In Progress</span>
-                                            <span>Solved by Team</span>
-                                            <span>Waiting Inspection</span>
-                                            <span>Closed</span>
-                                        </div>
-
-                                        <div class="md-task-actions">
-                                            <?php if ($task['assignment_status'] === 'team_assigned'): ?>
-                                                <button type="button" class="action-btn start-btn" data-assignment-id="<?php echo e($task['assignment_id']); ?>">
-                                                    <i class="bi bi-wrench"></i>
-                                                    Start Work
-                                                </button>
-                                            <?php else: ?>
-                                                <button type="button" class="action-btn progress-btn" disabled>
-                                                    <i class="bi bi-hourglass-split"></i>
-                                                    Work Started
-                                                </button>
-                                            <?php endif; ?>
-
-                                            <a href="assigned-tasks.php?assignment_id=<?php echo e($task['assignment_id']); ?>" class="action-btn detail-btn">
-                                                <i class="bi bi-eye"></i>
-                                                View Details
-                                            </a>
-
-                                            <a href="upload-completion-proof.php?assignment_id=<?php echo e($task['assignment_id']); ?>" class="action-btn proof-btn">
-                                                <i class="bi bi-upload"></i>
-                                                Upload Proof
-                                            </a>
-                                        </div>
-                                    </div>
-                                </article>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="md-empty-state">
-                                <i class="bi bi-check2-circle"></i>
-                                <h3>No active assigned tasks</h3>
-                                <p>There are no assigned or in-progress tasks for this maintenance team right now.</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <div class="md-bottom-grid">
-                    <section class="md-panel-card">
-                        <div class="md-panel-title">
-                            <div class="md-panel-icon activity-icon">
-                                <i class="bi bi-activity"></i>
-                            </div>
-                            <h2>Recent Activity Feed</h2>
+                <div class="lists-grid">
+                    <!-- List 1: Assigned Task -->
+                    <div class="list-card">
+                        <div class="list-head">
+                            <h2>Assigned Task</h2>
+                            <a href="assigned-tasks.php">View All <i class="bi bi-chevron-right"></i></a>
                         </div>
-
-                        <div class="activity-list">
-                            <?php if (count($recentActivities) > 0): ?>
-                                <?php foreach ($recentActivities as $activity): ?>
-                                    <div class="activity-item">
-                                        <div class="activity-symbol">
-                                            <i class="bi bi-tools"></i>
+                        <div class="list-body">
+                            <?php if (count($assignedList) > 0): ?>
+                                <?php foreach ($assignedList as $task): ?>
+                                    <div class="list-item">
+                                        <div class="item-info">
+                                            <strong><?php echo e($task['complaint_code']); ?></strong>
+                                            <small><?php echo e($task['address_description'] ?: 'Address not provided'); ?></small>
                                         </div>
-
-                                        <div>
-                                            <h4>
-                                                <?php echo e($activity['complaint_code']); ?>
-                                                — <?php echo e(statusLabel($activity['assignment_status'])); ?>
-                                            </h4>
-                                            <p>
-                                                Updated:
-                                                <?php
-                                                $activityTime = $activity['updated_at'] ?: $activity['assigned_at'];
-                                                echo e(date("M d, Y h:i A", strtotime($activityTime)));
-                                                ?>
-                                            </p>
+                                        <div class="item-action">
+                                            <span class="priority-pill <?php echo e(priorityClass($task['assignment_priority'])); ?>"><?php echo e($task['assignment_priority']); ?></span>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <div class="activity-item">
-                                    <div class="activity-symbol">
-                                        <i class="bi bi-info-circle"></i>
-                                    </div>
-
-                                    <div>
-                                        <h4>No recent activity</h4>
-                                        <p>Team activity will appear here after tasks are assigned.</p>
-                                    </div>
-                                </div>
+                                <div class="empty-list">No Assigned Tasks</div>
                             <?php endif; ?>
                         </div>
-                    </section>
+                    </div>
 
-                    <section class="md-panel-card">
-                        <div class="md-panel-title">
-                            <div class="md-panel-icon performance-icon">
-                                <i class="bi bi-graph-up-arrow"></i>
-                            </div>
-                            <h2>Team Performance Snapshot</h2>
+                    <!-- List 2: In Progress Work -->
+                    <div class="list-card">
+                        <div class="list-head">
+                            <h2>In Progress Work</h2>
+                            <a href="in-progress-work.php">View All <i class="bi bi-chevron-right"></i></a>
                         </div>
-
-                        <div class="performance-list">
-                            <div class="performance-box success-box">
-                                <div>
-                                    <h4>Solved by Team</h4>
-                                    <p>Tasks moved to solved/inspection stage</p>
-                                </div>
-                                <strong><?php echo e($stats['solved_by_team']); ?></strong>
-                            </div>
-
-                            <div class="performance-box warning-box">
-                                <div>
-                                    <h4>Awaiting Inspection</h4>
-                                    <p>Needs inspector verification</p>
-                                </div>
-                                <strong><?php echo e($stats['awaiting_inspection']); ?></strong>
-                            </div>
-
-                            <div class="performance-box neutral-box">
-                                <div>
-                                    <h4>Delay Rate</h4>
-                                    <p>Based on active workload</p>
-                                </div>
-                                <strong><?php echo e($delayRate); ?>%</strong>
-                            </div>
+                        <div class="list-body">
+                            <?php if (count($inProgressList) > 0): ?>
+                                <?php foreach ($inProgressList as $task): ?>
+                                    <div class="list-item">
+                                        <div class="item-info">
+                                            <strong><?php echo e($task['complaint_code']); ?></strong>
+                                            <small><?php echo e($task['address_description'] ?: 'Address not provided'); ?></small>
+                                        </div>
+                                        <div class="item-action">
+                                            <span class="status-pill status-progress" style="font-size: 0.8rem; padding: 4px 10px;">In Progress</span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-list">No In Progress Work</div>
+                            <?php endif; ?>
                         </div>
-                    </section>
+                    </div>
+
+                    <!-- List 3: Upload Completion Proof -->
+                    <div class="list-card">
+                        <div class="list-head">
+                            <h2>Upload Completion Proof</h2>
+                            <a href="upload-completion-proof.php">View All <i class="bi bi-chevron-right"></i></a>
+                        </div>
+                        <div class="list-body">
+                            <?php if (count($uploadProofList) > 0): ?>
+                                <?php foreach ($uploadProofList as $task): ?>
+                                    <div class="list-item">
+                                        <div class="item-info">
+                                            <strong><?php echo e($task['complaint_code']); ?></strong>
+                                            <small>Needs Proof</small>
+                                        </div>
+                                        <div class="item-action">
+                                            <a href="upload-completion-proof.php?assignment_id=<?php echo e($task['assignment_id']); ?>" style="color: #3b82f6; font-size: 1.2rem;" title="Upload Proof"><i class="bi bi-upload"></i></a>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-list">No Tasks Pending Proof</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- List 4: Feedback -->
+                    <div class="list-card">
+                        <div class="list-head">
+                            <h2>Feedback</h2>
+                            <a href="feedback.php">View All <i class="bi bi-chevron-right"></i></a>
+                        </div>
+                        <div class="list-body">
+                            <?php if (count($feedbackList) > 0): ?>
+                                <?php foreach ($feedbackList as $fb): ?>
+                                    <div class="list-item">
+                                        <div class="item-info">
+                                            <strong><?php echo e($fb['complaint_code']); ?></strong>
+                                            <small><?php echo e($fb['citizen_name']); ?></small>
+                                        </div>
+                                        <div class="item-action">
+                                            <span style="color: #eab308; font-weight: bold;"><i class="bi bi-star-fill"></i> <?php echo e($fb['rating']); ?></span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-list">No Feedback Found</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
 
-                <?php if ($stats['delayed_tasks'] > 0): ?>
-                    <div class="md-delay-alert">
-                        <div>
-                            <i class="bi bi-clock-history"></i>
-                            <div>
-                                <h3>Delayed Task Alert</h3>
-                                <p><?php echo e($stats['delayed_tasks']); ?> task(s) are past the deadline.</p>
-                            </div>
-                        </div>
-
-                        <a href="delayed-tasks.php">View Delayed</a>
-                    </div>
-                <?php endif; ?>
             </section>
         </main>
     </div>
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/dashboard.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

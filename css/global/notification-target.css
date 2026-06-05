@@ -1,0 +1,8 @@
+/* css/global/notification-target.css */
+
+.dg-notification-target {
+    background-color: var(--dg-highlight-bg, rgba(20, 184, 166, 0.10)) !important;
+    border-left: 5px solid var(--dg-highlight-border, #14b8a6) !important;
+    box-shadow: 0 0 0 3px var(--dg-highlight-shadow, rgba(20, 184, 166, 0.12)) !important;
+    transition: all 0.3s ease;
+}

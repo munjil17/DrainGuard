@@ -270,21 +270,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!teamSelect || teamSelect.value === "") {
                 event.preventDefault();
-                alert("Please select a maintenance team.");
+                showWarningModal("Please select a maintenance team.");
                 teamSelect.focus();
                 return;
             }
 
             if (!memberRole || memberRole.value === "") {
                 event.preventDefault();
-                alert("Please select a team member role.");
+                showWarningModal("Please select a team member role.");
                 memberRole.focus();
                 return;
             }
 
             if (!loginAccess || loginAccess.value === "") {
                 event.preventDefault();
-                alert("Please select login access.");
+                showWarningModal("Please select login access.");
                 loginAccess.focus();
                 return;
             }
@@ -294,14 +294,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (password.value.trim().length < 6) {
                     event.preventDefault();
-                    alert("Password must be at least 6 characters.");
+                    showWarningModal("Password must be at least 6 characters.");
                     password.focus();
                     return;
                 }
 
                 if (password.value !== confirmPassword.value) {
                     event.preventDefault();
-                    alert("Password and confirm password do not match.");
+                    showWarningModal("Password and confirm password do not match.");
                     confirmPassword.focus();
                 }
             }

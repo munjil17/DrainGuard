@@ -287,45 +287,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $maintenanceTeamId = (int)$reviewCheck['maintenance_team_id'];
 
                 if ($action === "inspector_claim_true") {
-                    $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, demerit_points_added, created_by_user_id, created_by_role) VALUES (?, 'maintenance_worker', ?, ?, 'team_leader', 'demerit', ?, 1, ?, 'ward_officer')");
-                    mysqli_stmt_bind_param($stmt, "iiisi", $teamLeaderUserId, $complaintId, $maintenanceTeamId, $decisionNote, $currentUserId);
-                    mysqli_stmt_execute($stmt);
+                    require_once "../../includes/disciplinary_helpers.php";
+                    
+                    // Team Leader gets 1 demerit
+                    addDemerit($conn, $teamLeaderUserId, null, 'team_leader', 'team_leader', $complaintId, $maintenanceTeamId, 'false_completion_claim_true', $decisionNote, $currentUserId, 'ward_officer');
 
-                    $members = fetchAllRows($conn, "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND status = 'active' AND user_id != ?", "ii", [$maintenanceTeamId, $teamLeaderUserId]);
+                    // Fetch other members for warnings or demerit
+                    $members = fetchAllRows($conn, "SELECT user_id, member_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND status = 'active' AND user_id != ?", "ii", [$maintenanceTeamId, $teamLeaderUserId]);
                     foreach ($members as $member) {
-                        $mId = $member['user_id'];
-                        $wStmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, demerit_points_added, created_by_user_id, created_by_role) VALUES (?, 'maintenance_worker', ?, ?, 'worker', 'warning', ?, 0, ?, 'ward_officer')");
-                        mysqli_stmt_bind_param($wStmt, "iiisi", $mId, $complaintId, $maintenanceTeamId, $decisionNote, $currentUserId);
-                        mysqli_stmt_execute($wStmt);
+                        applyTeamMemberWarningOrDemerit($conn, $member['member_id'], $member['user_id'], $maintenanceTeamId, $complaintId, 'false_completion_claim_true', $decisionNote, $currentUserId, 'ward_officer');
                     }
 
-                    $totalDemerits = fetchOne($conn, "SELECT SUM(demerit_points_added) as total FROM disciplinary_records WHERE user_id = ? AND action_type = 'demerit'", "i", [$teamLeaderUserId])['total'] ?? 0;
-                    if ($totalDemerits >= 3) {
-                        $suspensions = fetchOne($conn, "SELECT COUNT(*) as cnt FROM disciplinary_records WHERE user_id = ? AND action_type = 'suspension'", "i", [$teamLeaderUserId])['cnt'] ?? 0;
-                        if ($suspensions >= 3) {
-                            $bans = fetchOne($conn, "SELECT COUNT(*) as cnt FROM disciplinary_records WHERE user_id = ? AND action_type = 'ban'", "i", [$teamLeaderUserId])['cnt'] ?? 0;
-                            if ($bans >= 1) {
-                                $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, penalty_subject_type, action_type, reason, created_by_user_id, created_by_role) VALUES (?, 'maintenance_worker', 'team_leader', 'permanent_ban', 'Exceeded 3 demerits after 3 month ban', ?, 'ward_officer')");
-                                mysqli_stmt_bind_param($stmt, "ii", $teamLeaderUserId, $currentUserId);
-                                mysqli_stmt_execute($stmt);
-                                mysqli_query($conn, "UPDATE users SET user_status = 'suspended' WHERE user_id = $teamLeaderUserId");
-                            } else {
-                                $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, penalty_subject_type, action_type, reason, created_by_user_id, created_by_role) VALUES (?, 'maintenance_worker', 'team_leader', 'ban', 'Reached 3 suspensions', ?, 'ward_officer')");
-                                mysqli_stmt_bind_param($stmt, "ii", $teamLeaderUserId, $currentUserId);
-                                mysqli_stmt_execute($stmt);
-                                mysqli_query($conn, "UPDATE users SET user_status = 'suspended' WHERE user_id = $teamLeaderUserId");
-                                mysqli_query($conn, "UPDATE maintenance_team_members SET role = 'worker' WHERE user_id = $teamLeaderUserId");
-                            }
-                        } else {
-                            $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, penalty_subject_type, action_type, reason, created_by_user_id, created_by_role) VALUES (?, 'maintenance_worker', 'team_leader', 'suspension', 'Reached 3 demerits', ?, 'ward_officer')");
-                            mysqli_stmt_bind_param($stmt, "ii", $teamLeaderUserId, $currentUserId);
-                            mysqli_stmt_execute($stmt);
-                            mysqli_query($conn, "UPDATE users SET user_status = 'suspended' WHERE user_id = $teamLeaderUserId");
-                        }
-                    }
-
+                    // Reopen complaint
                     mysqli_query($conn, "UPDATE complaints SET complaint_status = 'reopened' WHERE complaint_id = $complaintId");
                     mysqli_query($conn, "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after' AND proof_status = 'submitted'");
+                    
+                    // Add to reopen_requests
                     $insReq = mysqli_prepare($conn, "INSERT INTO reopen_requests (complaint_id, requested_by, request_type, reason, request_status, ward_note) VALUES (?, ?, 'false_completion', ?, 'pending', ?)");
                     mysqli_stmt_bind_param($insReq, "iiss", $complaintId, $currentUserId, $decisionNote, $decisionNote);
                     mysqli_stmt_execute($insReq);
@@ -333,33 +310,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $claimStatus = 'true';
                     $successMessage = "Inspector claim confirmed true. Maintenance team penalized and complaint disputed/reopened.";
                 } else {
-                    $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, related_complaint_id, penalty_subject_type, action_type, reason, demerit_points_added, created_by_user_id, created_by_role) VALUES (?, 'inspector', ?, 'inspector', 'demerit', ?, 1, ?, 'ward_officer')");
-                    mysqli_stmt_bind_param($stmt, "iisi", $inspectorUserId, $complaintId, $decisionNote, $currentUserId);
-                    mysqli_stmt_execute($stmt);
-
-                    $totalDemerits = fetchOne($conn, "SELECT SUM(demerit_points_added) as total FROM disciplinary_records WHERE user_id = ? AND action_type = 'demerit'", "i", [$inspectorUserId])['total'] ?? 0;
-                    if ($totalDemerits >= 3) {
-                        $suspensions = fetchOne($conn, "SELECT COUNT(*) as cnt FROM disciplinary_records WHERE user_id = ? AND action_type = 'suspension'", "i", [$inspectorUserId])['cnt'] ?? 0;
-                        if ($suspensions >= 3) {
-                            $bans = fetchOne($conn, "SELECT COUNT(*) as cnt FROM disciplinary_records WHERE user_id = ? AND action_type = 'ban'", "i", [$inspectorUserId])['cnt'] ?? 0;
-                            if ($bans >= 1) {
-                                $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, penalty_subject_type, action_type, reason, created_by_user_id, created_by_role) VALUES (?, 'inspector', 'inspector', 'permanent_ban', 'Exceeded 3 demerits after 3 month ban', ?, 'ward_officer')");
-                                mysqli_stmt_bind_param($stmt, "ii", $inspectorUserId, $currentUserId);
-                                mysqli_stmt_execute($stmt);
-                                mysqli_query($conn, "UPDATE users SET user_status = 'suspended' WHERE user_id = $inspectorUserId");
-                            } else {
-                                $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, penalty_subject_type, action_type, reason, created_by_user_id, created_by_role) VALUES (?, 'inspector', 'inspector', 'ban', 'Reached 3 suspensions', ?, 'ward_officer')");
-                                mysqli_stmt_bind_param($stmt, "ii", $inspectorUserId, $currentUserId);
-                                mysqli_stmt_execute($stmt);
-                                mysqli_query($conn, "UPDATE users SET user_status = 'suspended' WHERE user_id = $inspectorUserId");
-                            }
-                        } else {
-                            $stmt = mysqli_prepare($conn, "INSERT INTO disciplinary_records (user_id, user_role, penalty_subject_type, action_type, reason, created_by_user_id, created_by_role) VALUES (?, 'inspector', 'inspector', 'suspension', 'Reached 3 demerits', ?, 'ward_officer')");
-                            mysqli_stmt_bind_param($stmt, "ii", $inspectorUserId, $currentUserId);
-                            mysqli_stmt_execute($stmt);
-                            mysqli_query($conn, "UPDATE users SET user_status = 'suspended' WHERE user_id = $inspectorUserId");
-                        }
-                    }
+                    require_once "../../includes/disciplinary_helpers.php";
+                    
+                    // Inspector gets 1 demerit
+                    addDemerit($conn, $inspectorUserId, null, 'inspector', 'inspector', $complaintId, null, 'false_completion_claim_false', $decisionNote, $currentUserId, 'ward_officer');
 
                     mysqli_query($conn, "UPDATE complaints SET complaint_status = 'closed', closed_at = CURRENT_TIMESTAMP WHERE complaint_id = $complaintId");
                     mysqli_query($conn, "UPDATE complaint_assignments SET assignment_status = 'completed' WHERE complaint_id = $complaintId AND assignment_status != 'completed'");
@@ -708,6 +662,7 @@ $totalDisputed = count($reopenRequests);
    
     <link rel="stylesheet" href="../../css/ward/reopened-disputed.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="ward">
@@ -966,5 +921,6 @@ $totalDisputed = count($reopenRequests);
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/reopened-disputed.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

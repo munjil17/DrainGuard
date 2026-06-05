@@ -82,13 +82,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const maxSize = 2 * 1024 * 1024;
 
             if (!allowedTypes.includes(file.type)) {
-                alert("Only JPG, PNG, and WEBP images are allowed.");
+                showWarningModal("Only JPG, PNG, and WEBP images are allowed.");
                 profilePictureInput.value = "";
                 return;
             }
 
             if (file.size > maxSize) {
-                alert("Profile picture must be less than 2MB.");
+                showWarningModal("Profile picture must be less than 2MB.");
                 profilePictureInput.value = "";
                 return;
             }
@@ -116,74 +116,173 @@ document.addEventListener("DOMContentLoaded", function () {
             const fullName = document.getElementById("full_name");
             const email = document.getElementById("user_mail");
             const phone = document.getElementById("phone");
-            const employeeId = document.getElementById("employee_id");
+            const employeeCode = document.getElementById("employee_code");
             const gender = document.getElementById("gender");
             const designation = document.getElementById("designation");
-            const department = document.getElementById("department");
+            
             const address = document.getElementById("address");
             const officeAddress = document.getElementById("office_address");
 
             if (!fullName.value.trim()) {
                 event.preventDefault();
-                alert("Full name is required.");
+                showWarningModal("Full name is required.");
                 fullName.focus();
                 return;
             }
 
             if (!validateEmail(email.value.trim())) {
                 event.preventDefault();
-                alert("Please enter a valid email address.");
+                showWarningModal("Please enter a valid email address.");
                 email.focus();
                 return;
             }
 
             if (!phone.value.trim()) {
                 event.preventDefault();
-                alert("Phone is required.");
+                showWarningModal("Phone is required.");
                 phone.focus();
                 return;
             }
 
-            if (!employeeId.value.trim()) {
+            if (!employeeCode.value.trim()) {
                 event.preventDefault();
-                alert("Employee ID is required.");
-                employeeId.focus();
+                showWarningModal("Employee Code is required.");
+                employeeCode.focus();
                 return;
             }
 
             if (!gender.value.trim()) {
                 event.preventDefault();
-                alert("Gender is required.");
+                showWarningModal("Gender is required.");
                 gender.focus();
                 return;
             }
 
             if (!designation.value.trim()) {
                 event.preventDefault();
-                alert("Designation is required.");
+                showWarningModal("Designation is required.");
                 designation.focus();
                 return;
             }
 
-            if (!department.value.trim()) {
-                event.preventDefault();
-                alert("Department is required.");
-                department.focus();
-                return;
-            }
+            
 
             if (!address.value.trim()) {
                 event.preventDefault();
-                alert("Address is required.");
+                showWarningModal("Address is required.");
                 address.focus();
                 return;
             }
 
             if (!officeAddress.value.trim()) {
                 event.preventDefault();
-                alert("Office address is required.");
+                showWarningModal("Office address is required.");
                 officeAddress.focus();
             }
         });
     }
+
+    const passwordForm = document.getElementById("passwordForm");
+    const currentPassword = document.getElementById("current_password");
+    const newPassword = document.getElementById("new_password");
+    const confirmPassword = document.getElementById("confirm_password");
+    const passwordHelp = document.getElementById("passwordHelp");
+    const confirmHelp = document.getElementById("confirmHelp");
+
+    function setHelp(element, message, type) {
+        if (!element) return;
+        element.textContent = message || "";
+        element.classList.remove("error", "success");
+        if (type) {
+            element.classList.add(type);
+        }
+    }
+
+    document.querySelectorAll(".central-profile-toggle-password").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const targetId = button.getAttribute("data-target");
+            const input = document.getElementById(targetId);
+            const icon = button.querySelector("i");
+            if (!input || !icon) return;
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        });
+    });
+
+    if (newPassword) {
+        newPassword.addEventListener("input", function () {
+            const value = newPassword.value.trim();
+            if (value.length === 0) {
+                setHelp(passwordHelp, "Minimum 8 characters required.", "");
+                return;
+            }
+            if (value.length < 8) {
+                setHelp(passwordHelp, "Password must be at least 8 characters.", "error");
+                return;
+            }
+            setHelp(passwordHelp, "Password length is valid.", "success");
+        });
+    }
+
+    if (confirmPassword) {
+        confirmPassword.addEventListener("input", function () {
+            const newValue = newPassword ? newPassword.value.trim() : "";
+            const confirmValue = confirmPassword.value.trim();
+            if (confirmValue.length === 0) {
+                setHelp(confirmHelp, "", "");
+                return;
+            }
+            if (newValue !== confirmValue) {
+                setHelp(confirmHelp, "Passwords do not match.", "error");
+                return;
+            }
+            setHelp(confirmHelp, "Passwords match.", "success");
+        });
+    }
+
+    if (passwordForm) {
+        passwordForm.addEventListener("submit", function (event) {
+            const currentValue = currentPassword ? currentPassword.value.trim() : "";
+            const newValue = newPassword ? newPassword.value.trim() : "";
+            const confirmValue = confirmPassword ? confirmPassword.value.trim() : "";
+
+            if (currentValue === "" || newValue === "" || confirmValue === "") {
+                event.preventDefault();
+                showWarningModal("All password fields are required.");
+                return;
+            }
+            if (newValue.length < 8) {
+                event.preventDefault();
+                setHelp(passwordHelp, "Password must be at least 8 characters.", "error");
+                newPassword.focus();
+                return;
+            }
+            if (newValue !== confirmValue) {
+                event.preventDefault();
+                setHelp(confirmHelp, "Passwords do not match.", "error");
+                confirmPassword.focus();
+                return;
+            }
+            event.preventDefault();
+            const form = this;
+            showConfirmModal({
+                title: "Change Password",
+                message: "Are you sure you want to change your password?",
+                confirmText: "Change Password",
+                cancelText: "Cancel",
+                type: "warning",
+                onConfirm: function() {
+                    form.submit();
+                }
+            });
+        });
+    }
+
 });

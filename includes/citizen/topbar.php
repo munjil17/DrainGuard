@@ -54,7 +54,8 @@ if (!function_exists('citizen_notification_icon')) {
         if (
             $type === 'complaint_accepted' ||
             $type === 'complaint_rejected' ||
-            $type === 'complaint_status_updated'
+            $type === 'complaint_status_updated' ||
+            $type === 'maintenance_start_work'
         ) {
             return 'bi-signpost-split';
         }
@@ -84,7 +85,8 @@ if (!function_exists('citizen_notification_type_class')) {
         if (
             $type === 'complaint_accepted' ||
             $type === 'complaint_rejected' ||
-            $type === 'complaint_status_updated'
+            $type === 'complaint_status_updated' ||
+            $type === 'maintenance_start_work'
         ) {
             return 'type-track';
         }
@@ -344,3 +346,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
+<!-- Global Notification Highlight -->
+<link rel='stylesheet' href='/DrainGuard/css/global/notification-target.css'>
+<script src='/DrainGuard/js/global/notification-target.js'></script>
+
+<!-- Global Confirm Modal -->
+<link rel='stylesheet' href='/DrainGuard/css/global/confirm-modal.css'>
+<script src='/DrainGuard/js/global/confirm-modal.js'></script>

@@ -113,6 +113,7 @@ if (!function_exists('ward_notification_icon')) {
         $type = strtolower(trim((string)$type));
         if (in_array($type, ['complaint_routed', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
         if (in_array($type, ['system', 'alert'])) return 'bi-exclamation-triangle';
+        if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'bi-tools';
         if ($type === 'comment_reply') return 'bi-chat-dots';
         return 'bi-bell';
     }
@@ -123,6 +124,7 @@ if (!function_exists('ward_notification_type_class')) {
         $type = strtolower(trim((string)$type));
         if (in_array($type, ['complaint_routed', 'status_update', 'verified', 'rejected'])) return 'type-track';
         if (in_array($type, ['system', 'alert'])) return 'type-objection';
+        if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'type-alert';
         if ($type === 'comment_reply') return 'type-reply';
         return 'type-system';
     }
@@ -230,9 +232,17 @@ if (isset($conn) && $conn instanceof mysqli && isset($_SESSION["user_id"])) {
                                 $isUnread = ((int)$notification['is_read'] === 0);
 
                                 $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
-                                if (!empty($notification['complaint_code'])) {
+                                if ($notificationType === 'central_instruction') {
+                                    $notificationLink .= '&redirect=instruction';
+                                } elseif (!empty($notification['complaint_code'])) {
                                     if ($notificationType === 'comment_reply') {
                                         $notificationLink .= '&redirect=discussion';
+                                    } elseif ($notificationType === 'complaint_routed') {
+                                        $notificationLink .= '&redirect=verification-queue';
+                                    } elseif ($notificationType === 'maintenance_support_assigned_task') {
+                                        $notificationLink .= '&redirect=local-team-assignment';
+                                    } elseif ($notificationType === 'maintenance_support_in_progress' || $notificationType === 'maintenance_start_work') {
+                                        $notificationLink .= '&redirect=in-progress-cases';
                                     } else {
                                         $notificationLink .= '&redirect=ward-complaints';
                                     }
@@ -295,3 +305,10 @@ if (isset($conn) && $conn instanceof mysqli && isset($_SESSION["user_id"])) {
     </div>
 
 </header>
+<!-- Global Notification Highlight -->
+<link rel='stylesheet' href='/DrainGuard/css/global/notification-target.css'>
+<script src='/DrainGuard/js/global/notification-target.js'></script>
+
+<!-- Global Confirm Modal -->
+<link rel='stylesheet' href='/DrainGuard/css/global/confirm-modal.css'>
+<script src='/DrainGuard/js/global/confirm-modal.js'></script>

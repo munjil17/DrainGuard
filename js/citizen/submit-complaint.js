@@ -368,13 +368,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const problemLength = problemDescription ? problemDescription.value.trim().length : 0;
 
         if (addressLength < 8) {
-            alert("Address description must be at least 8 characters. Please write the exact drain location.");
+            showWarningModal("Address description must be at least 8 characters. Please write the exact drain location.");
             addressDescription.focus();
             return false;
         }
 
         if (problemLength < 10) {
-            alert("Problem description must be at least 10 characters. Please describe the issue clearly.");
+            showWarningModal("Problem description must be at least 10 characters. Please describe the issue clearly.");
             problemDescription.focus();
             return false;
         }
@@ -384,19 +384,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function validateMainSelections() {
         if (issueTypeSelect && issueTypeSelect.value.trim() === "") {
-            alert("Please select an issue type.");
+            showWarningModal("Please select an issue type.");
             issueTypeSelect.focus();
             return false;
         }
 
         if (affectedAreaSelect && affectedAreaSelect.value.trim() === "") {
-            alert("Please select an affected area.");
+            showWarningModal("Please select an affected area.");
             affectedAreaSelect.focus();
             return false;
         }
 
         if (locationIdInput && locationIdInput.value.trim() === "") {
-            alert("Please select a valid area before submitting.");
+            showWarningModal("Please select a valid area before submitting.");
             return false;
         }
 

@@ -256,11 +256,15 @@ if (isset($conn) && $conn instanceof mysqli && $topbarUserId > 0) {
                                 $isUnread = ((int)$notification['is_read'] === 0);
 
                                 $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
-                                if (!empty($notification['complaint_code'])) {
-                                    if ($notification['notification_title'] === 'Inspection Required') {
+                                if ($notificationType === 'central_instruction') {
+                                    $notificationLink .= '&redirect=instruction';
+                                } elseif (!empty($notification['complaint_code'])) {
+                                    if ($notificationType === 'comment_reply') {
+                                        $notificationLink .= '&redirect=discussion';
+                                    } elseif ($notification['notification_title'] === 'Inspection Required') {
                                         $notificationLink .= '&redirect=solved-cases';
                                     } else {
-                                        $notificationLink .= '&redirect=tasks'; // Or whatever page handles tasks
+                                        $notificationLink .= '&redirect=verification-queue';
                                     }
                                 }
                             ?>
@@ -320,3 +324,10 @@ if (isset($conn) && $conn instanceof mysqli && $topbarUserId > 0) {
     </div>
 
 </header>
+<!-- Global Notification Highlight -->
+<link rel='stylesheet' href='/DrainGuard/css/global/notification-target.css'>
+<script src='/DrainGuard/js/global/notification-target.js'></script>
+
+<!-- Global Confirm Modal -->
+<link rel='stylesheet' href='/DrainGuard/css/global/confirm-modal.css'>
+<script src='/DrainGuard/js/global/confirm-modal.js'></script>

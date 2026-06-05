@@ -176,16 +176,21 @@
 .ipc-table-responsive {
     width: 100%;
     overflow-x: auto;
+    max-height: 65vh;
+    overflow-y: auto;
 }
 
 .ipc-table {
     width: 100%;
-    min-width: 1080px;
+    min-width: 800px;
     border-collapse: collapse;
 }
 
-.ipc-table thead {
+.ipc-table thead th {
     background: #F8FAFC;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .ipc-table th {
@@ -196,7 +201,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .ipc-table td {
@@ -205,7 +210,7 @@
     color: #334155;
     font-size: 14px;
     font-weight: 600;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .ipc-table tbody tr {

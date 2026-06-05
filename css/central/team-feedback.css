@@ -1,0 +1,163 @@
+/* css/central/team-feedback.css */
+.tf-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.tf-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tf-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.tf-team-name {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 1.15rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tf-team-name i {
+    color: #3b82f6;
+    background: #eff6ff;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.tf-badge {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.tf-badge.available {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.tf-badge.busy {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.tf-metrics {
+    display: flex;
+    gap: 20px;
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+}
+
+.tf-metric-box {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tf-metric-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tf-metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tf-stars {
+    color: #fbbf24;
+    font-size: 1.2rem;
+}
+
+.tf-empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
+    color: #64748b;
+}
+
+/* Filter area */
+.tf-filters {
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.tf-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tf-form-group label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.tf-form-group input, .tf-form-group select {
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-family: inherit;
+    min-width: 200px;
+}
+
+.tf-btn {
+    padding: 10px 20px;
+    background: #0f172a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.tf-btn:hover {
+    background: #1e293b;
+}
+
+@media (max-width: 768px) {
+    .tf-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tf-form-group input, .tf-form-group select {
+        width: 100%;
+    }
+}

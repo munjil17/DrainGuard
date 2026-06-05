@@ -46,14 +46,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!reportType || reportType.value === "") {
                 event.preventDefault();
-                alert("Please select a report type.");
+                showWarningModal("Please select a report type.");
                 reportType?.focus();
                 return;
             }
 
             if (!period || period.value === "") {
                 event.preventDefault();
-                alert("Please select a time period.");
+                showWarningModal("Please select a time period.");
                 period?.focus();
                 return;
             }
@@ -61,21 +61,21 @@ document.addEventListener("DOMContentLoaded", function () {
             if (period.value === "custom_range") {
                 if (!startDate || startDate.value === "") {
                     event.preventDefault();
-                    alert("Please select a start date.");
+                    showWarningModal("Please select a start date.");
                     startDate?.focus();
                     return;
                 }
 
                 if (!endDate || endDate.value === "") {
                     event.preventDefault();
-                    alert("Please select an end date.");
+                    showWarningModal("Please select an end date.");
                     endDate?.focus();
                     return;
                 }
 
                 if (startDate.value > endDate.value) {
                     event.preventDefault();
-                    alert("Start date cannot be after end date.");
+                    showWarningModal("Start date cannot be after end date.");
                     startDate.focus();
                     return;
                 }
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!exportFormat || exportFormat.value === "") {
                 event.preventDefault();
-                alert("Please select an export format.");
+                showWarningModal("Please select an export format.");
                 exportFormat?.focus();
             }
         });

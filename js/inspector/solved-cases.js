@@ -42,19 +42,21 @@ document.addEventListener("DOMContentLoaded", function () {
         form.addEventListener("submit", function (event) {
             const button = form.querySelector(".review-btn");
 
-            const confirmMove = confirm(
-                "Move this complaint to Before / After Review and mark it as Inspector Verification Pending?"
-            );
-
-            if (!confirmMove) {
-                event.preventDefault();
-                return;
-            }
-
-            if (button) {
-                button.innerHTML = "Processing...";
-                button.style.pointerEvents = "none";
-            }
+            event.preventDefault();
+            showConfirmModal({
+                title: "Confirm Action",
+                message: "Move this complaint to Before / After Review and mark it as Inspector Verification Pending?",
+                confirmText: "Move",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    if (button) {
+                        button.innerHTML = "Processing...";
+                        button.style.pointerEvents = "none";
+                    }
+                    form.submit();
+                }
+            });
         });
     });
 });

@@ -379,6 +379,7 @@ $successRate = $totalSubmittedToInspector > 0
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/task-history.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="maintenance">
@@ -427,13 +428,7 @@ $successRate = $totalSubmittedToInspector > 0
                         <span>Inspector Accepted</span>
                     </article>
 
-                    <article class="history-kpi-card">
-                        <div class="kpi-icon green-icon">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                        <strong><?php echo e($successRate); ?>%</strong>
-                        <span>Success Rate</span>
-                    </article>
+
                 </div>
 
                 <div class="history-toolbar">
@@ -721,5 +716,6 @@ $successRate = $totalSubmittedToInspector > 0
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/task-history.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

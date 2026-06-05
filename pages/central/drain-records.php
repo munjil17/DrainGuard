@@ -1,6 +1,4 @@
 <?php
-// C:\xampp\htdocs\DrainGuard\pages\central\drain-records.php
-
 $activePage = "drain-records";
 $pageTitle = "Drain Records Management";
 $pageParent = "Central Control";
@@ -34,97 +32,48 @@ function dr_condition_label($condition)
     return $labels[$condition] ?? "Moderate";
 }
 
-function dr_risk_label($risk)
-{
-    $risk = ucfirst(strtolower(trim((string)$risk)));
-
-    if (!in_array($risk, ["Low", "Medium", "High"], true)) {
-        return "Low";
-    }
-
-    return $risk;
-}
-
-/*
-|--------------------------------------------------------------------------
-| Dropdown master data
-|--------------------------------------------------------------------------
-*/
-
 $cities = [];
 $cityCorporations = [];
 $thanas = [];
 $wards = [];
 $areas = [];
 
-$cityResult = mysqli_query($conn, "
-    SELECT city_id, city_name
-    FROM cities
-    ORDER BY city_name ASC
-");
-
+$cityResult = mysqli_query($conn, "SELECT city_id, city_name FROM cities ORDER BY city_name ASC");
 if ($cityResult) {
     while ($row = mysqli_fetch_assoc($cityResult)) {
         $cities[] = $row;
     }
 }
 
-$corpResult = mysqli_query($conn, "
-    SELECT city_cor_id, city_cor_name, city_id
-    FROM city_corporations
-    ORDER BY city_cor_name ASC
-");
-
+$corpResult = mysqli_query($conn, "SELECT city_cor_id, city_cor_name, city_id FROM city_corporations ORDER BY city_cor_name ASC");
 if ($corpResult) {
     while ($row = mysqli_fetch_assoc($corpResult)) {
         $cityCorporations[] = $row;
     }
 }
 
-$thanaResult = mysqli_query($conn, "
-    SELECT thana_id, thana_name, city_cor_id
-    FROM thanas
-    ORDER BY thana_name ASC
-");
-
+$thanaResult = mysqli_query($conn, "SELECT thana_id, thana_name, city_cor_id FROM thanas ORDER BY thana_name ASC");
 if ($thanaResult) {
     while ($row = mysqli_fetch_assoc($thanaResult)) {
         $thanas[] = $row;
     }
 }
 
-$wardResult = mysqli_query($conn, "
-    SELECT ward_id, ward_no, ward_name, thana_id
-    FROM wards
-    ORDER BY CAST(ward_no AS UNSIGNED), ward_no ASC
-");
-
+$wardResult = mysqli_query($conn, "SELECT ward_id, ward_no, ward_name, thana_id FROM wards ORDER BY CAST(ward_no AS UNSIGNED), ward_no ASC");
 if ($wardResult) {
     while ($row = mysqli_fetch_assoc($wardResult)) {
         $wards[] = $row;
     }
 }
 
-$areaResult = mysqli_query($conn, "
-    SELECT area_id, ward_id, area_name
-    FROM areas
-    ORDER BY area_name ASC
-");
-
+$areaResult = mysqli_query($conn, "SELECT area_id, ward_id, area_name FROM areas ORDER BY area_name ASC");
 if ($areaResult) {
     while ($row = mysqli_fetch_assoc($areaResult)) {
         $areas[] = $row;
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| Drain data
-|--------------------------------------------------------------------------
-*/
-
 $drains = [];
-
 $sql = "
     SELECT
         d.drain_id,
@@ -132,90 +81,123 @@ $sql = "
         d.drain_name,
         d.drain_address_description,
         d.drain_condition,
-        d.condition_updated_by_role,
-        d.condition_updated_at,
-        d.created_at,
-        d.updated_at,
-
-        l.loc_id,
-        l.city_id,
-        l.city_cor_id,
-        l.thana_id,
-        l.ward_id,
-        l.area_id,
-
-        c.city_name,
-        cc.city_cor_name,
-        t.thana_name,
-        w.ward_no,
-        w.ward_name,
-        a.area_name,
-
-        COALESCE(r.urgency_level, 'Low') AS risk_level,
-
-        u.user_name AS condition_updated_by_name
-
+        d.created_at AS drain_created_at,
+        d.updated_at AS drain_updated_at,
+        l.loc_id, l.city_id, l.city_cor_id, l.thana_id, l.ward_id, l.area_id,
+        c.city_name, cc.city_cor_name, t.thana_name, w.ward_no, w.ward_name, a.area_name
     FROM drains d
-
-    INNER JOIN locations l
-        ON d.loc_id = l.loc_id
-
-    INNER JOIN cities c
-        ON l.city_id = c.city_id
-
-    INNER JOIN city_corporations cc
-        ON l.city_cor_id = cc.city_cor_id
-
-    INNER JOIN thanas t
-        ON l.thana_id = t.thana_id
-
-    INNER JOIN wards w
-        ON l.ward_id = w.ward_id
-
-    INNER JOIN areas a
-        ON l.area_id = a.area_id
-
-    LEFT JOIN risk r
-        ON r.city_id = l.city_id
-        AND r.city_cor_id = l.city_cor_id
-        AND r.thana_id = l.thana_id
-        AND r.ward_id = l.ward_id
-        AND r.area_id = l.area_id
-        AND r.risk_status = 'Active'
-
-    LEFT JOIN users u
-        ON d.condition_updated_by_user_id = u.user_id
-
-    ORDER BY
-        FIELD(COALESCE(r.urgency_level, 'Low'), 'High', 'Medium', 'Low'),
-        d.drain_id DESC
+    INNER JOIN locations l ON d.loc_id = l.loc_id
+    INNER JOIN cities c ON l.city_id = c.city_id
+    INNER JOIN city_corporations cc ON l.city_cor_id = cc.city_cor_id
+    INNER JOIN thanas t ON l.thana_id = t.thana_id
+    INNER JOIN wards w ON l.ward_id = w.ward_id
+    INNER JOIN areas a ON l.area_id = a.area_id
+    ORDER BY d.drain_id DESC
 ";
 
 $result = mysqli_query($conn, $sql);
-
 if ($result) {
     while ($row = mysqli_fetch_assoc($result)) {
         $drains[] = $row;
     }
 }
 
+$latestComplaints = [];
+$cmpResult = mysqli_query($conn, "
+    SELECT c.drain_id, c.complaint_status, c.updated_at, c.closed_at,
+           i.issue_name, i.priority,
+           mu.created_at AS mu_created_at, mu.updated_at AS mu_updated_at
+    FROM complaints c
+    LEFT JOIN issues i ON c.issue_id = i.issue_id
+    LEFT JOIN (
+        SELECT complaint_id, MAX(created_at) AS mu_created_at, MAX(updated_at) AS mu_updated_at
+        FROM maintenance_updates
+        GROUP BY complaint_id
+    ) mu ON c.complaint_id = mu.complaint_id
+    WHERE c.complaint_status NOT IN ('submitted', 'received', 'rejected_by_central', 'rejected_by_ward', 'duplicate', 'final_rejected')
+    AND c.drain_id IS NOT NULL
+    ORDER BY c.drain_id, c.updated_at DESC
+");
+
+if ($cmpResult) {
+    while ($row = mysqli_fetch_assoc($cmpResult)) {
+        $did = $row['drain_id'];
+        if (!isset($latestComplaints[$did])) {
+            $latestComplaints[$did] = $row;
+        }
+    }
+}
+
+foreach ($drains as &$drain) {
+    $did = $drain['drain_id'];
+    $cmp = $latestComplaints[$did] ?? null;
+
+    $condition = !empty($drain['drain_condition']) ? ucfirst(strtolower(trim((string)$drain['drain_condition']))) : 'Good';
+    $updatedAt = $drain['drain_updated_at'] ?: $drain['drain_created_at'];
+
+    if ($cmp) {
+        $status = $cmp['complaint_status'];
+        $issueName = $cmp['issue_name'];
+        $priority = $cmp['priority'];
+
+        if ($status === 'closed') {
+            $updatedAt = $cmp['closed_at'] ?: $cmp['updated_at'];
+        } elseif (!empty($cmp['mu_updated_at']) || !empty($cmp['mu_created_at'])) {
+            $updatedAt = $cmp['mu_updated_at'] ?: $cmp['mu_created_at'];
+        } else {
+            $updatedAt = $cmp['updated_at'];
+        }
+
+        if ($status !== 'closed') {
+            $issueLower = strtolower(trim((string)$issueName));
+            $overrides = [
+                'open manhole' => 'Damaged',
+                'missing drain cover' => 'Damaged',
+                'collapsed drain structure' => 'Damaged',
+                'severe road flooding' => 'Overflow',
+                'water contamination' => 'Damaged',
+                'sewage leakage' => 'Damaged',
+                'waterlogging' => 'Overflow',
+                'overflowing drain' => 'Overflow',
+                'blocked drain' => 'Blocked',
+                'drain backflow' => 'Overflow',
+                'broken drain cover' => 'Damaged',
+                'mosquito breeding' => 'Moderate',
+                'illegal waste dumping' => 'Blocked',
+                'bad odor' => 'Moderate',
+                'garbage accumulation' => 'Blocked',
+                'slow drainage' => 'Moderate'
+            ];
+
+            if (array_key_exists($issueLower, $overrides)) {
+                $condition = $overrides[$issueLower];
+            } else {
+                if (strcasecmp($priority, 'High') === 0) {
+                    $condition = 'Damaged';
+                } elseif (strcasecmp($priority, 'Medium') === 0) {
+                    $condition = 'Moderate';
+                } else {
+                    $condition = 'Moderate';
+                }
+            }
+        }
+    }
+
+    $drain['calculated_condition'] = $condition;
+    $drain['calculated_updated_at'] = $updatedAt;
+}
+unset($drain);
+
 $totalDrains = count($drains);
 $goodCount = 0;
 $problemCount = 0;
-$highRiskCount = 0;
 
 foreach ($drains as $drain) {
-    $condition = strtolower($drain["drain_condition"] ?? "moderate");
-    $risk = dr_risk_label($drain["risk_level"] ?? "Low");
-
+    $condition = strtolower($drain["calculated_condition"]);
     if ($condition === "good") {
         $goodCount++;
     } else {
         $problemCount++;
-    }
-
-    if ($risk === "High") {
-        $highRiskCount++;
     }
 }
 ?>
@@ -233,6 +215,15 @@ foreach ($drains as $drain) {
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/drain-records.css">
+    <style>
+        .dr-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -250,7 +241,7 @@ foreach ($drains as $drain) {
             <div class="dr-header">
                 <div>
                     <h1>Drain Records Management</h1>
-                    <p>Track registered drains, physical condition, area mapping, and risk level.</p>
+                    <p>Track registered drains, physical condition, and area mapping.</p>
                 </div>
             </div>
 
@@ -271,12 +262,6 @@ foreach ($drains as $drain) {
                     <span>Needs Attention</span>
                     <strong><?php echo (int)$problemCount; ?></strong>
                     <small>Moderate, blocked, damaged, overflow</small>
-                </div>
-
-                <div class="dr-kpi-card danger">
-                    <span>High Risk</span>
-                    <strong><?php echo (int)$highRiskCount; ?></strong>
-                    <small>Sorted first from risk table</small>
                 </div>
             </div>
 
@@ -315,13 +300,6 @@ foreach ($drains as $drain) {
                     <option value="overflow">Overflow</option>
                 </select>
 
-                <select id="riskFilter">
-                    <option value="">All Risk</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                </select>
-
                 <button type="button" id="clearDrainFilters">
                     <i class="bi bi-x-circle"></i>
                     Clear
@@ -338,17 +316,14 @@ foreach ($drains as $drain) {
                                 <th>Location</th>
                                 <th>Ward</th>
                                 <th>Condition</th>
-                                <th>Risk Level</th>
-                                <th>Updated By</th>
                                 <th>Updated At</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
 
                         <tbody id="drainTableBody">
                             <?php if (empty($drains)): ?>
                                 <tr>
-                                    <td colspan="9" class="dr-empty-row">
+                                    <td colspan="6" class="dr-empty-row">
                                         No drain records found.
                                     </td>
                                 </tr>
@@ -356,15 +331,12 @@ foreach ($drains as $drain) {
 
                             <?php foreach ($drains as $drain): ?>
                                 <?php
-                                    $condition = strtolower($drain["drain_condition"] ?? "moderate");
+                                    $condition = strtolower($drain["calculated_condition"]);
                                     $conditionLabel = dr_condition_label($condition);
-                                    $riskLevel = dr_risk_label($drain["risk_level"] ?? "Low");
-
+                                    
                                     $wardDisplay = $drain["ward_name"] ?: ("Ward " . $drain["ward_no"]);
                                     $locationText = trim(($drain["area_name"] ?? "") . ", " . ($drain["thana_name"] ?? ""));
-                                    $updatedByRole = $drain["condition_updated_by_role"] ?: "system";
-                                    $updatedByName = $drain["condition_updated_by_name"] ?: ucfirst(str_replace("_", " ", $updatedByRole));
-                                    $updatedAt = $drain["condition_updated_at"] ?: $drain["updated_at"];
+                                    $updatedAt = $drain["calculated_updated_at"] ?: $drain["drain_updated_at"] ?: $drain["drain_created_at"];
                                 ?>
 
                                 <tr
@@ -375,7 +347,6 @@ foreach ($drains as $drain) {
                                     data-ward-id="<?php echo (int)$drain["ward_id"]; ?>"
                                     data-area-id="<?php echo (int)$drain["area_id"]; ?>"
                                     data-condition="<?php echo dr_safe($condition); ?>"
-                                    data-risk="<?php echo dr_safe($riskLevel); ?>"
                                 >
                                     <td>
                                         <span class="dr-code">
@@ -410,43 +381,15 @@ foreach ($drains as $drain) {
                                     </td>
 
                                     <td>
-                                        <span class="dr-risk-badge risk-<?php echo strtolower(dr_safe($riskLevel)); ?>">
-                                            <?php echo dr_safe($riskLevel); ?>
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        <div class="dr-updated-by">
-                                            <strong><?php echo dr_safe($updatedByName); ?></strong>
-                                            <span><?php echo dr_safe(ucfirst(str_replace("_", " ", $updatedByRole))); ?></span>
-                                        </div>
-                                    </td>
-
-                                    <td>
                                         <span class="dr-date">
-                                            <?php echo dr_safe(date("M d, Y", strtotime($updatedAt))); ?>
+                                            <?php 
+                                            if ($updatedAt) {
+                                                echo dr_safe(date("M d, Y h:i A", strtotime($updatedAt))); 
+                                            } else {
+                                                echo "N/A";
+                                            }
+                                            ?>
                                         </span>
-                                    </td>
-
-                                    <td>
-                                        <button
-                                            type="button"
-                                            class="dr-view-btn"
-                                            data-code="<?php echo dr_safe($drain["drain_code"]); ?>"
-                                            data-name="<?php echo dr_safe($drain["drain_name"]); ?>"
-                                            data-location="<?php echo dr_safe($locationText); ?>"
-                                            data-ward="<?php echo dr_safe($wardDisplay); ?>"
-                                            data-condition="<?php echo dr_safe($conditionLabel); ?>"
-                                            data-risk="<?php echo dr_safe($riskLevel); ?>"
-                                            data-address="<?php echo dr_safe($drain["drain_address_description"]); ?>"
-                                            data-city="<?php echo dr_safe($drain["city_name"]); ?>"
-                                            data-corporation="<?php echo dr_safe($drain["city_cor_name"]); ?>"
-                                            data-updated-by="<?php echo dr_safe($updatedByName); ?>"
-                                            data-updated-role="<?php echo dr_safe(ucfirst(str_replace("_", " ", $updatedByRole))); ?>"
-                                            data-updated-at="<?php echo dr_safe(date("M d, Y h:i A", strtotime($updatedAt))); ?>"
-                                        >
-                                            View
-                                        </button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -467,75 +410,6 @@ foreach ($drains as $drain) {
 
 </div>
 
-<div class="dr-modal-overlay" id="drainDetailsModal">
-    <div class="dr-modal">
-        <div class="dr-modal-header">
-            <div>
-                <h2 id="modalDrainName">Drain Details</h2>
-                <p id="modalDrainCode">Drain Code</p>
-            </div>
-
-            <button type="button" class="dr-modal-close" id="closeDrainModal">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-
-        <div class="dr-modal-body">
-            <div class="dr-detail-grid">
-                <div>
-                    <span>Location</span>
-                    <strong id="modalDrainLocation">-</strong>
-                </div>
-
-                <div>
-                    <span>Ward</span>
-                    <strong id="modalDrainWard">-</strong>
-                </div>
-
-                <div>
-                    <span>Condition</span>
-                    <strong id="modalDrainCondition">-</strong>
-                </div>
-
-                <div>
-                    <span>Risk Level</span>
-                    <strong id="modalDrainRisk">-</strong>
-                </div>
-
-                <div>
-                    <span>City</span>
-                    <strong id="modalDrainCity">-</strong>
-                </div>
-
-                <div>
-                    <span>City Corporation</span>
-                    <strong id="modalDrainCorporation">-</strong>
-                </div>
-
-                <div>
-                    <span>Updated By</span>
-                    <strong id="modalDrainUpdatedBy">-</strong>
-                </div>
-
-                <div>
-                    <span>Updated Role</span>
-                    <strong id="modalDrainUpdatedRole">-</strong>
-                </div>
-
-                <div class="dr-detail-wide">
-                    <span>Updated At</span>
-                    <strong id="modalDrainUpdatedAt">-</strong>
-                </div>
-
-                <div class="dr-detail-wide">
-                    <span>Address Description</span>
-                    <strong id="modalDrainAddress">-</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     window.drainFilterData = {
         cityCorporations: <?php echo json_encode($cityCorporations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>,
@@ -548,5 +422,6 @@ foreach ($drains as $drain) {
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/drain-records.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

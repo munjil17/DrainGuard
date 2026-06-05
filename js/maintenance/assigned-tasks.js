@@ -317,12 +317,13 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             if (!activeSupportAssignmentId) {
-                alert("Support request data missing.");
+                showWarningModal("Support request data missing.");
                 return;
             }
 
             const formData = new FormData(supportForm);
             formData.append("assignment_id", activeSupportAssignmentId);
+            formData.append("source_page", "assigned_tasks");
 
             if (submitSupportBtn) {
                 submitSupportBtn.classList.add("is-loading");
@@ -343,7 +344,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                 })
                 .then(function (data) {
-                    alert(data.message || "Support request processed.");
+                    showWarningModal(data.message || "Support request processed.");
 
                     if (data.success) {
                         closeSupportModal();
@@ -351,7 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .catch(function (error) {
-                    alert("Failed to send support request. Error: " + error.message);
+                    showWarningModal("Failed to send support request. Error: " + error.message);
                 })
                 .finally(function () {
                     if (submitSupportBtn) {
@@ -369,47 +370,52 @@ document.addEventListener("DOMContentLoaded", function () {
             const assignmentId = button.getAttribute("data-assignment-id");
 
             if (!assignmentId) {
-                alert("Assignment ID not found.");
+                showWarningModal("Assignment ID not found.");
                 return;
             }
 
-            const confirmed = confirm("Do you want to start work on this assigned task?");
+            showConfirmModal({
+                title: "Start Work",
+                message: "Do you want to start work on this assigned task?",
+                confirmText: "Start",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    const formData = new FormData();
+                    formData.append("action", "start_work");
+                    formData.append("assignment_id", assignmentId);
 
-            if (!confirmed) return;
+                    button.disabled = true;
+                    button.classList.add("is-loading");
+                    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Starting...';
 
-            const formData = new FormData();
-            formData.append("action", "start_work");
-            formData.append("assignment_id", assignmentId);
+                    fetch("assigned-tasks.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            showWarningModal(data.message || "Request processed.");
 
-            button.disabled = true;
-            button.classList.add("is-loading");
-            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Starting...';
+                            if (data.success) {
+                                window.location.href = "in-progress-work.php";
+                            } else {
+                                button.disabled = false;
+                                button.classList.remove("is-loading");
+                                button.innerHTML = '<i class="bi bi-wrench"></i> Start Work';
+                            }
+                        })
+                        .catch(function () {
+                            showWarningModal("Failed to start work. Please try again.");
 
-            fetch("assigned-tasks.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    alert(data.message || "Request processed.");
-
-                    if (data.success) {
-                        window.location.href = "in-progress-work.php";
-                    } else {
-                        button.disabled = false;
-                        button.classList.remove("is-loading");
-                        button.innerHTML = '<i class="bi bi-wrench"></i> Start Work';
-                    }
-                })
-                .catch(function () {
-                    alert("Failed to start work. Please try again.");
-
-                    button.disabled = false;
-                    button.classList.remove("is-loading");
-                    button.innerHTML = '<i class="bi bi-wrench"></i> Start Work';
-                });
+                            button.disabled = false;
+                            button.classList.remove("is-loading");
+                            button.innerHTML = '<i class="bi bi-wrench"></i> Start Work';
+                        });
+                }
+            });
         });
     });
 

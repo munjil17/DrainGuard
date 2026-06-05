@@ -92,6 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $isValidToken) {
     
     <!-- External CSS -->
     <link rel="stylesheet" href="../css/global/forgot_password.css">
+    <link rel="stylesheet" href="../css/global/confirm-modal.css">
 </head>
 <body>
 
@@ -173,5 +174,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $isValidToken) {
             });
         });
     </script>
+<script src="../js/global/confirm-modal.js"></script>
 </body>
 </html>

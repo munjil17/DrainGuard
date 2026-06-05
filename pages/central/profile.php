@@ -41,14 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
     $fullName = trim($_POST["full_name"] ?? "");
     $email = trim($_POST["user_mail"] ?? "");
     $phone = trim($_POST["phone"] ?? "");
-    $employeeId = trim($_POST["employee_id"] ?? "");
+    $employeeCode = trim($_POST["employee_code"] ?? "");
     $address = trim($_POST["address"] ?? "");
     $gender = trim($_POST["gender"] ?? "");
     $designation = trim($_POST["designation"] ?? "");
-    $department = trim($_POST["department"] ?? "");
+    
     $officeAddress = trim($_POST["office_address"] ?? "");
 
-    if ($fullName === "" || $email === "" || $phone === "" || $employeeId === "" || $address === "" || $gender === "" || $designation === "" || $department === "" || $officeAddress === "") {
+    if ($fullName === "" || $email === "" || $phone === "" || $employeeCode === "" || $address === "" || $gender === "" || $designation === "" || $officeAddress === "") {
         $errorMessage = "All profile fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errorMessage = "Please enter a valid email address.";
@@ -87,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             $employeeCheckSql = "
                 SELECT central_officer_id
                 FROM central_officers
-                WHERE employee_id = ?
+                WHERE employee_code = ?
                 AND user_id <> ?
                 LIMIT 1
             ";
@@ -95,10 +95,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             $employeeCheckStmt = mysqli_prepare($conn, $employeeCheckSql);
 
             if (!$employeeCheckStmt) {
-                throw new Exception("Employee ID check failed: " . mysqli_error($conn));
+                throw new Exception("Employee Code check failed: " . mysqli_error($conn));
             }
 
-            mysqli_stmt_bind_param($employeeCheckStmt, "si", $employeeId, $userId);
+            mysqli_stmt_bind_param($employeeCheckStmt, "si", $employeeCode, $userId);
             mysqli_stmt_execute($employeeCheckStmt);
 
             $employeeCheckResult = mysqli_stmt_get_result($employeeCheckStmt);
@@ -184,11 +184,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
                         user_mail = ?,
                         full_name = ?,
                         phone = ?,
-                        employee_id = ?,
+                        employee_code = ?,
                         address = ?,
                         gender = ?,
                         designation = ?,
-                        department = ?,
                         office_address = ?,
                         profile_picture = ?
                     WHERE user_id = ?
@@ -202,18 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
 
                 mysqli_stmt_bind_param(
                     $updateCentralStmt,
-                    "ssssssssssi",
-                    $email,
-                    $fullName,
-                    $phone,
-                    $employeeId,
-                    $address,
-                    $gender,
-                    $designation,
-                    $department,
-                    $officeAddress,
-                    $profilePicturePath,
-                    $userId
+                    "sssssssssi", $email, $fullName, $phone, $employeeCode, $address, $gender, $designation, $officeAddress, $profilePicturePath, $userId
                 );
             } else {
                 $updateCentralSql = "
@@ -222,11 +210,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
                         user_mail = ?,
                         full_name = ?,
                         phone = ?,
-                        employee_id = ?,
+                        employee_code = ?,
                         address = ?,
                         gender = ?,
                         designation = ?,
-                        department = ?,
                         office_address = ?
                     WHERE user_id = ?
                 ";
@@ -239,17 +226,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
 
                 mysqli_stmt_bind_param(
                     $updateCentralStmt,
-                    "sssssssssi",
-                    $email,
-                    $fullName,
-                    $phone,
-                    $employeeId,
-                    $address,
-                    $gender,
-                    $designation,
-                    $department,
-                    $officeAddress,
-                    $userId
+                    "ssssssssi", $email, $fullName, $phone, $employeeCode, $address, $gender, $designation, $officeAddress, $userId
                 );
             }
 
@@ -275,6 +252,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
 
 /*
 |--------------------------------------------------------------------------
+| CHANGE PASSWORD
+|--------------------------------------------------------------------------
+*/
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "password_update") {
+    $currentPassword = trim($_POST["current_password"] ?? "");
+    $newPassword = trim($_POST["new_password"] ?? "");
+    $confirmPassword = trim($_POST["confirm_password"] ?? "");
+
+    if ($currentPassword === "" || $newPassword === "" || $confirmPassword === "") {
+        $errorMessage = "All password fields are required.";
+    } elseif (strlen($newPassword) < 8) {
+        $errorMessage = "New password must be at least 8 characters long.";
+    } elseif ($newPassword !== $confirmPassword) {
+        $errorMessage = "New password and confirm password do not match.";
+    } else {
+        $passwordSql = "
+            SELECT user_password
+            FROM users
+            WHERE user_id = ?
+            LIMIT 1
+        ";
+
+        $passwordStmt = mysqli_prepare($conn, $passwordSql);
+
+        if (!$passwordStmt) {
+            $errorMessage = "Password check failed: " . mysqli_error($conn);
+        } else {
+            mysqli_stmt_bind_param($passwordStmt, "i", $userId);
+            mysqli_stmt_execute($passwordStmt);
+
+            $passwordResult = mysqli_stmt_get_result($passwordStmt);
+            $passwordRow = $passwordResult ? mysqli_fetch_assoc($passwordResult) : null;
+
+            mysqli_stmt_close($passwordStmt);
+
+            if (!$passwordRow) {
+                $errorMessage = "User account not found.";
+            } elseif (!password_verify($currentPassword, $passwordRow["user_password"])) {
+                $errorMessage = "Current password is incorrect.";
+            } else {
+                $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+
+                $updatePasswordSql = "
+                    UPDATE users
+                    SET user_password = ?
+                    WHERE user_id = ?
+                ";
+
+                $updatePasswordStmt = mysqli_prepare($conn, $updatePasswordSql);
+
+                if (!$updatePasswordStmt) {
+                    $errorMessage = "Password update failed: " . mysqli_error($conn);
+                } else {
+                    mysqli_stmt_bind_param($updatePasswordStmt, "si", $hashedPassword, $userId);
+
+                    if (mysqli_stmt_execute($updatePasswordStmt)) {
+                        $successMessage = "Password changed successfully.";
+                    } else {
+                        $errorMessage = "Password update failed.";
+                    }
+
+                    mysqli_stmt_close($updatePasswordStmt);
+                }
+            }
+        }
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
 | FETCH CENTRAL OFFICER PROFILE
 |--------------------------------------------------------------------------
 */
@@ -285,11 +333,11 @@ $profile = [
     "user_mail" => "",
     "full_name" => "",
     "phone" => "",
-    "employee_id" => "",
+    "employee_code" => "",
     "address" => "",
     "gender" => "",
     "designation" => "",
-    "department" => "",
+    
     "office_address" => "",
     "profile_picture" => ""
 ];
@@ -301,11 +349,10 @@ $sql = "
         user_mail,
         full_name,
         phone,
-        employee_id,
+        employee_code,
         address,
         gender,
         designation,
-        department,
         office_address,
         profile_picture
     FROM central_officers
@@ -333,10 +380,10 @@ $displayName = trim($profile["full_name"]) !== "" ? $profile["full_name"] : "Cen
 $displayEmail = trim($profile["user_mail"]) !== "" ? $profile["user_mail"] : "Not provided";
 $displayPhone = trim($profile["phone"]) !== "" ? $profile["phone"] : "Not provided";
 $displayRole = trim($profile["designation"]) !== "" ? $profile["designation"] : "Central Officer";
-$displayEmployeeId = trim($profile["employee_id"]) !== "" ? $profile["employee_id"] : "N/A";
+$displayEmployeeCode = trim($profile["employee_code"]) !== "" ? $profile["employee_code"] : "N/A";
 $displayAddress = trim($profile["address"]) !== "" ? $profile["address"] : "Not provided";
 $displayGender = trim($profile["gender"]) !== "" ? $profile["gender"] : "Not provided";
-$displayDepartment = trim($profile["department"]) !== "" ? $profile["department"] : "Not provided";
+
 $displayOfficeAddress = trim($profile["office_address"]) !== "" ? $profile["office_address"] : "Not provided";
 $displayStatus = "Active";
 
@@ -360,9 +407,9 @@ $initial = strtoupper(substr($displayName, 0, 1));
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
-    <link rel="stylesheet" href="../../css/central/footer.css">
     <link rel="stylesheet" href="../../css/central/profile.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -452,8 +499,8 @@ $initial = strtoupper(substr($displayName, 0, 1));
                         </div>
 
                         <div class="central-profile-info-box">
-                            <span>Employee ID</span>
-                            <strong><?php echo safeText($displayEmployeeId); ?></strong>
+                            <span>Employee Code</span>
+                            <strong><?php echo safeText($displayEmployeeCode); ?></strong>
                         </div>
 
                         <div class="central-profile-info-box">
@@ -461,10 +508,7 @@ $initial = strtoupper(substr($displayName, 0, 1));
                             <strong><?php echo safeText(ucfirst($displayGender)); ?></strong>
                         </div>
 
-                        <div class="central-profile-info-box">
-                            <span>Department</span>
-                            <strong><?php echo safeText($displayDepartment); ?></strong>
-                        </div>
+                        
 
                         <div class="central-profile-info-box">
                             <span>Account Status</span>
@@ -544,12 +588,12 @@ $initial = strtoupper(substr($displayName, 0, 1));
                         </div>
 
                         <div class="central-profile-form-group">
-                            <label for="employee_id">Employee ID</label>
+                            <label for="employee_code">Employee Code</label>
                             <input
                                 type="text"
-                                id="employee_id"
-                                name="employee_id"
-                                value="<?php echo safeText($profile["employee_id"]); ?>"
+                                id="employee_code"
+                                name="employee_code"
+                                value="<?php echo safeText($profile["employee_code"]); ?>"
                                 required
                             >
                         </div>
@@ -575,16 +619,7 @@ $initial = strtoupper(substr($displayName, 0, 1));
                             >
                         </div>
 
-                        <div class="central-profile-form-group">
-                            <label for="department">Department</label>
-                            <input
-                                type="text"
-                                id="department"
-                                name="department"
-                                value="<?php echo safeText($profile["department"]); ?>"
-                                required
-                            >
-                        </div>
+                        
 
                         <div class="central-profile-form-group wide">
                             <label for="address">Address</label>
@@ -611,9 +646,72 @@ $initial = strtoupper(substr($displayName, 0, 1));
 
             </div>
 
+            <form method="POST" action="profile.php" class="central-profile-card password-card" id="passwordForm">
+                <input type="hidden" name="form_type" value="password_update">
+
+                <div class="central-profile-card-title">
+                    <div class="central-profile-title-icon password">
+                        <i class="bi bi-lock"></i>
+                    </div>
+                    <h2>Change Password</h2>
+                </div>
+
+                <div class="central-profile-form-group">
+                    <label for="current_password">Current Password</label>
+                    <div class="central-profile-password-wrap">
+                        <input
+                            type="password"
+                            id="current_password"
+                            name="current_password"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="central-profile-toggle-password" data-target="current_password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="central-profile-form-group">
+                    <label for="new_password">New Password</label>
+                    <div class="central-profile-password-wrap">
+                        <input
+                            type="password"
+                            id="new_password"
+                            name="new_password"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="central-profile-toggle-password" data-target="new_password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <small class="central-profile-help" id="passwordHelp">
+                        Minimum 8 characters required.
+                    </small>
+                </div>
+
+                <div class="central-profile-form-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <div class="central-profile-password-wrap">
+                        <input
+                            type="password"
+                            id="confirm_password"
+                            name="confirm_password"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="central-profile-toggle-password" data-target="confirm_password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <small class="central-profile-help" id="confirmHelp"></small>
+                </div>
+
+                <button type="submit" class="central-profile-save-btn warning" style="margin-top: 16px;">
+                    Change Password
+                </button>
+            </form>
+
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
 
     </main>
 
@@ -622,5 +720,6 @@ $initial = strtoupper(substr($displayName, 0, 1));
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/profile.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

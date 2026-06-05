@@ -43,60 +43,65 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (!allowedImageTypes.includes(file.type)) {
-                alert("Only JPG, PNG, WEBP, or GIF image is allowed.");
+                showWarningModal("Only JPG, PNG, WEBP, or GIF image is allowed.");
                 profileImageInput.value = "";
                 return;
             }
 
             if (file.size > maxImageSize) {
-                alert("Profile photo must be 5MB or less.");
+                showWarningModal("Profile photo must be 5MB or less.");
                 profileImageInput.value = "";
                 return;
             }
 
-            const confirmed = confirm("Update your profile photo?");
+            showConfirmModal({
+                title: "Update Photo",
+                message: "Update your profile photo?",
+                confirmText: "Update",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    const formData = new FormData(profilePhotoForm);
 
-            if (!confirmed) {
-                profileImageInput.value = "";
-                return;
-            }
+                    profilePhotoButton.classList.add("is-loading");
 
-            const formData = new FormData(profilePhotoForm);
+                    fetch("profile.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            showWarningModal(data.message || "Request processed.");
 
-            profilePhotoButton.classList.add("is-loading");
+                            if (data.success && data.image_path) {
+                                profilePhotoPreview.innerHTML = "";
 
-            fetch("profile.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    alert(data.message || "Request processed.");
+                                const img = document.createElement("img");
+                                img.src = data.image_path + "?t=" + new Date().getTime();
+                                img.alt = "Profile photo";
 
-                    if (data.success && data.image_path) {
-                        profilePhotoPreview.innerHTML = "";
+                                profilePhotoPreview.appendChild(img);
 
-                        const img = document.createElement("img");
-                        img.src = data.image_path + "?t=" + new Date().getTime();
-                        img.alt = "Profile photo";
-
-                        profilePhotoPreview.appendChild(img);
-
-                        setTimeout(function () {
-                            window.location.reload();
-                        }, 500);
-                    } else {
-                        profileImageInput.value = "";
-                        profilePhotoButton.classList.remove("is-loading");
-                    }
-                })
-                .catch(function () {
-                    alert("Failed to update profile photo. Please try again.");
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 500);
+                            } else {
+                                profileImageInput.value = "";
+                                profilePhotoButton.classList.remove("is-loading");
+                            }
+                        })
+                        .catch(function () {
+                            showWarningModal("Failed to update profile photo. Please try again.");
+                            profileImageInput.value = "";
+                            profilePhotoButton.classList.remove("is-loading");
+                        });
+                },
+                onCancel: function() {
                     profileImageInput.value = "";
-                    profilePhotoButton.classList.remove("is-loading");
-                });
+                }
+            });
         });
     }
 
@@ -113,65 +118,68 @@ document.addEventListener("DOMContentLoaded", function () {
             const address = profileInfoForm.querySelector('textarea[name="address"]');
 
             if (!fullName.value.trim()) {
-                alert("Full name is required.");
+                showWarningModal("Full name is required.");
                 fullName.focus();
                 return;
             }
 
             if (!phone.value.trim()) {
-                alert("Phone number is required.");
+                showWarningModal("Phone number is required.");
                 phone.focus();
                 return;
             }
 
             if (!email.value.trim()) {
-                alert("Email is required.");
+                showWarningModal("Email is required.");
                 email.focus();
                 return;
             }
 
             if (!employeeCode.value.trim()) {
-                alert("Employee code is required.");
+                showWarningModal("Employee code is required.");
                 employeeCode.focus();
                 return;
             }
 
             if (!address.value.trim()) {
-                alert("Address is required.");
+                showWarningModal("Address is required.");
                 address.focus();
                 return;
             }
 
-            const confirmed = confirm("Update profile information?");
+            showConfirmModal({
+                title: "Update Profile",
+                message: "Update profile information?",
+                confirmText: "Update",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    setButtonLoading(submitBtn, "Updating...");
 
-            if (!confirmed) {
-                return;
-            }
+                    const formData = new FormData(profileInfoForm);
 
-            setButtonLoading(submitBtn, "Updating...");
+                    fetch("profile.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            showWarningModal(data.message || "Request processed.");
 
-            const formData = new FormData(profileInfoForm);
-
-            fetch("profile.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    alert(data.message || "Request processed.");
-
-                    if (data.success) {
-                        window.location.reload();
-                    } else {
-                        resetButton(submitBtn);
-                    }
-                })
-                .catch(function () {
-                    alert("Failed to update profile. Please try again.");
-                    resetButton(submitBtn);
-                });
+                            if (data.success) {
+                                window.location.reload();
+                            } else {
+                                resetButton(submitBtn);
+                            }
+                        })
+                        .catch(function () {
+                            showWarningModal("Failed to update profile. Please try again.");
+                            resetButton(submitBtn);
+                        });
+                }
+            });
         });
     }
 
@@ -186,53 +194,56 @@ document.addEventListener("DOMContentLoaded", function () {
             const confirmPassword = passwordForm.querySelector('input[name="confirm_password"]');
 
             if (!currentPassword.value.trim()) {
-                alert("Current password is required.");
+                showWarningModal("Current password is required.");
                 currentPassword.focus();
                 return;
             }
 
             if (newPassword.value.length < 8) {
-                alert("New password must be at least 8 characters.");
+                showWarningModal("New password must be at least 8 characters.");
                 newPassword.focus();
                 return;
             }
 
             if (newPassword.value !== confirmPassword.value) {
-                alert("New password and confirm password do not match.");
+                showWarningModal("New password and confirm password do not match.");
                 confirmPassword.focus();
                 return;
             }
 
-            const confirmed = confirm("Change your password?");
+            showConfirmModal({
+                title: "Change Password",
+                message: "Change your password?",
+                confirmText: "Change",
+                cancelText: "Cancel",
+                type: "warning",
+                onConfirm: function() {
+                    setButtonLoading(submitBtn, "Changing Password...");
 
-            if (!confirmed) {
-                return;
-            }
+                    const formData = new FormData(passwordForm);
 
-            setButtonLoading(submitBtn, "Changing Password...");
+                    fetch("profile.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            showWarningModal(data.message || "Request processed.");
 
-            const formData = new FormData(passwordForm);
+                            if (data.success) {
+                                passwordForm.reset();
+                            }
 
-            fetch("profile.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    alert(data.message || "Request processed.");
-
-                    if (data.success) {
-                        passwordForm.reset();
-                    }
-
-                    resetButton(submitBtn);
-                })
-                .catch(function () {
-                    alert("Failed to change password. Please try again.");
-                    resetButton(submitBtn);
-                });
+                            resetButton(submitBtn);
+                        })
+                        .catch(function () {
+                            showWarningModal("Failed to change password. Please try again.");
+                            resetButton(submitBtn);
+                        });
+                }
+            });
         });
     }
 

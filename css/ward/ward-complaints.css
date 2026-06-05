@@ -201,16 +201,21 @@
 .wc-table-responsive {
     width: 100%;
     overflow-x: auto;
+    max-height: 65vh;
+    overflow-y: auto;
 }
 
 .wc-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1060px;
+    min-width: 800px;
 }
 
-.wc-table thead {
+.wc-table thead th {
     background: #F8FAFC;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .wc-table th {
@@ -221,7 +226,7 @@
     font-weight: 800;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .wc-table td {
@@ -230,8 +235,8 @@
     color: #0F172A;
     font-size: 14px;
     font-weight: 500;
-    vertical-align: middle;
-    white-space: nowrap;
+    vertical-align: top;
+    white-space: normal;
 }
 
 .wc-table tbody tr {

@@ -316,6 +316,7 @@ asort($areaOptions);
     <link rel="stylesheet" href="../../css/citizen/topbar.css">
     <link rel="stylesheet" href="../../css/citizen/high-risk-areas.css">
     <link rel="stylesheet" href="../../css/citizen/citizenTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="citizen">
@@ -431,6 +432,9 @@ asort($areaOptions);
                             data-thana-id="<?php echo $thanaId; ?>"
                             data-ward-id="<?php echo $wardId; ?>"
                             data-area-id="<?php echo $areaId; ?>"
+                            data-thana-name="<?php echo hra_safe($thanaName); ?>"
+                            data-ward-name="<?php echo hra_safe($wardText); ?>"
+                            data-area-name="<?php echo hra_safe($areaName); ?>"
                         >
                             <div class="hra-card-top">
                                 <div class="hra-title-wrap">
@@ -632,5 +636,6 @@ asort($areaOptions);
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/citizen/high-risk-areas.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

@@ -674,6 +674,7 @@ if ($selectedComplaintId > 0) {
     <link rel="stylesheet" href="../../css/inspector/before-after-review.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -1077,7 +1078,6 @@ if ($selectedComplaintId > 0) {
 
             <?php
             $footerPath = __DIR__ . '/../../includes/inspector/footer.php';
-
             if (file_exists($footerPath)) {
                 include $footerPath;
             }
@@ -1090,6 +1090,7 @@ if ($selectedComplaintId > 0) {
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/before-after-review.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

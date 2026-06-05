@@ -266,10 +266,46 @@
     font-size: 14px;
     border-bottom: 1px solid #E2E8F0;
     vertical-align: middle;
+    background: #FFFFFF;
 }
 
-.cm-table tbody tr:hover {
+.cm-table tbody tr:hover td {
     background: #F8FBFF;
+}
+
+/* STICKY COLUMNS: ID (1), Title (2), and Action (last) */
+.cm-table th:nth-child(1),
+.cm-table td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 180px;
+    max-width: 180px;
+    width: 180px;
+    box-sizing: border-box;
+}
+
+.cm-table th:nth-child(2),
+.cm-table td:nth-child(2) {
+    position: sticky;
+    left: 180px;
+    z-index: 2;
+    box-shadow: 4px 0 8px -4px rgba(0,0,0,0.05);
+}
+
+.cm-table th:last-child,
+.cm-table td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    box-shadow: -4px 0 8px -4px rgba(0,0,0,0.05);
+}
+
+.cm-table th:nth-child(1),
+.cm-table th:nth-child(2),
+.cm-table th:last-child {
+    background: #F8FAFC;
+    z-index: 3;
 }
 
 .cm-code {

@@ -467,9 +467,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
-    <link rel="stylesheet" href="../../css/central/footer.css">
+
     <link rel="stylesheet" href="../../css/central/add-inspector.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -657,7 +658,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
+       
 
     </main>
 
@@ -669,5 +670,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/add-inspector.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

@@ -177,7 +177,7 @@ $inspectorName = !empty($inspector['full_name'])
 $_SESSION['user_name'] = $inspectorName;
 
 /* =========================
-   KPI Counts
+   KPI Counts & Hero Stats
 ========================= */
 
 $pendingInspections = fetchCount(
@@ -191,76 +191,18 @@ $pendingInspections = fetchCount(
     $assignedWardId
 );
 
-$approvedThisWeek = fetchCount(
+$kpiSolvedByTeam = fetchCount(
     $conn,
     "SELECT COUNT(DISTINCT c.complaint_id) AS total
     FROM complaints c
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
     WHERE ca.ward_id = ?
-    AND c.complaint_status = 'closed'
-    AND YEARWEEK(c.updated_at, 1) = YEARWEEK(CURDATE(), 1)",
+    AND c.complaint_status = 'solved_by_team'",
     "i",
     $assignedWardId
 );
 
-$reopenedCases = fetchCount(
-    $conn,
-    "SELECT COUNT(DISTINCT c.complaint_id) AS total
-    FROM complaints c
-    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND c.complaint_status IN ('reopened', 'disputed')",
-    "i",
-    $assignedWardId
-);
-
-$citizenObjections = fetchCount(
-    $conn,
-    "SELECT COUNT(DISTINCT rr.reopen_id) AS total
-    FROM reopen_requests rr
-    INNER JOIN complaints c ON c.complaint_id = rr.complaint_id
-    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND rr.request_type IN ('disputed', 'false_completion')
-    AND rr.request_status IN ('pending', 'sent_to_inspector')",
-    "i",
-    $assignedWardId
-);
-
-$awaitingReview = fetchCount(
-    $conn,
-    "SELECT COUNT(DISTINCT c.complaint_id) AS total
-    FROM complaints c
-    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    LEFT JOIN maintenance_updates mu ON mu.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND (
-        c.complaint_status = 'solved_by_team'
-        OR mu.work_status = 'completed'
-    )
-    AND c.complaint_status NOT IN ('closed', 'rejected', 'duplicate')",
-    "i",
-    $assignedWardId
-);
-
-$totalInspections = fetchCount(
-    $conn,
-    "SELECT COUNT(DISTINCT c.complaint_id) AS total
-    FROM complaints c
-    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND c.complaint_status IN (
-        'inspector_verification',
-        'closed',
-        'reopened',
-        'disputed',
-        'rejected'
-    )",
-    "i",
-    $assignedWardId
-);
-
-$approvedTotal = fetchCount(
+$kpiApprovedWork = fetchCount(
     $conn,
     "SELECT COUNT(DISTINCT c.complaint_id) AS total
     FROM complaints c
@@ -271,98 +213,155 @@ $approvedTotal = fetchCount(
     $assignedWardId
 );
 
-$decisionTotal = fetchCount(
+$kpiFalseCompletion = fetchCount(
+    $conn,
+    "SELECT COUNT(DISTINCT fcr.review_id) AS total
+    FROM false_completion_reviews fcr
+    INNER JOIN complaints c ON c.complaint_id = fcr.complaint_id
+    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
+    WHERE ca.ward_id = ?
+    AND fcr.inspector_claim_status = 'true'",
+    "i",
+    $assignedWardId
+);
+
+$kpiReopenCases = fetchCount(
     $conn,
     "SELECT COUNT(DISTINCT c.complaint_id) AS total
     FROM complaints c
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
     WHERE ca.ward_id = ?
-    AND c.complaint_status IN ('closed', 'reopened', 'disputed', 'rejected')",
+    AND c.complaint_status IN ('reopened', 'disputed')",
     "i",
     $assignedWardId
 );
-
-$approvalRate = $decisionTotal > 0
-    ? round(($approvedTotal / $decisionTotal) * 100)
-    : 0;
-
-$falseCompletionFromRequests = fetchCount(
-    $conn,
-    "SELECT COUNT(DISTINCT rr.reopen_id) AS total
-    FROM reopen_requests rr
-    INNER JOIN complaints c ON c.complaint_id = rr.complaint_id
-    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND rr.request_type = 'false_completion'",
-    "i",
-    $assignedWardId
-);
-
-$falseCompletionFromFeedback = fetchCount(
-    $conn,
-    "SELECT COUNT(DISTINCT f.feedback_id) AS total
-    FROM feedbacks f
-    INNER JOIN complaints c ON c.complaint_id = f.complaint_id
-    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    WHERE ca.ward_id = ?
-    AND f.feedback_type = 'false_completion'",
-    "i",
-    $assignedWardId
-);
-
-$falseCompletion = $falseCompletionFromRequests + $falseCompletionFromFeedback;
 
 /* =========================
-   Priority Inspections List
+   A. Recent Solved by Team Cases
 ========================= */
 
-$priorityInspections = fetchAllRows(
+$recentSolved = fetchAllRows(
     $conn,
     "SELECT DISTINCT
         c.complaint_id,
         c.complaint_code,
-        c.problem_description,
-        c.complaint_status,
-        c.updated_at,
-        ca.assignment_priority,
+        i.issue_name,
         mt.team_name,
-        i.issue_name
+        c.updated_at,
+        c.complaint_status,
+        w.ward_no
     FROM complaints c
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
-    LEFT JOIN maintenance_teams mt ON mt.maintenance_team_id = ca.maintenance_team_id
     LEFT JOIN issues i ON i.issue_id = c.issue_id
+    LEFT JOIN maintenance_teams mt ON mt.maintenance_team_id = ca.maintenance_team_id
+    LEFT JOIN wards w ON w.ward_id = ca.ward_id
     WHERE ca.ward_id = ?
-    AND ca.assignment_priority = 'High'
-    AND c.complaint_status IN ('solved_by_team', 'inspector_verification', 'reopened', 'disputed')
+    AND c.complaint_status = 'solved_by_team'
     ORDER BY c.updated_at DESC
-    LIMIT 5",
+    LIMIT 4",
     "i",
     $assignedWardId
 );
 
 /* =========================
-   Citizen Objections List
+   B. Recent Inspection Queue
+========================= */
+
+$recentInspection = fetchAllRows(
+    $conn,
+    "SELECT DISTINCT
+        c.complaint_id,
+        c.complaint_code,
+        i.issue_name,
+        c.updated_at,
+        c.complaint_status,
+        w.ward_no
+    FROM complaints c
+    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
+    LEFT JOIN issues i ON i.issue_id = c.issue_id
+    LEFT JOIN wards w ON w.ward_id = ca.ward_id
+    WHERE ca.ward_id = ?
+    AND c.complaint_status = 'inspector_verification'
+    ORDER BY c.updated_at DESC
+    LIMIT 4",
+    "i",
+    $assignedWardId
+);
+
+/* =========================
+   C. Citizen Objections
 ========================= */
 
 $objectionRows = fetchAllRows(
     $conn,
     "SELECT DISTINCT
         rr.reopen_id,
-        rr.request_type,
-        rr.request_status,
-        rr.reason,
-        rr.created_at,
         c.complaint_code,
+        u.user_name AS citizen_name,
+        i.issue_name,
+        rr.created_at,
+        rr.request_status,
         w.ward_no
     FROM reopen_requests rr
     INNER JOIN complaints c ON c.complaint_id = rr.complaint_id
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
+    LEFT JOIN users u ON u.user_id = c.user_id
+    LEFT JOIN issues i ON i.issue_id = c.issue_id
     LEFT JOIN wards w ON w.ward_id = ca.ward_id
     WHERE ca.ward_id = ?
-    AND rr.request_type IN ('disputed', 'false_completion', 'reopened')
     AND rr.request_status IN ('pending', 'sent_to_inspector')
     ORDER BY rr.created_at DESC
-    LIMIT 5",
+    LIMIT 4",
+    "i",
+    $assignedWardId
+);
+
+/* =========================
+   D. False Completion Reports
+========================= */
+
+$falseCompletionReports = fetchAllRows(
+    $conn,
+    "SELECT DISTINCT
+        fcr.review_id,
+        c.complaint_code,
+        i.issue_name,
+        mt.team_name,
+        fcr.decided_at,
+        w.ward_no
+    FROM false_completion_reviews fcr
+    INNER JOIN complaints c ON c.complaint_id = fcr.complaint_id
+    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
+    LEFT JOIN issues i ON i.issue_id = c.issue_id
+    LEFT JOIN maintenance_teams mt ON mt.maintenance_team_id = fcr.maintenance_team_id
+    LEFT JOIN wards w ON w.ward_id = ca.ward_id
+    WHERE ca.ward_id = ?
+    AND fcr.inspector_claim_status = 'true'
+    ORDER BY fcr.decided_at DESC
+    LIMIT 4",
+    "i",
+    $assignedWardId
+);
+
+/* =========================
+   E. Recent Inspector Logs
+========================= */
+
+$recentLogs = fetchAllRows(
+    $conn,
+    "SELECT DISTINCT
+        il.log_id,
+        c.complaint_code,
+        il.decision_type,
+        il.created_at,
+        w.ward_no
+    FROM inspection_logs il
+    INNER JOIN complaints c ON c.complaint_id = il.complaint_id
+    INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
+    LEFT JOIN wards w ON w.ward_id = ca.ward_id
+    WHERE ca.ward_id = ?
+    ORDER BY il.created_at DESC
+    LIMIT 4",
     "i",
     $assignedWardId
 );
@@ -383,6 +382,7 @@ $objectionRows = fetchAllRows(
     <link rel="stylesheet" href="../../css/inspector/dashboard.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -431,67 +431,35 @@ $objectionRows = fetchAllRows(
                 <div class="kpi-grid">
 
                     <div class="kpi-card">
-                        <div class="kpi-icon icon-pending">
-                            <i class="bi bi-eye"></i>
+                        <div class="kpi-icon icon-blue">
+                            <i class="bi bi-clipboard-check"></i>
                         </div>
-                        <h2><?php echo $pendingInspections; ?></h2>
-                        <p>Pending Inspections</p>
+                        <h2><?php echo $kpiSolvedByTeam; ?></h2>
+                        <p>Total Solved by Team</p>
                     </div>
 
                     <div class="kpi-card">
                         <div class="kpi-icon icon-success">
                             <i class="bi bi-check2-circle"></i>
                         </div>
-                        <h2><?php echo $approvedThisWeek; ?></h2>
-                        <p>Approved This Week</p>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-icon icon-danger">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                        <h2><?php echo $reopenedCases; ?></h2>
-                        <p>Reopened Cases</p>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-icon icon-warning">
-                            <i class="bi bi-flag"></i>
-                        </div>
-                        <h2><?php echo $citizenObjections; ?></h2>
-                        <p>Citizen Objections</p>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-icon icon-purple">
-                            <i class="bi bi-clock"></i>
-                        </div>
-                        <h2><?php echo $awaitingReview; ?></h2>
-                        <p>Awaiting Review</p>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-icon icon-blue">
-                            <i class="bi bi-clipboard-check"></i>
-                        </div>
-                        <h2><?php echo $totalInspections; ?></h2>
-                        <p>Total Inspections</p>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-icon icon-green">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                        <h2><?php echo $approvalRate; ?>%</h2>
-                        <p>Approval Rate</p>
+                        <h2><?php echo $kpiApprovedWork; ?></h2>
+                        <p>Total Approved Work</p>
                     </div>
 
                     <div class="kpi-card">
                         <div class="kpi-icon icon-orange">
-                            <i class="bi bi-flag"></i>
+                            <i class="bi bi-exclamation-octagon"></i>
                         </div>
-                        <h2><?php echo $falseCompletion; ?></h2>
-                        <p>False Completion</p>
+                        <h2><?php echo $kpiFalseCompletion; ?></h2>
+                        <p>Total False Completion</p>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-icon icon-danger">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </div>
+                        <h2><?php echo $kpiReopenCases; ?></h2>
+                        <p>Total Reopen Cases</p>
                     </div>
 
                 </div>
@@ -499,126 +467,137 @@ $objectionRows = fetchAllRows(
                 <div class="dashboard-panels">
 
                     <div class="dashboard-panel">
-
                         <div class="panel-header">
-                            <h3>
-                                <i class="bi bi-clock"></i>
-                                Priority Inspections Today
-                            </h3>
+                            <h3><i class="bi bi-check2-square"></i> Recent Solved by Team Cases</h3>
                         </div>
-
                         <div class="inspection-list">
-
-                            <?php if (!empty($priorityInspections)): ?>
-
-                                <?php foreach ($priorityInspections as $item): ?>
-
-                                    <?php
-                                    $priority = $item['assignment_priority'] ?? 'Medium';
-                                    $issueName = $item['issue_name'] ?? 'Drainage Issue';
-                                    $teamName = $item['team_name'] ?? 'No Team Assigned';
-                                    ?>
-
+                            <?php if (!empty($recentSolved)): ?>
+                                <?php foreach ($recentSolved as $item): ?>
                                     <div class="inspection-item">
-
                                         <div>
-                                            <span class="complaint-code">
-                                                <?php echo safeText($item['complaint_code']); ?>
-                                            </span>
-
-                                            <h4><?php echo safeText($issueName); ?></h4>
-
-                                            <p>
-                                                <?php echo safeText($teamName); ?>
-                                                •
-                                                <?php echo safeText(timeAgo($item['updated_at'])); ?>
-                                            </p>
+                                            <span class="complaint-code"><?php echo safeText($item['complaint_code']); ?></span>
+                                            <h4><?php echo safeText($item['issue_name'] ?? 'Drainage Issue'); ?></h4>
+                                            <p><?php echo safeText($item['team_name'] ?? 'Team'); ?> • <?php echo safeText(timeAgo($item['updated_at'])); ?></p>
                                         </div>
-
-                                        <span class="priority-badge <?php echo priorityClass($priority); ?>">
-                                            <?php echo safeText($priority); ?>
-                                        </span>
-
+                                        <span class="priority-badge priority-medium">Solved</span>
                                     </div>
-
                                 <?php endforeach; ?>
-
                             <?php else: ?>
-
                                 <div class="empty-state">
                                     <i class="bi bi-check-circle"></i>
-                                    <h4>No High Priority Inspection</h4>
-                                    <p>No high priority inspection is pending for your assigned ward.</p>
+                                    <h4>No Solved Cases</h4>
+                                    <p>No recent cases solved by maintenance teams.</p>
                                 </div>
-
                             <?php endif; ?>
-
                         </div>
-
-                        <a href="inspection-queue.php" class="panel-link">
-                            View All Pending Inspections
-                            <i class="bi bi-arrow-right"></i>
-                        </a>
-
+                        <a href="solved-cases.php" class="panel-link">View All Solved Cases <i class="bi bi-arrow-right"></i></a>
                     </div>
 
                     <div class="dashboard-panel">
-
-                        <div class="panel-header objection-header">
-                            <h3>
-                                <i class="bi bi-flag"></i>
-                                Citizen Objections Requiring Action
-                            </h3>
+                        <div class="panel-header">
+                            <h3><i class="bi bi-eye"></i> Recent Inspection Queue</h3>
                         </div>
+                        <div class="inspection-list">
+                            <?php if (!empty($recentInspection)): ?>
+                                <?php foreach ($recentInspection as $item): ?>
+                                    <div class="inspection-item">
+                                        <div>
+                                            <span class="complaint-code"><?php echo safeText($item['complaint_code']); ?></span>
+                                            <h4><?php echo safeText($item['issue_name'] ?? 'Drainage Issue'); ?></h4>
+                                            <p>Ward <?php echo safeText($item['ward_no'] ?? 'N/A'); ?> • <?php echo safeText(timeAgo($item['updated_at'])); ?></p>
+                                        </div>
+                                        <span class="priority-badge priority-high">Pending</span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox"></i>
+                                    <h4>Queue is Empty</h4>
+                                    <p>No pending inspections at the moment.</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <a href="inspection-queue.php" class="panel-link">View Inspection Queue <i class="bi bi-arrow-right"></i></a>
+                    </div>
 
+                    <div class="dashboard-panel">
+                        <div class="panel-header objection-header">
+                            <h3><i class="bi bi-flag"></i> Citizen Objections</h3>
+                        </div>
                         <div class="objection-list">
-
                             <?php if (!empty($objectionRows)): ?>
-
                                 <?php foreach ($objectionRows as $row): ?>
-
                                     <div class="objection-item">
-
                                         <div class="objection-top">
                                             <span><?php echo safeText($row['complaint_code']); ?></span>
-                                            <strong>
-                                                Ward <?php echo safeText($row['ward_no'] ?? 'N/A'); ?>
-                                            </strong>
+                                            <strong>Ward <?php echo safeText($row['ward_no'] ?? 'N/A'); ?></strong>
                                         </div>
-
-                                        <h4>
-                                            <?php
-                                            if (!empty($row['reason'])) {
-                                                echo safeText($row['reason']);
-                                            } else {
-                                                echo safeText(ucwords(str_replace('_', ' ', $row['request_type'])));
-                                            }
-                                            ?>
-                                        </h4>
-
-                                        <p><?php echo safeText(timeAgo($row['created_at'])); ?></p>
-
+                                        <h4><?php echo safeText($row['issue_name'] ?? 'Objection'); ?></h4>
+                                        <p><?php echo safeText($row['citizen_name'] ?? 'Citizen'); ?> • <?php echo safeText(timeAgo($row['created_at'])); ?></p>
                                     </div>
-
                                 <?php endforeach; ?>
-
                             <?php else: ?>
-
                                 <div class="empty-state empty-danger">
                                     <i class="bi bi-check-circle"></i>
-                                    <h4>No Active Objection</h4>
-                                    <p>No citizen objection currently requires inspector action.</p>
+                                    <h4>No Active Objections</h4>
+                                    <p>No citizen objection currently requires attention.</p>
                                 </div>
-
                             <?php endif; ?>
-
                         </div>
+                        <a href="citizen-objections.php" class="panel-link danger-link">Review All Objections <i class="bi bi-arrow-right"></i></a>
+                    </div>
 
-                        <a href="citizen-objections.php" class="panel-link danger-link">
-                            Review All Objections
-                            <i class="bi bi-arrow-right"></i>
-                        </a>
+                    <div class="dashboard-panel">
+                        <div class="panel-header" style="background: rgba(245, 158, 11, 0.1); border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
+                            <h3 style="color: #B45309;"><i class="bi bi-exclamation-triangle"></i> False Completion Reports</h3>
+                        </div>
+                        <div class="inspection-list">
+                            <?php if (!empty($falseCompletionReports)): ?>
+                                <?php foreach ($falseCompletionReports as $item): ?>
+                                    <div class="inspection-item">
+                                        <div>
+                                            <span class="complaint-code"><?php echo safeText($item['complaint_code']); ?></span>
+                                            <h4><?php echo safeText($item['issue_name'] ?? 'Drainage Issue'); ?></h4>
+                                            <p><?php echo safeText($item['team_name'] ?? 'Team'); ?> • <?php echo safeText(timeAgo($item['decided_at'])); ?></p>
+                                        </div>
+                                        <span class="priority-badge" style="background:#FEF3C7; color:#92400E;">Confirmed True</span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="bi bi-shield-check" style="color: #B45309;"></i>
+                                    <h4>No False Completions</h4>
+                                    <p>No confirmed false completions recorded.</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <a href="false-completion-reports.php" class="panel-link" style="color: #B45309;">View All False Completions <i class="bi bi-arrow-right"></i></a>
+                    </div>
 
+                    <div class="dashboard-panel full-width-panel">
+                        <div class="panel-header">
+                            <h3><i class="bi bi-journal-text"></i> Recent Inspector Logs</h3>
+                        </div>
+                        <div class="inspection-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            <?php if (!empty($recentLogs)): ?>
+                                <?php foreach ($recentLogs as $log): ?>
+                                    <div class="inspection-item" style="border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px;">
+                                        <div>
+                                            <span class="complaint-code"><?php echo safeText($log['complaint_code']); ?></span>
+                                            <h4>Action: <?php echo safeText(ucwords(str_replace('_', ' ', $log['decision_type']))); ?></h4>
+                                            <p>Ward <?php echo safeText($log['ward_no'] ?? 'N/A'); ?> • <?php echo safeText(timeAgo($log['created_at'])); ?></p>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="empty-state" style="grid-column: 1 / -1;">
+                                    <i class="bi bi-journal-x"></i>
+                                    <h4>No Logs Found</h4>
+                                    <p>You haven't made any inspection decisions yet.</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <a href="inspection-logs.php" class="panel-link">View All Inspector Logs <i class="bi bi-arrow-right"></i></a>
                     </div>
 
                 </div>
@@ -639,6 +618,7 @@ $objectionRows = fetchAllRows(
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/dashboard.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

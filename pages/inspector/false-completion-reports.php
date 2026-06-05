@@ -265,6 +265,7 @@ $teamRows = fcrFetchAll(
     LEFT JOIN maintenance_teams mt ON mt.maintenance_team_id = ca.maintenance_team_id
     WHERE fcr.inspector_user_id = ?
     AND ca.ward_id = ?
+    AND fcr.inspector_claim_status = 'true'
     AND mt.maintenance_team_id IS NOT NULL
     ORDER BY mt.team_name ASC",
     "ii",
@@ -288,6 +289,7 @@ $areaRows = fcrFetchAll(
 $countWhere = "
     WHERE fcr.inspector_user_id = ?
     AND ca.ward_id = ?
+    AND fcr.inspector_claim_status = 'true'
 ";
 
 $countTypes = "ii";
@@ -370,7 +372,8 @@ $summary = fcrFetchOne(
     INNER JOIN complaints c ON c.complaint_id = fcr.complaint_id
     INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id
     WHERE fcr.inspector_user_id = ?
-    AND ca.ward_id = ?",
+    AND ca.ward_id = ?
+    AND fcr.inspector_claim_status = 'true'",
     "ii",
     [$userId, $assignedWardId]
 );
@@ -387,6 +390,7 @@ $reassignedCases = (int) ($summary['reassigned_cases'] ?? 0);
 $where = "
     WHERE fcr.inspector_user_id = ?
     AND ca.ward_id = ?
+    AND fcr.inspector_claim_status = 'true'
 ";
 
 $types = "ii";
@@ -444,6 +448,7 @@ $reportSql = "
         fcr.inspector_user_id AS reviewed_by,
         fcr.inspector_claim_note AS review_note,
         fcr.created_at AS false_reported_at,
+        fcr.decided_at,
 
         'false_completion' AS request_type,
         fcr.inspector_claim_status AS request_status,
@@ -520,43 +525,6 @@ $params[] = $offset;
 
 $reports = fcrFetchAll($conn, $reportSql, $types, $params);
 
-/* =========================
-   Penalty History Per Report
-========================= */
-
-$penalties = [];
-
-foreach ($reports as $report) {
-    $reviewId = (int) $report['review_id'];
-    $complaintId = (int) $report['complaint_id'];
-    $assignmentId = (int) $report['assignment_id'];
-    $teamIdForPenalty = (int) $report['maintenance_team_id'];
-
-    $penalties[$reviewId] = fcrFetchAll(
-        $conn,
-        "SELECT
-            p.penalty_id,
-            p.penalty_type,
-            p.penalty_reason,
-            p.created_at,
-            mtm.full_name,
-            mtm.role,
-            mtm.demerit_points,
-            mtm.warning_count,
-            mtm.member_status
-        FROM maintenance_member_penalties p
-        INNER JOIN maintenance_team_members mtm ON mtm.member_id = p.member_id
-        WHERE p.complaint_id = ?
-        AND p.assignment_id = ?
-        AND p.maintenance_team_id = ?
-        ORDER BY 
-            FIELD(mtm.role, 'team_leader', 'assistant_team_leader', 'worker'),
-            p.created_at DESC",
-        "iii",
-        [$complaintId, $assignmentId, $teamIdForPenalty]
-    );
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -573,6 +541,7 @@ foreach ($reports as $report) {
     <link rel="stylesheet" href="../../css/inspector/false-completion-reports.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -690,8 +659,8 @@ foreach ($reports as $report) {
                                                 <?php echo fcrText($priority); ?>
                                             </span>
 
-                                            <span class="status-badge">
-                                                <?php echo fcrText(fcrRequestStatusLabel($report['request_status'])); ?>
+                                            <span class="status-badge priority-high">
+                                                Inspector Claim Confirmed True
                                             </span>
                                         </div>
 
@@ -706,7 +675,7 @@ foreach ($reports as $report) {
                                     </div>
 
                                     <div class="toggle-side">
-                                        <span><?php echo fcrText(fcrDateTime($report['false_reported_at'])); ?></span>
+                                        <span><?php echo fcrText(fcrDateTime($report['decided_at'] ?? $report['false_reported_at'])); ?></span>
                                         <i class="bi bi-chevron-down"></i>
                                     </div>
                                 </button>
@@ -714,16 +683,6 @@ foreach ($reports as $report) {
                                 <div class="report-details">
 
                                     <div class="info-grid">
-
-                                        <div>
-                                            <span>Complaint Status</span>
-                                            <strong><?php echo fcrText(fcrStatusLabel($report['complaint_status'])); ?></strong>
-                                        </div>
-
-                                        <div>
-                                            <span>Current Flow</span>
-                                            <strong><?php echo fcrText(fcrRequestStatusLabel($report['request_status'])); ?></strong>
-                                        </div>
 
                                         <div>
                                             <span>Maintenance Team</span>
@@ -734,75 +693,22 @@ foreach ($reports as $report) {
                                             <span>Team Leader</span>
                                             <strong><?php echo fcrText($report['leader_name'] ?: 'N/A'); ?></strong>
                                         </div>
-
+                                        
                                         <div>
-                                            <span>Leader Demerit</span>
-                                            <strong><?php echo (int) ($report['leader_demerit_points'] ?? 0); ?></strong>
+                                            <span>Current Complaint Status</span>
+                                            <strong><?php echo fcrText(fcrStatusLabel($report['complaint_status'])); ?></strong>
                                         </div>
 
                                         <div>
-                                            <span>Leader Status</span>
-                                            <strong><?php echo fcrText(ucwords(str_replace('_', ' ', $report['leader_member_status'] ?? 'active'))); ?></strong>
+                                            <span>Decision Date</span>
+                                            <strong><?php echo fcrText(fcrDateTime($report['decided_at'] ?? $report['false_reported_at'])); ?></strong>
                                         </div>
 
                                     </div>
 
                                     <div class="note-box">
-                                        <span>Inspector False Completion Finding</span>
-                                        <p><?php echo fcrText($report['review_note'] ?: 'No inspector note recorded.'); ?></p>
-                                    </div>
-
-                                    <div class="note-box muted">
-                                        <span>Team Completion Proof Note</span>
-                                        <p><?php echo fcrText($report['proof_note'] ?: 'No proof note found.'); ?></p>
-                                    </div>
-
-                                    <div class="penalty-section">
-                                        <h4>
-                                            <i class="bi bi-shield-exclamation"></i>
-                                            Penalty / Accountability History
-                                        </h4>
-
-                                        <?php if (!empty($reportPenalties)): ?>
-                                            <div class="penalty-table-wrap">
-                                                <table class="penalty-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Member</th>
-                                                            <th>Role</th>
-                                                            <th>Penalty</th>
-                                                            <th>Demerit</th>
-                                                            <th>Warning</th>
-                                                            <th>Status</th>
-                                                            <th>Date</th>
-                                                        </tr>
-                                                    </thead>
-
-                                                    <tbody>
-                                                        <?php foreach ($reportPenalties as $penalty): ?>
-                                                            <tr>
-                                                                <td><?php echo fcrText($penalty['full_name']); ?></td>
-                                                                <td><?php echo fcrText(ucwords(str_replace('_', ' ', $penalty['role']))); ?></td>
-                                                                <td>
-                                                                    <span class="penalty-badge <?php echo fcrText($penalty['penalty_type']); ?>">
-                                                                        <?php echo fcrText(fcrPenaltyLabel($penalty['penalty_type'])); ?>
-                                                                    </span>
-                                                                </td>
-                                                                <td><?php echo (int) $penalty['demerit_points']; ?></td>
-                                                                <td><?php echo (int) $penalty['warning_count']; ?></td>
-                                                                <td><?php echo fcrText(ucwords(str_replace('_', ' ', $penalty['member_status']))); ?></td>
-                                                                <td><?php echo fcrText(fcrDateTime($penalty['created_at'])); ?></td>
-                                                            </tr>
-                                                        <?php endforeach; ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="empty-penalty">
-                                                <i class="bi bi-info-circle"></i>
-                                                No penalty log found for this report.
-                                            </div>
-                                        <?php endif; ?>
+                                        <span>Ward Officer Decision Note</span>
+                                        <p><?php echo fcrText($report['reopen_reason'] ?: 'No ward officer note recorded.'); ?></p>
                                     </div>
 
                                 </div>
@@ -871,7 +777,6 @@ foreach ($reports as $report) {
 
             <?php
             $footerPath = __DIR__ . '/../../includes/inspector/footer.php';
-
             if (file_exists($footerPath)) {
                 include $footerPath;
             }
@@ -884,6 +789,7 @@ foreach ($reports as $report) {
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/false-completion-reports.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

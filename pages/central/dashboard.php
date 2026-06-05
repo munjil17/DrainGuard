@@ -1,4 +1,5 @@
 <?php
+// pages/central/dashboard.php
 require_once "../../config.php";
 
 $allowed_role = "central_officer";
@@ -15,13 +16,8 @@ function cd_safe($value)
 function cd_count_query($conn, $sql)
 {
     $result = mysqli_query($conn, $sql);
-
-    if (!$result) {
-        return 0;
-    }
-
+    if (!$result) return 0;
     $row = mysqli_fetch_assoc($result);
-
     return (int)($row["total"] ?? 0);
 }
 
@@ -29,73 +25,30 @@ function cd_fetch_all($conn, $sql)
 {
     $rows = [];
     $result = mysqli_query($conn, $sql);
-
-    if (!$result) {
-        return $rows;
-    }
-
+    if (!$result) return $rows;
     while ($row = mysqli_fetch_assoc($result)) {
         $rows[] = $row;
     }
-
     return $rows;
 }
 
-$totalComplaints = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM complaints
-");
+// KPI 1: Total Complaints
+$totalComplaints = cd_count_query($conn, "SELECT COUNT(DISTINCT complaint_id) AS total FROM complaints");
 
-$pendingVerification = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM complaints
-    WHERE LOWER(complaint_status) IN ('submitted', 'pending_verification')
-");
+// KPI 2: Pending Verification
+$pendingVerification = cd_count_query($conn, "SELECT COUNT(DISTINCT complaint_id) AS total FROM complaints WHERE complaint_status = 'pending_verification'");
 
-$emergencyCases = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM complaints
-    WHERE LOWER(urgency_level) = 'critical'
-    AND LOWER(complaint_status) NOT IN ('solved', 'closed', 'rejected')
-");
+// KPI 3: In Progress
+$inProgressCases = cd_count_query($conn, "SELECT COUNT(DISTINCT complaint_id) AS total FROM complaints WHERE complaint_status = 'in_progress'");
 
-$inProgressCases = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM complaints
-    WHERE LOWER(complaint_status) IN ('assigned', 'in_progress')
-");
+// KPI 4: Solved Cases
+$solvedCases = cd_count_query($conn, "SELECT COUNT(DISTINCT complaint_id) AS total FROM complaints WHERE complaint_status = 'closed'");
 
-$solvedCases = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM complaints
-    WHERE LOWER(complaint_status) IN ('solved', 'closed', 'completed')
-");
+// KPI 5: Reopen / Disputed
+$reopenDisputedCases = cd_count_query($conn, "SELECT COUNT(DISTINCT complaint_id) AS total FROM complaints WHERE complaint_status IN ('reopened', 'disputed')");
 
-$highRiskZones = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM (
-        SELECT loc_id
-        FROM complaints
-        WHERE LOWER(urgency_level) IN ('high', 'critical')
-        GROUP BY loc_id
-        HAVING COUNT(*) >= 2
-    ) risk_locations
-");
-
-$redAlertCases = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM complaints
-    WHERE LOWER(urgency_level) = 'critical'
-    AND LOWER(complaint_status) NOT IN ('solved', 'closed', 'rejected')
-    AND TIMESTAMPDIFF(HOUR, submitted_at, NOW()) >= 8
-");
-
-$teamDelaySummary = cd_count_query($conn, "
-    SELECT COUNT(*) AS total
-    FROM complaints
-    WHERE LOWER(complaint_status) IN ('assigned', 'in_progress')
-    AND TIMESTAMPDIFF(DAY, submitted_at, NOW()) >= 2
-");
+// KPI 6: High Risk Zone
+$highRiskZones = cd_count_query($conn, "SELECT COUNT(DISTINCT risk_id) AS total FROM risk WHERE risk_status = 'Active' AND urgency_level IN ('High', 'Critical')");
 
 $kpiCards = [
     [
@@ -108,103 +61,118 @@ $kpiCards = [
         "title" => "Pending Verification",
         "value" => $pendingVerification,
         "icon" => "bi-clock",
-        "color" => "blue"
-    ],
-    [
-        "title" => "Emergency Cases",
-        "value" => $emergencyCases,
-        "icon" => "bi-exclamation-triangle",
-        "color" => "red"
+        "color" => "orange"
     ],
     [
         "title" => "In Progress",
         "value" => $inProgressCases,
         "icon" => "bi-graph-up-arrow",
-        "color" => "orange"
+        "color" => "blue"
     ],
     [
-        "title" => "Solved",
+        "title" => "Solved Cases",
         "value" => $solvedCases,
         "icon" => "bi-check-circle",
         "color" => "green"
     ],
     [
-        "title" => "High Risk Zones",
+        "title" => "Reopen / Disputed",
+        "value" => $reopenDisputedCases,
+        "icon" => "bi-exclamation-triangle",
+        "color" => "red"
+    ],
+    [
+        "title" => "High Risk Zone",
         "value" => $highRiskZones,
         "icon" => "bi-geo-alt",
         "color" => "red"
-    ],
-    [
-        "title" => "Red Alert Cases",
-        "value" => $redAlertCases,
-        "icon" => "bi-bell",
-        "color" => "red"
-    ],
-    [
-        "title" => "Team Delay Summary",
-        "value" => $teamDelaySummary,
-        "icon" => "bi-clock-history",
-        "color" => "yellow"
     ]
 ];
 
-$redAlerts = cd_fetch_all($conn, "
-    SELECT
-        c.complaint_code,
-        c.address_description,
-        c.submitted_at,
-        c.urgency_level,
-        cc.city_cor_name,
-        w.ward_name,
-        a.area_name,
-        TIMESTAMPDIFF(HOUR, c.submitted_at, NOW()) AS overdue_hours
-    FROM complaints c
-    LEFT JOIN locations l ON c.loc_id = l.loc_id
-    LEFT JOIN city_corporations cc ON l.city_cor_id = cc.city_cor_id
-    LEFT JOIN wards w ON l.ward_id = w.ward_id
-    LEFT JOIN areas a ON l.area_id = a.area_id
-    WHERE LOWER(c.urgency_level) = 'critical'
-    AND LOWER(c.complaint_status) NOT IN ('solved', 'closed', 'rejected')
-    AND TIMESTAMPDIFF(HOUR, c.submitted_at, NOW()) >= 8
-    ORDER BY c.submitted_at ASC
-    LIMIT 5
-");
+// Summary Sections Data
 
-$wardOverview = cd_fetch_all($conn, "
-    SELECT
-        w.ward_id,
-        w.ward_name,
-        cc.city_cor_name,
-        COUNT(c.complaint_id) AS total_complaints,
-        SUM(CASE WHEN LOWER(c.complaint_status) IN ('solved', 'closed', 'completed') THEN 1 ELSE 0 END) AS solved_complaints,
-        SUM(CASE WHEN LOWER(c.urgency_level) = 'critical' THEN 1 ELSE 0 END) AS critical_complaints
-    FROM complaints c
-    INNER JOIN locations l ON c.loc_id = l.loc_id
-    INNER JOIN wards w ON l.ward_id = w.ward_id
-    INNER JOIN city_corporations cc ON l.city_cor_id = cc.city_cor_id
-    GROUP BY w.ward_id, w.ward_name, cc.city_cor_name
-    ORDER BY critical_complaints DESC, total_complaints DESC
+// 1. Recent Complaints
+$recentComplaints = cd_fetch_all($conn, "
+    SELECT c.complaint_code, i.issue_name, a.area_name, c.complaint_status, c.submitted_at 
+    FROM complaints c 
+    LEFT JOIN issues i ON c.issue_id = i.issue_id 
+    LEFT JOIN locations l ON c.loc_id = l.loc_id 
+    LEFT JOIN areas a ON l.area_id = a.area_id 
+    ORDER BY c.submitted_at DESC 
     LIMIT 3
 ");
+
+// 2. Ward Verification
+$wardVerification = cd_fetch_all($conn, "
+    SELECT c.complaint_code, w.ward_name, a.area_name, c.complaint_status, c.submitted_at 
+    FROM complaints c 
+    LEFT JOIN locations l ON c.loc_id = l.loc_id 
+    LEFT JOIN wards w ON l.ward_id = w.ward_id 
+    LEFT JOIN areas a ON l.area_id = a.area_id 
+    WHERE c.complaint_status = 'pending_verification' 
+    ORDER BY c.submitted_at DESC 
+    LIMIT 3
+");
+
+// 3. Drain Record
+$drainRecords = cd_fetch_all($conn, "
+    SELECT d.drain_code, d.drain_name, a.area_name, d.drain_condition 
+    FROM drains d 
+    LEFT JOIN locations l ON d.loc_id = l.loc_id 
+    LEFT JOIN areas a ON l.area_id = a.area_id 
+    ORDER BY d.created_at DESC 
+    LIMIT 3
+");
+
+// 4. Risk Zone
+$riskZones = cd_fetch_all($conn, "
+    SELECT t.thana_name, w.ward_name, a.area_name, r.urgency_level, r.complaint_count_30_days 
+    FROM risk r 
+    LEFT JOIN thanas t ON r.thana_id = t.thana_id 
+    LEFT JOIN wards w ON r.ward_id = w.ward_id 
+    LEFT JOIN areas a ON r.area_id = a.area_id 
+    WHERE r.risk_status = 'Active' 
+    ORDER BY CASE WHEN r.urgency_level = 'High' THEN 1 ELSE 0 END DESC, r.complaint_count_30_days DESC 
+    LIMIT 3
+");
+
+// 5. Recent Reports
+$recentReports = cd_fetch_all($conn, "
+    SELECT report_name, generated_at 
+    FROM generated_reports 
+    ORDER BY generated_at DESC 
+    LIMIT 3
+");
+
+// 6. Team Ratings
+$tableExists = mysqli_query($conn, "SHOW TABLES LIKE 'maintenance_team_reviews'");
+$teamRatings = [];
+if ($tableExists && mysqli_num_rows($tableExists) > 0) {
+    $teamRatings = cd_fetch_all($conn, "
+        SELECT t.team_name, AVG(r.rating) as avg_rating, COUNT(r.review_id) as total_reviews 
+        FROM maintenance_team_reviews r 
+        LEFT JOIN maintenance_teams t ON r.maintenance_team_id = t.maintenance_team_id 
+        GROUP BY r.maintenance_team_id 
+        ORDER BY avg_rating DESC, total_reviews DESC 
+        LIMIT 3
+    ");
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title><?php echo cd_safe($pageTitle); ?> | DrainGuard</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
-    <link rel="stylesheet" href="../../css/central/footer.css">
+
     <link rel="stylesheet" href="../../css/central/dashboard.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -230,130 +198,174 @@ $wardOverview = cd_fetch_all($conn, "
                         <div class="cd-kpi-icon <?php echo cd_safe($card["color"]); ?>">
                             <i class="bi <?php echo cd_safe($card["icon"]); ?>"></i>
                         </div>
-
                         <h2><?php echo number_format((int)$card["value"]); ?></h2>
                         <p><?php echo cd_safe($card["title"]); ?></p>
                     </div>
                 <?php endforeach; ?>
             </div>
 
-            <div class="cd-red-alert-panel">
+            <div class="cd-section-grid">
 
-                <div class="cd-alert-header">
-                    <div class="cd-alert-left">
-                        <div class="cd-alert-icon">
-                            <i class="bi bi-bell"></i>
-                        </div>
-
-                        <div>
-                            <h2>Red Alert: Emergency Cases</h2>
-                            <p><?php echo number_format($redAlertCases); ?> emergency complaint(s) not handled within SLA</p>
-                        </div>
+                <!-- 1. Recent Complaints -->
+                <div class="cd-summary-card">
+                    <div class="cd-summary-header">
+                        <h2>Recent Complaints</h2>
+                        <a href="complaints.php">View All</a>
                     </div>
-
-                    <a href="complaints.php" class="cd-review-btn">Review Now</a>
-                </div>
-
-                <div class="cd-alert-list">
-
-                    <?php if (count($redAlerts) > 0): ?>
-                        <?php foreach ($redAlerts as $alert): ?>
-                            <?php
-                            $locationTextParts = [];
-
-                            if (!empty($alert["city_cor_name"])) {
-                                $locationTextParts[] = $alert["city_cor_name"];
-                            }
-
-                            if (!empty($alert["ward_name"])) {
-                                $locationTextParts[] = $alert["ward_name"];
-                            }
-
-                            if (!empty($alert["area_name"])) {
-                                $locationTextParts[] = $alert["area_name"];
-                            }
-
-                            $locationText = count($locationTextParts) > 0
-                                ? implode(", ", $locationTextParts)
-                                : ($alert["address_description"] ?? "Location unavailable");
-
-                            $overdueHours = (int)($alert["overdue_hours"] ?? 0);
-                            ?>
-                            <div class="cd-alert-item">
-                                <div>
-                                    <h3><?php echo cd_safe($alert["complaint_code"]); ?></h3>
-                                    <p><?php echo cd_safe($locationText); ?></p>
+                    <div class="cd-summary-body">
+                        <?php if (count($recentComplaints) > 0): ?>
+                            <?php foreach ($recentComplaints as $row): ?>
+                                <div class="cd-summary-item">
+                                    <div class="cd-summary-info">
+                                        <strong><?php echo cd_safe($row['complaint_code']); ?></strong>
+                                        <span><?php echo cd_safe($row['issue_name'] ?? 'Unknown Issue'); ?> &bull; <?php echo cd_safe($row['area_name'] ?? 'Unknown Area'); ?></span>
+                                    </div>
+                                    <div class="cd-summary-meta">
+                                        <span class="status-badge status-<?php echo strtolower(cd_safe($row['complaint_status'])); ?>"><?php echo ucfirst(str_replace('_', ' ', cd_safe($row['complaint_status']))); ?></span>
+                                        <small><?php echo date('M d, Y', strtotime($row['submitted_at'])); ?></small>
+                                    </div>
                                 </div>
-
-                                <span><?php echo $overdueHours; ?> hrs overdue</span>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="cd-alert-empty">
-                            <i class="bi bi-check-circle"></i>
-                            <span>No red alert cases right now.</span>
-                        </div>
-                    <?php endif; ?>
-
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="cd-empty-state">No recent complaints.</div>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
-            </div>
-
-            <div class="cd-panel">
-
-                <div class="cd-panel-header">
-                    <h2>Ward-wise Overview</h2>
-
-                    <a href="reports.php">
-                        View Detailed Reports <i class="bi bi-chevron-right"></i>
-                    </a>
+                <!-- 2. Ward Verification -->
+                <div class="cd-summary-card">
+                    <div class="cd-summary-header">
+                        <h2>Ward Verification</h2>
+                        <a href="routing-assignment.php">View All</a>
+                    </div>
+                    <div class="cd-summary-body">
+                        <?php if (count($wardVerification) > 0): ?>
+                            <?php foreach ($wardVerification as $row): ?>
+                                <div class="cd-summary-item">
+                                    <div class="cd-summary-info">
+                                        <strong><?php echo cd_safe($row['complaint_code']); ?></strong>
+                                        <span><?php echo cd_safe($row['ward_name'] ?? 'Unknown Ward'); ?> &bull; <?php echo cd_safe($row['area_name'] ?? 'Unknown Area'); ?></span>
+                                    </div>
+                                    <div class="cd-summary-meta">
+                                        <span class="status-badge status-pending_verification"><?php echo ucfirst(str_replace('_', ' ', cd_safe($row['complaint_status']))); ?></span>
+                                        <small><?php echo date('M d, Y', strtotime($row['submitted_at'])); ?></small>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="cd-empty-state">No pending verifications.</div>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
-                <div class="cd-ward-grid">
+                <!-- 3. Drain Record -->
+                <div class="cd-summary-card">
+                    <div class="cd-summary-header">
+                        <h2>Drain Record</h2>
+                        <a href="drain-records.php">View All</a>
+                    </div>
+                    <div class="cd-summary-body">
+                        <?php if (count($drainRecords) > 0): ?>
+                            <?php foreach ($drainRecords as $row): ?>
+                                <div class="cd-summary-item">
+                                    <div class="cd-summary-info">
+                                        <strong><?php echo cd_safe($row['drain_code'] ?: $row['drain_name']); ?></strong>
+                                        <span><?php echo cd_safe($row['area_name'] ?? 'Unknown Area'); ?></span>
+                                    </div>
+                                    <div class="cd-summary-meta">
+                                        <span class="status-badge"><?php echo ucfirst(cd_safe($row['drain_condition'] ?? 'Unknown')); ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="cd-empty-state">No drain records found.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
 
-                    <?php if (count($wardOverview) > 0): ?>
-                        <?php foreach ($wardOverview as $ward): ?>
-                            <?php
-                            $totalWardComplaints = (int)($ward["total_complaints"] ?? 0);
-                            $solvedWardComplaints = (int)($ward["solved_complaints"] ?? 0);
-                            $criticalWardComplaints = (int)($ward["critical_complaints"] ?? 0);
+                <!-- 4. Risk Zone -->
+                <div class="cd-summary-card">
+                    <div class="cd-summary-header">
+                        <h2>Risk Zone</h2>
+                        <a href="high-risk-zones.php">View All</a>
+                    </div>
+                    <div class="cd-summary-body">
+                        <?php if (count($riskZones) > 0): ?>
+                            <?php foreach ($riskZones as $row): ?>
+                                <?php 
+                                    $loc = array_filter([$row['thana_name'], $row['ward_name'], $row['area_name']]);
+                                    $locText = !empty($loc) ? implode(", ", $loc) : "Unknown Location";
+                                ?>
+                                <div class="cd-summary-item">
+                                    <div class="cd-summary-info">
+                                        <strong><?php echo cd_safe($locText); ?></strong>
+                                        <span><?php echo (int)$row['complaint_count_30_days']; ?> recent complaints</span>
+                                    </div>
+                                    <div class="cd-summary-meta">
+                                        <span class="status-badge status-critical"><?php echo ucfirst(cd_safe($row['urgency_level'])); ?> Risk</span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="cd-empty-state">No active risk zones.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
 
-                            $resolvedPercent = $totalWardComplaints > 0
-                                ? round(($solvedWardComplaints / $totalWardComplaints) * 100)
-                                : 0;
+                <!-- 5. Recent Reports -->
+                <div class="cd-summary-card">
+                    <div class="cd-summary-header">
+                        <h2>Recent Reports</h2>
+                        <a href="reports.php">View All</a>
+                    </div>
+                    <div class="cd-summary-body">
+                        <?php if (count($recentReports) > 0): ?>
+                            <?php foreach ($recentReports as $row): ?>
+                                <div class="cd-summary-item">
+                                    <div class="cd-summary-info">
+                                        <strong><?php echo cd_safe($row['report_name']); ?></strong>
+                                    </div>
+                                    <div class="cd-summary-meta">
+                                        <small><?php echo date('M d, Y', strtotime($row['generated_at'])); ?></small>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="cd-empty-state">No recent reports.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
 
-                            if ($criticalWardComplaints >= 2) {
-                                $wardClass = "danger";
-                                $wardNote = "Emergency attention";
-                            } elseif ($resolvedPercent < 50) {
-                                $wardClass = "warning";
-                                $wardNote = "High pending load";
-                            } else {
-                                $wardClass = "stable";
-                                $wardNote = $resolvedPercent . "% resolved";
-                            }
-                            ?>
-
-                            <div class="cd-ward-card <?php echo cd_safe($wardClass); ?>">
-                                <h3><?php echo cd_safe($ward["city_cor_name"] . " - " . $ward["ward_name"]); ?></h3>
-                                <p><?php echo number_format($totalWardComplaints); ?> complaints</p>
-                                <span><?php echo cd_safe($wardNote); ?></span>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="cd-ward-empty">
-                            <i class="bi bi-inbox"></i>
-                            <span>No ward complaint data found yet.</span>
-                        </div>
-                    <?php endif; ?>
-
+                <!-- 6. Team Ratings -->
+                <div class="cd-summary-card">
+                    <div class="cd-summary-header">
+                        <h2>Team Ratings</h2>
+                        <a href="team-feedback.php">View All</a>
+                    </div>
+                    <div class="cd-summary-body">
+                        <?php if (count($teamRatings) > 0): ?>
+                            <?php foreach ($teamRatings as $row): ?>
+                                <div class="cd-summary-item">
+                                    <div class="cd-summary-info">
+                                        <strong><?php echo cd_safe($row['team_name'] ?? 'Unknown Team'); ?></strong>
+                                        <span><?php echo (int)$row['total_reviews']; ?> Reviews</span>
+                                    </div>
+                                    <div class="cd-summary-meta">
+                                        <span class="rating-badge"><i class="bi bi-star-fill"></i> <?php echo number_format($row['avg_rating'], 1); ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="cd-empty-state">No team ratings available.</div>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
             </div>
 
         </section>
 
-        <?php include "../../includes/central/footer.php"; ?>
+        
 
     </main>
 
@@ -362,5 +374,6 @@ $wardOverview = cd_fetch_all($conn, "
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/dashboard.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

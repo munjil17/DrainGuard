@@ -62,6 +62,7 @@ if ($infoStmt) {
     <link rel="stylesheet" href="../../css/citizen/topbar.css">
     <link rel="stylesheet" href="../../css/citizen/discussion.css">
     <link rel="stylesheet" href="../../css/commentSystem/commentSystem.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 <body class="citizen">
 
@@ -137,5 +138,6 @@ if ($infoStmt) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../../js/citizen/sidebar.js"></script>
 <script src="../../js/commentSystem/commentSystem.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

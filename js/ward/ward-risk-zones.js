@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function applyFilters() {
         const searchValue = (searchInput?.value || "").trim().toLowerCase();
         const riskValue = riskFilter?.value || "all";
+        let visibleComplaintsCount = 0;
 
         cards.forEach(function (card) {
             const cardSearch = card.getAttribute("data-search") || "";
@@ -17,9 +18,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const matchesSearch = searchValue === "" || cardSearch.includes(searchValue);
             const matchesRisk = riskValue === "all" || cardRisk === riskValue;
+            
+            const isVisible = matchesSearch && matchesRisk;
 
-            card.classList.toggle("wrz-hidden", !(matchesSearch && matchesRisk));
+            card.classList.toggle("wrz-hidden", !isVisible);
+            
+            if (isVisible) {
+                const viewBtn = card.querySelector(".view-details");
+                if (viewBtn) {
+                    visibleComplaintsCount += parseInt(viewBtn.dataset.complaints || 0, 10);
+                }
+            }
         });
+        
+        const countElem = document.getElementById("visibleComplaintsCount");
+        if (countElem) {
+            countElem.textContent = visibleComplaintsCount;
+        }
     }
 
     function setText(id, value) {

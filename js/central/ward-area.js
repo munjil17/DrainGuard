@@ -53,7 +53,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const instructionWardId = document.getElementById("instructionWardId");
     const instructionTitleInput = document.getElementById("instructionTitleInput");
     const instructionMessage = document.getElementById("instructionMessage");
-    const instructionPriority = document.getElementById("instructionPriority");
 
     let selectedWard = null;
 
@@ -255,12 +254,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 const oldName = button.dataset.areaName || "";
 
                 if (!selectedWard || !selectedWard.ward_id) {
-                    alert("Please select a ward first.");
+                    showWarningModal("Please select a ward first.");
                     return;
                 }
 
                 if (areaId <= 0) {
-                    alert("Invalid area selected.");
+                    showWarningModal("Invalid area selected.");
                     return;
                 }
 
@@ -273,12 +272,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 const cleanedName = newName.trim();
 
                 if (cleanedName.length < 2) {
-                    alert("Area name must be at least 2 characters.");
+                    showWarningModal("Area name must be at least 2 characters.");
                     return;
                 }
 
                 if (!renameAreaForm || !renameAreaId || !renameWardId || !renameAreaName) {
-                    alert("Rename form is missing.");
+                    showWarningModal("Rename form is missing.");
                     return;
                 }
 
@@ -292,7 +291,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function openAreaModal() {
         if (!selectedWard || !areaModal) {
-            alert("Please select a ward first.");
+            showWarningModal("Please select a ward first.");
             return;
         }
 
@@ -324,7 +323,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function openInstructionModal(type) {
         if (!selectedWard) {
-            alert("Please select a ward first.");
+            showWarningModal("Please select a ward first.");
             return;
         }
 
@@ -350,7 +349,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (instructionWardId) instructionWardId.value = selectedWard.ward_id || "";
         if (instructionTitleInput) instructionTitleInput.value = "";
         if (instructionMessage) instructionMessage.value = "";
-        if (instructionPriority) instructionPriority.value = "Normal";
 
         renderInstructionOptions(options);
 
@@ -485,7 +483,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!ward) {
                 hideWardCard();
-                alert("Ward details not found.");
+                showWarningModal("Ward details not found.");
                 return;
             }
 
@@ -540,7 +538,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!title || !message) {
                 event.preventDefault();
-                alert("Please select an instruction before sending.");
+                showWarningModal("Please select an instruction before sending.");
             }
         });
     }
@@ -556,7 +554,7 @@ document.addEventListener("DOMContentLoaded", function () {
         addAreaForm.addEventListener("submit", function (event) {
             if (!selectedWard) {
                 event.preventDefault();
-                alert("Please select a ward first.");
+                showWarningModal("Please select a ward first.");
                 return;
             }
 
@@ -564,7 +562,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (value.length < 2) {
                 event.preventDefault();
-                alert("Area name must be at least 2 characters.");
+                showWarningModal("Area name must be at least 2 characters.");
             }
         });
     }

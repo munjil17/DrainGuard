@@ -1141,6 +1141,7 @@ $complaints = array_values($complaints);
                                                 <button
                                                     type="button"
                                                     class="cm-details-btn"
+                                                    data-id="<?php echo $complaintId; ?>"
                                                     data-code="<?php echo $complaintCode; ?>"
                                                     data-title="<?php echo $shortTitle; ?>"
                                                     data-user="<?php echo safeText($complaint["user_name"]); ?>"

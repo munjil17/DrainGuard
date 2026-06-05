@@ -106,6 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/global/forgot_password.css">
+    <link rel="stylesheet" href="../css/global/confirm-modal.css">
 </head>
 <body>
 
@@ -142,5 +143,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </a>
     </div>
 
+<script src="../js/global/confirm-modal.js"></script>
 </body>
 </html>

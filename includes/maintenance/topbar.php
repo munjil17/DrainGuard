@@ -113,6 +113,7 @@ if (!function_exists('maintenance_notification_icon')) {
         $type = strtolower(trim((string)$type));
         if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
         if (in_array($type, ['system', 'alert'])) return 'bi-exclamation-triangle';
+        if ($type === 'ward_reply_support_request') return 'bi-reply-all';
         if ($type === 'comment_reply') return 'bi-chat-dots';
         return 'bi-bell';
     }
@@ -123,6 +124,7 @@ if (!function_exists('maintenance_notification_type_class')) {
         $type = strtolower(trim((string)$type));
         if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'type-track';
         if (in_array($type, ['system', 'alert'])) return 'type-objection';
+        if ($type === 'ward_reply_support_request') return 'type-alert';
         if ($type === 'comment_reply') return 'type-reply';
         return 'type-system';
     }
@@ -154,7 +156,8 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
             mn.notification_message,
             mn.is_read,
             mn.created_at,
-            c.complaint_code
+            c.complaint_code,
+            c.complaint_status
         FROM maintenance_notifications mn
         LEFT JOIN complaints c ON mn.related_complaint_id = c.complaint_id
         WHERE mn.recipient_user_id = ?
@@ -223,7 +226,17 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
 
                                 $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
                                 if (!empty($notification['complaint_code'])) {
-                                    $notificationLink .= '&redirect=tasks'; // Or whatever page handles tasks
+                                    if ($notificationType === 'comment_reply') {
+                                        $notificationLink .= '&redirect=discussion';
+                                    } elseif ($notificationType === 'ward_reply_support_request') {
+                                        if (isset($notification["complaint_status"]) && $notification["complaint_status"] === 'in_progress') {
+                                            $notificationLink .= '&redirect=in-progress-work';
+                                        } else {
+                                            $notificationLink .= '&redirect=assigned-tasks';
+                                        }
+                                    } else {
+                                        $notificationLink .= '&redirect=assigned-tasks'; // Or whatever page handles tasks
+                                    }
                                 }
                             ?>
 
@@ -276,3 +289,10 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
         </div>
     </div>
 </header>
+<!-- Global Notification Highlight -->
+<link rel='stylesheet' href='/DrainGuard/css/global/notification-target.css'>
+<script src='/DrainGuard/js/global/notification-target.js'></script>
+
+<!-- Global Confirm Modal -->
+<link rel='stylesheet' href='/DrainGuard/css/global/confirm-modal.css'>
+<script src='/DrainGuard/js/global/confirm-modal.js'></script>

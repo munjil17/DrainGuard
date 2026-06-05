@@ -225,7 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         notification_message,
                         is_read,
                         created_at
-                    ) VALUES (?, ?, ?, 'complaint_routed', 'New Complaint Assigned', ?, 0, NOW())
+                    ) VALUES (?, ?, ?, 'complaint_routed', 'New Complaint Assigned for Verification', ?, 0, NOW())
                 ";
                 $wardNotifStmt = mysqli_prepare($conn, $wardNotifSql);
                 if ($wardNotifStmt) {
@@ -497,6 +497,7 @@ if ($routedResult) {
 
     <link rel="stylesheet" href="../../css/central/routing-assignment.css">
     <link rel="stylesheet" href="../../css/central/centralTextFix.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="central">
@@ -923,5 +924,6 @@ if ($routedResult) {
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/routing-assignment.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

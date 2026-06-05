@@ -37,7 +37,7 @@
 
         function showAlert(message) {
             if (!alertBox) {
-                alert(message);
+                showWarningModal(message);
                 return;
             }
             alertBox.textContent = message;
@@ -249,18 +249,26 @@
 
                 if (deleteButton) {
                     const commentId = deleteButton.dataset.deleteComment;
-                    if (!confirm("Delete this comment?")) return;
+                    
+                    showConfirmModal({
+                        title: "Delete Comment",
+                        message: "Delete this comment?",
+                        confirmText: "Delete",
+                        cancelText: "Cancel",
+                        type: "danger",
+                        onConfirm: async function() {
+                            const formData = new FormData();
+                            formData.append("comment_id", commentId);
 
-                    const formData = new FormData();
-                    formData.append("comment_id", commentId);
-
-                    try {
-                        const data = await postForm(`${basePath}commentSystem/delete_comment.php`, formData);
-                        if (!data.success) { showAlert(data.message); return; }
-                        await window.loadComments();
-                    } catch (error) {
-                        showAlert("Failed to delete comment.");
-                    }
+                            try {
+                                const data = await postForm(`${basePath}commentSystem/delete_comment.php`, formData);
+                                if (!data.success) { showAlert(data.message); return; }
+                                await window.loadComments();
+                            } catch (error) {
+                                showAlert("Failed to delete comment.");
+                            }
+                        }
+                    });
                 }
             });
 

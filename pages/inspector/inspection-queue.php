@@ -426,6 +426,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $assignmentId = (int) $allowedComplaint['assignment_id'];
         $maintenanceTeamId = (int) $allowedComplaint['maintenance_team_id'];
 
+        // Add to inspection_logs
+        $logStmt = mysqli_prepare(
+            $conn,
+            "INSERT INTO inspection_logs 
+            (complaint_id, assignment_id, inspector_user_id, decision_type, decision_note, source_type) 
+            VALUES (?, ?, ?, ?, ?, 'inspection_queue')"
+        );
+        
+        if (!$logStmt) {
+            throw new Exception(mysqli_error($conn));
+        }
+        
+        mysqli_stmt_bind_param($logStmt, "iiiss", $complaintId, $assignmentId, $userId, $action, $inspectionNote);
+        mysqli_stmt_execute($logStmt);
+        mysqli_stmt_close($logStmt);
+
         if ($action === 'approve') {
             $newStatus = 'closed';
 
@@ -491,7 +507,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     c.complaint_code, 
                     c.user_id AS citizen_id, 
                     c.loc_id,
-                    (SELECT assigned_by FROM complaint_assignments WHERE complaint_id = c.complaint_id AND assignment_status = 'ward_assigned' LIMIT 1) AS central_officer_id
+                    (SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = c.complaint_id AND u.user_role = 'central_officer' LIMIT 1) AS central_officer_id
                 FROM complaints c
                 WHERE c.complaint_id = ?
                 LIMIT 1
@@ -542,11 +558,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $notifTime = date('Y-m-d H:i:s');
 
             // Citizen
+            $notifTypeApprove = 'inspector_work_approved';
+            $notifTitleApprove = 'Work Approved by Inspector';
+            $baseMsgApprove = "Inspector approved the completed work for complaint {$complaintCode}. The complaint is now closed/solved.";
+
             if ($citizenUserId > 0) {
-                $msg = "Your complaint has been approved by Inspector and marked as solved.";
-                $ins = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Complaint Solved', ?, 0, ?)");
+                $ins = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
-                    mysqli_stmt_bind_param($ins, "iiiss", $citizenUserId, $userId, $complaintId, $msg, $notifTime);
+                    mysqli_stmt_bind_param($ins, "iiissss", $citizenUserId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
                 }
@@ -554,10 +573,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Central Officer
             if ($centralOfficerUserId > 0) {
-                $msg = "Inspector approved work for a complaint routed through your panel. ({$complaintCode})";
-                $ins = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Work Approved', ?, 0, ?)");
+                $ins = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
-                    mysqli_stmt_bind_param($ins, "iiiss", $centralOfficerUserId, $userId, $complaintId, $msg, $notifTime);
+                    mysqli_stmt_bind_param($ins, "iiissss", $centralOfficerUserId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
                 }
@@ -565,10 +583,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Ward Officer
             if ($wardOfficerUserId > 0) {
-                $msg = "Inspector approved the completed work for your assigned ward complaint {$complaintCode}.";
-                $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Work Approved', ?, 0, ?)");
+                $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
-                    mysqli_stmt_bind_param($ins, "iiiss", $wardOfficerUserId, $userId, $complaintId, $msg, $notifTime);
+                    mysqli_stmt_bind_param($ins, "iiissss", $wardOfficerUserId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
                 }
@@ -576,10 +593,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Maintenance Team
             foreach ($maintenanceTeamMembers as $memberId) {
-                $msg = "Inspector approved your completed work for complaint {$complaintCode}.";
-                $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Work Approved', ?, 0, ?)");
+                $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
-                    mysqli_stmt_bind_param($ins, "iiiss", $memberId, $userId, $complaintId, $msg, $notifTime);
+                    mysqli_stmt_bind_param($ins, "iiissss", $memberId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
                 }
@@ -681,21 +697,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Notifications
             $notifTime = date('Y-m-d H:i:s');
 
+            $notifTypeFalse = 'inspector_false_completion_confirmed';
+            $notifTitleFalse = 'False Completion Confirmed';
+            $baseMsgFalse = "Inspector confirmed false completion for complaint {$complaintCode}. The case has been reopened/disputed.";
+
             if ($wardOfficerUserId > 0) {
-                $msg = "Inspector reported possible false completion for complaint {$complaintCode}. Please review this claim.";
-                $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'False Completion Claim', ?, 0, ?)");
+                $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
-                    mysqli_stmt_bind_param($ins, "iiiss", $wardOfficerUserId, $userId, $complaintId, $msg, $notifTime);
+                    mysqli_stmt_bind_param($ins, "iiissss", $wardOfficerUserId, $userId, $complaintId, $notifTypeFalse, $notifTitleFalse, $baseMsgFalse, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
                 }
             }
 
             foreach ($maintenanceTeamMembers as $memberId) {
-                $msg = "Inspector reported possible false completion for your submitted work on complaint {$complaintCode}. Ward Officer will review the claim.";
-                $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'False Completion Claim', ?, 0, ?)");
+                $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
-                    mysqli_stmt_bind_param($ins, "iiiss", $memberId, $userId, $complaintId, $msg, $notifTime);
+                    mysqli_stmt_bind_param($ins, "iiissss", $memberId, $userId, $complaintId, $notifTypeFalse, $notifTitleFalse, $baseMsgFalse, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
                 }
@@ -1014,6 +1032,7 @@ foreach ($queueRows as $case) {
     <link rel="stylesheet" href="../../css/inspector/inspection-queue.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="inspector">
@@ -1334,7 +1353,6 @@ foreach ($queueRows as $case) {
 
             <?php
             $footerPath = __DIR__ . '/../../includes/inspector/footer.php';
-
             if (file_exists($footerPath)) {
                 include $footerPath;
             }
@@ -1347,6 +1365,7 @@ foreach ($queueRows as $case) {
     <script src="../../js/inspector/sidebar.js"></script>
     <script src="../../js/inspector/inspection-queue.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 
 </html>

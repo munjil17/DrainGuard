@@ -29,28 +29,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
     forms.forEach(function (form) {
         form.addEventListener("submit", function (event) {
+            event.preventDefault();
+
             const actionInput = form.querySelector('input[name="action"]');
             const action = actionInput ? actionInput.value : "";
 
             let message = "Are you sure you want to process this request?";
+            let confirmBtnText = "Confirm";
 
             if (action === "same_team") {
                 message = "Reassign this complaint to the same maintenance team?";
-            }
-
-            if (action === "different_team") {
+                confirmBtnText = "Reassign";
+            } else if (action === "different_team") {
                 message = "Move this complaint back to Local Team Assignment for a different team?";
-            }
-
-            if (action === "inspector") {
+                confirmBtnText = "Assign Different";
+            } else if (action === "inspector") {
                 message = "Send this complaint to Inspector Verification?";
+                confirmBtnText = "Send to Inspector";
+            } else if (action === "inspector_claim_true") {
+                message = "Confirm inspector's claim? This will issue a demerit to the maintenance team and reopen the case.";
+                confirmBtnText = "Confirm Claim";
+            } else if (action === "inspector_claim_false") {
+                message = "Reject inspector's claim? This will issue a demerit to the inspector and close the case.";
+                confirmBtnText = "Reject Claim";
             }
 
-            const confirmed = confirm(message);
-
-            if (!confirmed) {
-                event.preventDefault();
-            }
+            showConfirmModal({
+                title: "Confirm Action",
+                message: message,
+                confirmText: confirmBtnText,
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    form.submit();
+                }
+            });
         });
     });
 

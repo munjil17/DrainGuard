@@ -174,13 +174,27 @@
     font-weight: 800;
 }
 
-.wp-info-box strong {
+.wp-edit-input {
+    width: 100%;
     display: block;
     color: #020617;
     font-size: 13px;
     font-weight: 800;
     line-height: 1.4;
-    word-break: break-word;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    font-family: inherit;
+}
+
+.wp-edit-input:not(.readonly):focus {
+    border-bottom: 1px solid #08BFC3;
+}
+
+.wp-edit-input.readonly {
+    color: #64748B;
+    pointer-events: none;
 }
 
 /* BUTTON */

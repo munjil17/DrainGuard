@@ -68,29 +68,36 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (note && note.value.trim().length < 5) {
-                alert("Please write a short ward officer note before submitting.");
+                showWarningModal("Please write a short ward officer note before submitting.");
                 event.preventDefault();
                 return;
             }
 
-            if (!confirm(message)) {
-                event.preventDefault();
-                return;
-            }
+            event.preventDefault();
+            
+            showConfirmModal({
+                title: "Confirm Action",
+                message: message,
+                confirmText: "Confirm",
+                cancelText: "Cancel",
+                type: "confirm",
+                onConfirm: function() {
+                    let hiddenAction = form.querySelector('input[name="ward_action"][type="hidden"]');
 
-            let hiddenAction = form.querySelector('input[name="ward_action"][type="hidden"]');
+                    if (!hiddenAction) {
+                        hiddenAction = document.createElement("input");
+                        hiddenAction.type = "hidden";
+                        hiddenAction.name = "ward_action";
+                        form.appendChild(hiddenAction);
+                    }
 
-            if (!hiddenAction) {
-                hiddenAction = document.createElement("input");
-                hiddenAction.type = "hidden";
-                hiddenAction.name = "ward_action";
-                form.appendChild(hiddenAction);
-            }
+                    hiddenAction.value = action;
 
-            hiddenAction.value = action;
-
-            clickedButton.innerHTML = "Processing...";
-            clickedButton.style.pointerEvents = "none";
+                    clickedButton.innerHTML = "Processing...";
+                    clickedButton.style.pointerEvents = "none";
+                    form.submit();
+                }
+            });
         });
     });
 });

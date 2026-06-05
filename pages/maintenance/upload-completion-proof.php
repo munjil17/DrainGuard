@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     }
     mysqli_stmt_close($stmtC);
 
-    $fetchCentralSql = "SELECT assigned_by FROM complaint_assignments WHERE complaint_id = ? AND assignment_status = 'ward_assigned' LIMIT 1";
+    $fetchCentralSql = "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1";
     $stmtCentral = mysqli_prepare($conn, $fetchCentralSql);
     mysqli_stmt_bind_param($stmtCentral, "i", $complaintId);
     mysqli_stmt_execute($stmtCentral);
@@ -424,34 +424,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         $notifTime = date('Y-m-d H:i:s');
         $maintenanceTeamName = $teamInfo['team_name'];
 
+        $notifType = 'maintenance_completion_proof_submitted';
+        $notifTitle = 'Completion Proof Submitted';
+        $baseMsg = "Maintenance Team submitted completion proof for complaint {$complaintCode}. The complaint is now waiting for inspector review.";
+
         if ($citizenUserId > 0) {
-            $msgC = "Your complaint completion proof has been submitted for inspection.";
-            $insC = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Proof Submitted', ?, 0, ?)");
-            mysqli_stmt_bind_param($insC, "iiiss", $citizenUserId, $userId, $complaintId, $msgC, $notifTime);
+            $insC = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            mysqli_stmt_bind_param($insC, "iiissss", $citizenUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insC);
             mysqli_stmt_close($insC);
         }
 
         if ($centralOfficerUserId > 0) {
-            $msgCent = "Maintenance team {$maintenanceTeamName} submitted completion proof for a complaint.";
-            $insCent = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Proof Submitted', ?, 0, ?)");
-            mysqli_stmt_bind_param($insCent, "iiiss", $centralOfficerUserId, $userId, $complaintId, $msgCent, $notifTime);
+            $insCent = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            mysqli_stmt_bind_param($insCent, "iiissss", $centralOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insCent);
             mysqli_stmt_close($insCent);
         }
 
         if ($wardOfficerUserId > 0) {
-            $msgWard = "Maintenance team {$maintenanceTeamName} submitted completion proof for your assigned complaint.";
-            $insWard = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Proof Submitted', ?, 0, ?)");
-            mysqli_stmt_bind_param($insWard, "iiiss", $wardOfficerUserId, $userId, $complaintId, $msgWard, $notifTime);
+            $insWard = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            mysqli_stmt_bind_param($insWard, "iiissss", $wardOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insWard);
             mysqli_stmt_close($insWard);
         }
 
         if ($inspectorUserId > 0) {
-            $msgInsp = "A solved-by-team case is ready for inspection.";
-            $insInsp = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Inspection Required', ?, 0, ?)");
-            mysqli_stmt_bind_param($insInsp, "iiiss", $inspectorUserId, $userId, $complaintId, $msgInsp, $notifTime);
+            $insInsp = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            mysqli_stmt_bind_param($insInsp, "iiissss", $inspectorUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insInsp);
             mysqli_stmt_close($insInsp);
         }

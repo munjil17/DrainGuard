@@ -396,72 +396,126 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $wardId = (int)($_POST["ward_id"] ?? 0);
         $instructionTitle = trim($_POST["instruction_title"] ?? "");
         $instructionMessage = trim($_POST["instruction_message"] ?? "");
-        $priority = trim($_POST["priority"] ?? "Normal");
 
         $allowedRoles = ["ward_officer", "inspector"];
-        $allowedPriority = ["Normal", "Urgent", "Emergency"];
 
         if (!wa_table_exists($conn, "role_instructions")) {
-            wa_redirect_with("error", "role_instructions table not found. Please create the table first.");
+            wa_redirect_with("error", "role_instructions table not found.");
         }
 
         if ($senderUserId <= 0 || $wardId <= 0 || !in_array($receiverRole, $allowedRoles, true) || $instructionTitle === "") {
             wa_redirect_with("error", "Invalid instruction request.");
         }
 
-        if (!in_array($priority, $allowedPriority, true)) {
-            $priority = "Normal";
-        }
-
         if ($instructionMessage === "") {
-            $instructionMessage = $instructionTitle;
+            wa_redirect_with("error", "Instruction message cannot be empty.");
         }
 
         if ($receiverUserId <= 0) {
-            $receiverUserId = null;
+            wa_redirect_with("error", "Receiver missing or not assigned to this ward.");
         }
 
-        $sql = "
-            INSERT INTO role_instructions (
-                sender_user_id,
-                receiver_user_id,
-                receiver_role,
-                ward_id,
-                instruction_title,
-                instruction_message,
-                priority,
-                instruction_status
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Sent')
-        ";
+        try {
+            mysqli_begin_transaction($conn);
 
-        $stmt = mysqli_prepare($conn, $sql);
+            $sql = "
+                INSERT INTO role_instructions (
+                    sender_user_id,
+                    receiver_user_id,
+                    receiver_role,
+                    ward_id,
+                    instruction_title,
+                    instruction_message,
+                    instruction_status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, 'Sent')
+            ";
 
-        if (!$stmt) {
-            wa_redirect_with("error", "Instruction send failed: " . mysqli_error($conn));
-        }
+            $stmt = mysqli_prepare($conn, $sql);
 
-        mysqli_stmt_bind_param(
-            $stmt,
-            "iisisss",
-            $senderUserId,
-            $receiverUserId,
-            $receiverRole,
-            $wardId,
-            $instructionTitle,
-            $instructionMessage,
-            $priority
-        );
+            if (!$stmt) {
+                throw new Exception("Instruction send failed: " . mysqli_error($conn));
+            }
 
-        if (!mysqli_stmt_execute($stmt)) {
-            $error = mysqli_stmt_error($stmt);
+            mysqli_stmt_bind_param(
+                $stmt,
+                "iisiss",
+                $senderUserId,
+                $receiverUserId,
+                $receiverRole,
+                $wardId,
+                $instructionTitle,
+                $instructionMessage
+            );
+
+            if (!mysqli_stmt_execute($stmt)) {
+                $error = mysqli_stmt_error($stmt);
+                mysqli_stmt_close($stmt);
+                throw new Exception("Instruction send failed: " . $error);
+            }
+
+            $instructionId = mysqli_insert_id($conn);
             mysqli_stmt_close($stmt);
-            wa_redirect_with("error", "Instruction send failed: " . $error);
+
+            // Fetch ward info for notification message
+            $wardQuery = mysqli_query($conn, "SELECT ward_no FROM wards WHERE ward_id = $wardId LIMIT 1");
+            $wardNo = ($wardQuery && mysqli_num_rows($wardQuery) > 0) ? mysqli_fetch_assoc($wardQuery)['ward_no'] : 'Unknown';
+            
+            $notifTitle = ($receiverRole === "ward_officer") 
+                ? "New instruction from Central Officer for Ward $wardNo."
+                : "New inspection request from Central Officer for Ward $wardNo.";
+            
+            $notifType = 'central_instruction';
+            $notifTable = ($receiverRole === "ward_officer") ? "ward_notifications" : "inspector_notifications";
+
+            $notifSql = "
+                INSERT INTO $notifTable (
+                    recipient_user_id, 
+                    sender_user_id, 
+                    related_complaint_id, 
+                    notification_type, 
+                    notification_title, 
+                    notification_message
+                ) VALUES (?, ?, NULL, ?, ?, ?)
+            ";
+
+            $notifStmt = mysqli_prepare($conn, $notifSql);
+            if (!$notifStmt) {
+                throw new Exception("Notification send failed.");
+            }
+
+            mysqli_stmt_bind_param(
+                $notifStmt,
+                "iisss",
+                $receiverUserId,
+                $senderUserId,
+                $notifType,
+                $notifTitle,
+                $instructionMessage
+            );
+
+            if (!mysqli_stmt_execute($notifStmt)) {
+                mysqli_stmt_close($notifStmt);
+                throw new Exception("Notification insertion failed.");
+            }
+            $notificationId = mysqli_insert_id($conn);
+            mysqli_stmt_close($notifStmt);
+
+            // Insert into mapping table
+            $mapSql = "INSERT INTO instruction_notifications_map (instruction_id, notification_id, role_type) VALUES (?, ?, ?)";
+            $mapStmt = mysqli_prepare($conn, $mapSql);
+            if ($mapStmt) {
+                mysqli_stmt_bind_param($mapStmt, "iis", $instructionId, $notificationId, $receiverRole);
+                mysqli_stmt_execute($mapStmt);
+                mysqli_stmt_close($mapStmt);
+            }
+
+            mysqli_commit($conn);
+            wa_redirect_with("success", "Instruction sent successfully.");
+        } catch (Exception $e) {
+            mysqli_rollback($conn);
+            wa_redirect_with("error", $e->getMessage());
         }
-
-        mysqli_stmt_close($stmt);
-
-        wa_redirect_with("success", "Instruction sent successfully.");
     }
 }
 
@@ -723,6 +777,7 @@ unset($_SESSION["ward_area_success"], $_SESSION["ward_area_error"]);
     <link rel="stylesheet" href="../../css/central/sidebar.css">
     <link rel="stylesheet" href="../../css/central/topbar.css">
     <link rel="stylesheet" href="../../css/central/ward-area.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body>
@@ -935,14 +990,7 @@ unset($_SESSION["ward_area_success"], $_SESSION["ward_area_error"]);
 
             <div class="wa-instruction-options" id="instructionOptions"></div>
 
-            <div class="wa-modal-section">
-                <h3>Priority</h3>
-                <select name="priority" id="instructionPriority" class="wa-priority-select">
-                    <option value="Normal">Normal</option>
-                    <option value="Urgent">Urgent</option>
-                    <option value="Emergency">Emergency</option>
-                </select>
-            </div>
+
 
             <div class="wa-modal-section">
                 <h3>Instruction Message</h3>
@@ -982,5 +1030,6 @@ unset($_SESSION["ward_area_success"], $_SESSION["ward_area_error"]);
 <script src="../../js/central/sidebar.js"></script>
 <script src="../../js/central/ward-area.js"></script>
 
+<script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>
