@@ -261,10 +261,10 @@ if (isset($conn) && $conn instanceof mysqli && $topbarUserId > 0) {
                                 } elseif (!empty($notification['complaint_code'])) {
                                     if ($notificationType === 'comment_reply') {
                                         $notificationLink .= '&redirect=discussion';
-                                    } elseif ($notification['notification_title'] === 'Inspection Required') {
+                                    } elseif ($notification['notification_title'] === 'Inspection Required' || $notificationType === 'maintenance_completion_proof_submitted') {
                                         $notificationLink .= '&redirect=solved-cases';
                                     } else {
-                                        $notificationLink .= '&redirect=verification-queue';
+                                        $notificationLink .= '&redirect=inspection-queue';
                                     }
                                 }
                             ?>

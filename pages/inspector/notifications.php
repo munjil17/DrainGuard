@@ -74,9 +74,9 @@ if (isset($_GET["read_id"])) {
                 }
                 mysqli_stmt_close($readStmt);
                 
-                if ($redirectType === "tasks" || $redirectType === "verification-queue") {
+                if ($redirectType === "tasks" || $redirectType === "verification-queue" || $redirectType === "inspection-queue") {
                     $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
-                    header("Location: verification-queue.php" . $complaintIdParam);
+                    header("Location: inspection-queue.php" . $complaintIdParam);
                     exit;
                 }
                 
@@ -364,10 +364,10 @@ function nt_build_query($overrides = [])
                             } elseif (!empty($notification["complaint_code"])) {
                                 if ($notificationType === 'comment_reply') {
                                     $linkUrl .= "&redirect=discussion";
-                                } elseif ($notification["notification_title"] === 'Inspection Required') {
+                                } elseif ($notification["notification_title"] === 'Inspection Required' || $notificationType === 'maintenance_completion_proof_submitted') {
                                     $linkUrl .= "&redirect=solved-cases";
                                 } else {
-                                    $linkUrl .= "&redirect=verification-queue";
+                                    $linkUrl .= "&redirect=inspection-queue";
                                 }
                             }
                         ?>
