@@ -351,7 +351,7 @@ function nt_build_query($overrides = [])
                                     } else {
                                         $linkUrl .= "&redirect=assigned-tasks";
                                     }
-                                } elseif (in_array($notificationType, ['inspector_review_started', 'work_approved', 'inspector_false_completion_confirmed'])) {
+                                } elseif (in_array($notificationType, ['inspector_review_started', 'inspector_work_approved', 'inspector_false_completion_confirmed'])) {
                                     $linkUrl .= "&redirect=task-history";
                                 } else {
                                     $linkUrl .= "&redirect=assigned-tasks";
