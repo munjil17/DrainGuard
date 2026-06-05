@@ -97,6 +97,12 @@ if (isset($_GET["read_id"])) {
                     header("Location: task-history.php" . $complaintIdParam);
                     exit;
                 }
+
+                if ($redirectType === "feedback") {
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    header("Location: feedback.php" . $complaintIdParam);
+                    exit;
+                }
                 
                 header("Location: notifications.php");
                 exit;
@@ -351,8 +357,10 @@ function nt_build_query($overrides = [])
                                     } else {
                                         $linkUrl .= "&redirect=assigned-tasks";
                                     }
-                                } elseif (in_array($notificationType, ['inspector_review_started', 'inspector_work_approved', 'inspector_false_completion_confirmed'])) {
+                                } elseif (in_array($notificationType, ['inspector_review_started', 'inspector_work_approved', 'inspector_false_completion_confirmed', 'ward_confirm_inspector_claim', 'ward_reject_inspector_claim'])) {
                                     $linkUrl .= "&redirect=task-history";
+                                } elseif (in_array($notificationType, ['citizen_feedback_satisfied', 'citizen_objection_submitted'])) {
+                                    $linkUrl .= "&redirect=feedback";
                                 } else {
                                     $linkUrl .= "&redirect=assigned-tasks";
                                 }

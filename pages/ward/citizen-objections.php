@@ -42,17 +42,69 @@ function woBindParams($stmt, $types, &$params)
     call_user_func_array([$stmt, 'bind_param'], $bindValues);
 }
 
+function woLogDbFailure($context, $conn, $stmt = null)
+{
+    $message = "[DrainGuard citizen-objections] " . $context;
+    $dbError = mysqli_error($conn);
+
+    if ($dbError !== '') {
+        $message .= " | mysqli_error: " . $dbError;
+    }
+
+    if ($stmt) {
+        $stmtError = mysqli_stmt_error($stmt);
+        if ($stmtError !== '') {
+            $message .= " | stmt_error: " . $stmtError;
+        }
+    }
+
+    error_log($message);
+}
+
+function woPrepareOrThrow($conn, $sql, $context)
+{
+    $stmt = mysqli_prepare($conn, $sql);
+
+    if (!$stmt) {
+        woLogDbFailure($context . " prepare failed | SQL: " . preg_replace('/\s+/', ' ', trim($sql)), $conn);
+        throw new Exception($context . " prepare failed");
+    }
+
+    return $stmt;
+}
+
+function woExecuteOrThrow($conn, $stmt, $context, $sql = '')
+{
+    if (!mysqli_stmt_execute($stmt)) {
+        $sqlContext = $sql !== '' ? " | SQL: " . preg_replace('/\s+/', ' ', trim($sql)) : "";
+        woLogDbFailure($context . " execute failed" . $sqlContext, $conn, $stmt);
+        throw new Exception($context . " execute failed");
+    }
+}
+
+function woQueryOrThrow($conn, $sql, $context)
+{
+    if (!mysqli_query($conn, $sql)) {
+        woLogDbFailure($context . " query failed | SQL: " . preg_replace('/\s+/', ' ', trim($sql)), $conn);
+        throw new Exception($context . " query failed");
+    }
+}
+
 function woFetchOne($conn, $sql, $types = "", $params = [])
 {
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
+        woLogDbFailure("Fetch one prepare failed", $conn);
         die("SQL Prepare Failed: " . mysqli_error($conn));
     }
 
     woBindParams($stmt, $types, $params);
 
-    mysqli_stmt_execute($stmt);
+    if (!mysqli_stmt_execute($stmt)) {
+        woLogDbFailure("Fetch one execute failed", $conn, $stmt);
+        die("SQL Execute Failed: " . mysqli_stmt_error($stmt));
+    }
     $result = mysqli_stmt_get_result($stmt);
     $row = mysqli_fetch_assoc($result);
 
@@ -66,12 +118,16 @@ function woFetchAll($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
+        woLogDbFailure("Fetch all prepare failed", $conn);
         die("SQL Prepare Failed: " . mysqli_error($conn));
     }
 
     woBindParams($stmt, $types, $params);
 
-    mysqli_stmt_execute($stmt);
+    if (!mysqli_stmt_execute($stmt)) {
+        woLogDbFailure("Fetch all execute failed", $conn, $stmt);
+        die("SQL Execute Failed: " . mysqli_stmt_error($stmt));
+    }
     $result = mysqli_stmt_get_result($stmt);
 
     $rows = [];
@@ -331,30 +387,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if ($decision === 'accept') {
-            $newRequestStatus = 'accepted_by_ward';
+            $newRequestStatus = 'resolved';
             $newComplaintStatus = 'reopened';
             $redirectStatus = 'reopened';
-
-            $stmt = mysqli_prepare(
-                $conn,
-                "UPDATE reopen_requests
+            $updateReopenSql = "UPDATE reopen_requests
                 SET request_status = ?,
                     ward_note = ?,
                     handled_by = ?,
                     forwarded_at = NOW()
-                WHERE reopen_id = ?"
+                WHERE reopen_id = ?";
+
+            $stmt = woPrepareOrThrow(
+                $conn,
+                $updateReopenSql,
+                "Accept objection: update reopen_requests"
             );
 
-            if (!$stmt) {
-                throw new Exception(mysqli_error($conn));
-            }
-
             mysqli_stmt_bind_param($stmt, "ssii", $newRequestStatus, $wardNote, $userId, $reopenId);
-            mysqli_stmt_execute($stmt);
+            woExecuteOrThrow($conn, $stmt, "Accept objection: update reopen_requests", $updateReopenSql);
             mysqli_stmt_close($stmt);
             
             // CRITICAL FIX: Set maintenance proof to rejected so they can re-upload
-            mysqli_query($conn, "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after'");
+            $rejectProofSql = "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after'";
+            woQueryOrThrow($conn, $rejectProofSql, "Accept objection: reject after proof");
 
             require_once "../../includes/disciplinary_helpers.php";
             $inspectorId = woFetchOne($conn, "SELECT inspector_user_id FROM inspection_logs WHERE complaint_id = ? ORDER BY log_id DESC LIMIT 1", "i", [$complaintId])['inspector_user_id'] ?? null;
@@ -375,8 +430,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 addDemerit($conn, $inspectorId, null, 'inspector', 'inspector', $complaintId, $teamId, 'citizen_objection_true', $wardNote, $userId, 'ward_officer');
             }
 
-            $citNotifMsg = "Your objection has been accepted. The complaint is reopened.";
-            $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Objection Accepted', ?, 0, NOW())";
+            $citNotifMsg = "Ward Officer accepted your objection for complaint. Your claim has been marked as true. The complaint is reopened.";
+            $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_true', 'Citizen Claim Marked True', ?, 0, NOW())";
             $notifStmt = mysqli_prepare($conn, $citNotifSql);
             if ($notifStmt) {
                 mysqli_stmt_bind_param($notifStmt, "iiis", $allowedRequest['requested_by'], $userId, $complaintId, $citNotifMsg);
@@ -384,27 +439,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_close($notifStmt);
             }
 
+            // Central Officer notification (Core Rule)
+            $cenRowCO = woFetchOne($conn, "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1", "i", [$complaintId]);
+            if ($cenRowCO) {
+                $cenUserIdCO = (int)$cenRowCO['assigned_by'];
+                $cenMsgCO = "Ward Officer marked the citizen claim as true for complaint. The objection has been accepted and case reopened.";
+                $cenNotifCO = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_true', 'Citizen Claim Marked True', ?, 0, NOW())");
+                if ($cenNotifCO) { mysqli_stmt_bind_param($cenNotifCO, "iiis", $cenUserIdCO, $userId, $complaintId, $cenMsgCO); mysqli_stmt_execute($cenNotifCO); mysqli_stmt_close($cenNotifCO); }
+            }
+
+            // Inspector notification (Core Rule)
+            $insRowCO = woFetchOne($conn, "SELECT inspector_user_id FROM inspection_logs WHERE complaint_id = ? ORDER BY log_id DESC LIMIT 1", "i", [$complaintId]);
+            if ($insRowCO) {
+                $insUserIdCO = (int)$insRowCO['inspector_user_id'];
+                $insMsgCO = "Ward Officer marked the citizen claim as true for this complaint. Please check the updated case status in Inspection Logs.";
+                $insNotifCO = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_true', 'Citizen Claim Marked True', ?, 0, NOW())");
+                if ($insNotifCO) { mysqli_stmt_bind_param($insNotifCO, "iiis", $insUserIdCO, $userId, $complaintId, $insMsgCO); mysqli_stmt_execute($insNotifCO); mysqli_stmt_close($insNotifCO); }
+            }
+
         } else {
             $newRequestStatus = 'rejected';
             $newComplaintStatus = 'final_rejected';
             $redirectStatus = 'rejected';
-
-            $stmt = mysqli_prepare(
-                $conn,
-                "UPDATE reopen_requests
+            $updateReopenSql = "UPDATE reopen_requests
                 SET request_status = ?,
                     ward_note = ?,
                     handled_by = ?,
                     handled_at = NOW()
-                WHERE reopen_id = ?"
+                WHERE reopen_id = ?";
+
+            $stmt = woPrepareOrThrow(
+                $conn,
+                $updateReopenSql,
+                "Reject objection: update reopen_requests"
             );
 
-            if (!$stmt) {
-                throw new Exception(mysqli_error($conn));
-            }
-
             mysqli_stmt_bind_param($stmt, "ssii", $newRequestStatus, $wardNote, $userId, $reopenId);
-            mysqli_stmt_execute($stmt);
+            woExecuteOrThrow($conn, $stmt, "Reject objection: update reopen_requests", $updateReopenSql);
             mysqli_stmt_close($stmt);
 
             require_once "../../includes/disciplinary_helpers.php";
@@ -413,39 +484,60 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 addDemerit($conn, $citizenUserId, null, 'citizen', 'citizen', $complaintId, null, 'citizen_objection_false', $wardNote, $userId, 'ward_officer');
             }
 
-            $citNotifMsg = "Your objection has been rejected. The complaint will remain closed. You have received 1 demerit point for a false objection.";
-            $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Objection Rejected', ?, 0, NOW())";
+            $citNotifMsg = "Ward Officer reviewed your objection for this complaint. Your claim has been marked as false. The complaint remains closed.";
+            $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_false', 'Citizen Claim Marked False', ?, 0, NOW())";
             $notifStmt = mysqli_prepare($conn, $citNotifSql);
             if ($notifStmt) {
                 mysqli_stmt_bind_param($notifStmt, "iiis", $citizenUserId, $userId, $complaintId, $citNotifMsg);
                 mysqli_stmt_execute($notifStmt);
                 mysqli_stmt_close($notifStmt);
             }
+
+            // Central Officer notification (Core Rule)
+            $cenRowCF = woFetchOne($conn, "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1", "i", [$complaintId]);
+            if ($cenRowCF) {
+                $cenUserIdCF = (int)$cenRowCF['assigned_by'];
+                $cenMsgCF = "Ward Officer marked the citizen claim as false for this complaint. The objection was rejected.";
+                $cenNotifCF = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_false', 'Citizen Claim Marked False', ?, 0, NOW())");
+                if ($cenNotifCF) { mysqli_stmt_bind_param($cenNotifCF, "iiis", $cenUserIdCF, $userId, $complaintId, $cenMsgCF); mysqli_stmt_execute($cenNotifCF); mysqli_stmt_close($cenNotifCF); }
+            }
+
+            // Inspector notification (Core Rule)
+            $insRowCF = woFetchOne($conn, "SELECT inspector_user_id FROM inspection_logs WHERE complaint_id = ? ORDER BY log_id DESC LIMIT 1", "i", [$complaintId]);
+            if ($insRowCF) {
+                $insUserIdCF = (int)$insRowCF['inspector_user_id'];
+                $insMsgCF = "Ward Officer marked the citizen claim as false for this complaint. Please check the updated case in Inspection Logs.";
+                $insNotifCF = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_false', 'Citizen Claim Marked False', ?, 0, NOW())");
+                if ($insNotifCF) { mysqli_stmt_bind_param($insNotifCF, "iiis", $insUserIdCF, $userId, $complaintId, $insMsgCF); mysqli_stmt_execute($insNotifCF); mysqli_stmt_close($insNotifCF); }
+            }
         }
 
-        $stmt = mysqli_prepare(
-            $conn,
-            "UPDATE complaints
+        $updateComplaintSql = "UPDATE complaints
             SET complaint_status = ?,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE complaint_id = ?"
+            WHERE complaint_id = ?";
+
+        $stmt = woPrepareOrThrow(
+            $conn,
+            $updateComplaintSql,
+            "Ward objection: update complaints"
         );
 
-        if (!$stmt) {
-            throw new Exception(mysqli_error($conn));
-        }
-
         mysqli_stmt_bind_param($stmt, "si", $newComplaintStatus, $complaintId);
-        mysqli_stmt_execute($stmt);
+        woExecuteOrThrow($conn, $stmt, "Ward objection: update complaints", $updateComplaintSql);
         mysqli_stmt_close($stmt);
 
-        mysqli_commit($conn);
+        if (!mysqli_commit($conn)) {
+            woLogDbFailure("Ward objection: transaction commit failed", $conn);
+            throw new Exception("Ward objection commit failed");
+        }
 
         header("Location: citizen-objections.php" . woBuildQuery($search, $areaId, $sort, $page, $redirectStatus, ''));
         exit();
 
     } catch (Exception $e) {
         mysqli_rollback($conn);
+        error_log("[DrainGuard citizen-objections] action_failed decision={$decision} reopen_id={$reopenId} complaint_id={$complaintId}: " . $e->getMessage());
         header("Location: citizen-objections.php" . woBuildQuery($search, $areaId, $sort, $page, '', 'action_failed'));
         exit();
     }
@@ -1041,13 +1133,6 @@ foreach ($objections as $item) {
                 <?php endif; ?>
 
             </section>
-
-            <?php
-
-            if (file_exists($footerPath)) {
-                include $footerPath;
-            }
-            ?>
 
         </main>
 

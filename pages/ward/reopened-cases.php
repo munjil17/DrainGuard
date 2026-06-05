@@ -486,6 +486,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             } elseif ($action === "different_team") {
                 $successMessage = "Complaint moved back to Local Team Assignment for different team selection.";
             }
+
+            // === NOTIFICATIONS: ward_reopen_assign_team ===
+            $reopenInfo = fetchOne($conn, "SELECT complaint_code, user_id AS citizen_id FROM complaints WHERE complaint_id = ?", "i", [$complaintId]);
+            $rNotifCode = $reopenInfo['complaint_code'] ?? "ID:$complaintId";
+            $rCitizenId = (int)($reopenInfo['citizen_id'] ?? 0);
+            $rNotifTime = date('Y-m-d H:i:s');
+            $rNotifMsg = "Ward Officer assigned a team for reopened complaint {$rNotifCode}. The complaint has moved forward again.";
+
+            if ($rCitizenId > 0) {
+                $stmtCit = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reopen_assign_team', 'Reopened Complaint Assigned', ?, 0, ?)");
+                if ($stmtCit) { mysqli_stmt_bind_param($stmtCit, "iiiss", $rCitizenId, $currentUserId, $complaintId, $rNotifMsg, $rNotifTime); mysqli_stmt_execute($stmtCit); mysqli_stmt_close($stmtCit); }
+            }
+
+            $cenRow = fetchOne($conn, "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1", "i", [$complaintId]);
+            if ($cenRow) {
+                $cenUserId = (int)$cenRow['assigned_by'];
+                $stmtCen = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reopen_assign_team', 'Reopened Complaint Assigned', ?, 0, ?)");
+                if ($stmtCen) { mysqli_stmt_bind_param($stmtCen, "iiiss", $cenUserId, $currentUserId, $complaintId, $rNotifMsg, $rNotifTime); mysqli_stmt_execute($stmtCen); mysqli_stmt_close($stmtCen); }
+            }
+
             } // Close else block
             }
         } catch (Exception $e) {

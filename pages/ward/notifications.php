@@ -103,6 +103,12 @@ if (isset($_GET["read_id"])) {
                     header("Location: reopened-disputed.php" . $param);
                     exit;
                 }
+
+                if ($redirectType === "citizen-objections") {
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    header("Location: citizen-objections.php" . $param);
+                    exit;
+                }
                 
                 if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
                     header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
@@ -354,6 +360,8 @@ function nt_build_query($overrides = [])
                                     $linkUrl .= "&redirect=in-progress-cases";
                                 } elseif ($notificationType === 'inspector_false_completion_confirmed') {
                                     $linkUrl .= "&redirect=reopened-disputed";
+                                } elseif ($notificationType === 'citizen_objection_submitted') {
+                                    $linkUrl .= "&redirect=citizen-objections";
                                 } else {
                                     $linkUrl .= "&redirect=ward-complaints";
                                 }

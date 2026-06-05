@@ -85,6 +85,18 @@ if (isset($_GET["read_id"])) {
                     header("Location: solved-cases.php" . $complaintIdParam);
                     exit;
                 }
+
+                if ($redirectType === "false-completion-reports") {
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    header("Location: false-completion-reports.php" . $complaintIdParam);
+                    exit;
+                }
+
+                if ($redirectType === "inspection-logs" || in_array($readRow["notification_type"], ['ward_reject_inspector_claim', 'ward_citizen_claim_true', 'ward_citizen_claim_false', 'citizen_objection_submitted'])) {
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    header("Location: inspection-logs.php" . $complaintIdParam);
+                    exit;
+                }
                 
                 if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
                     header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
@@ -366,6 +378,10 @@ function nt_build_query($overrides = [])
                                     $linkUrl .= "&redirect=discussion";
                                 } elseif ($notification["notification_title"] === 'Inspection Required' || $notificationType === 'maintenance_completion_proof_submitted') {
                                     $linkUrl .= "&redirect=solved-cases";
+                                } elseif ($notificationType === 'ward_confirm_inspector_claim') {
+                                    $linkUrl .= "&redirect=false-completion-reports";
+                                } elseif (in_array($notificationType, ['ward_reject_inspector_claim', 'ward_citizen_claim_true', 'ward_citizen_claim_false', 'citizen_objection_submitted'])) {
+                                    $linkUrl .= "&redirect=inspection-logs";
                                 } else {
                                     $linkUrl .= "&redirect=inspection-queue";
                                 }

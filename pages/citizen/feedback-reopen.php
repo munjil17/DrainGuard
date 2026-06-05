@@ -203,10 +203,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                                 if ($tlRes && $tlRow = mysqli_fetch_assoc($tlRes)) {
                                                                     $tlId = (int)$tlRow['user_id'];
                                                                     $cCode = $complaintRow['complaint_code'] ?? "ID:$complaintId";
-                                                                    $msg = "Your team received a new citizen review for complaint $cCode.";
-                                                                    $notifIns = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read) VALUES (?, ?, 'system', 'New Citizen Review', ?, 0)");
+                                                                    $msg = "Citizen marked complaint {$cCode} as satisfied. Please check the feedback.";
+                                                                    $notifIns = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'citizen_feedback_satisfied', 'Citizen Satisfied with Work', ?, 0, NOW())");
                                                                     if ($notifIns) {
-                                                                        mysqli_stmt_bind_param($notifIns, "iis", $tlId, $complaintId, $msg);
+                                                                        mysqli_stmt_bind_param($notifIns, "iiis", $tlId, $userId, $complaintId, $msg);
                                                                         mysqli_stmt_execute($notifIns);
                                                                         mysqli_stmt_close($notifIns);
                                                                     }
@@ -322,42 +322,79 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     mysqli_stmt_execute($updateStmt);
                                     mysqli_stmt_close($updateStmt);
 
-                                    // Fetch assigned Ward Officer to notify
-                                    $wardOfficerIdSql = "
-                                        SELECT wo.user_id, c.complaint_code 
-                                        FROM complaint_assignments ca
-                                        INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
-                                        INNER JOIN ward_officers wo ON wo.assigned_ward_id = ca.ward_id AND wo.city_cor_id = ca.city_cor_id
-                                        WHERE ca.complaint_id = ?
-                                        LIMIT 1
-                                    ";
-                                    $woStmt = mysqli_prepare($conn, $wardOfficerIdSql);
+                                    // === CITIZEN OBJECTION: Ward Officer Notification ===
+                                    $cCode = $complaintRow['complaint_code'] ?? "ID:$complaintId";
+                                    $objMsg = "Citizen submitted an objection for complaint {$cCode}. Please review the objection details.";
+                                    $objNotifTime = date('Y-m-d H:i:s');
+
+                                    // 1. Ward Officer → ward_notifications
+                                    $woSql = "SELECT wo.user_id FROM ward_officers wo
+                                        INNER JOIN complaint_assignments ca ON ca.ward_id = wo.assigned_ward_id
+                                        WHERE ca.complaint_id = ? LIMIT 1";
+                                    $woStmt = mysqli_prepare($conn, $woSql);
                                     if ($woStmt) {
                                         mysqli_stmt_bind_param($woStmt, "i", $complaintId);
                                         mysqli_stmt_execute($woStmt);
                                         $woResult = mysqli_stmt_get_result($woStmt);
                                         if ($woRow = mysqli_fetch_assoc($woResult)) {
                                             $wardUserId = (int)$woRow['user_id'];
-                                            $cCode = $woRow['complaint_code'];
-                                            $msg = "Citizen submitted an objection for complaint {$cCode}. Please review.";
-                                            
-                                            $notifSql = "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'system', 'Citizen Objection', ?, 0, NOW())";
-                                            $notifStmt = mysqli_prepare($conn, $notifSql);
-                                            if ($notifStmt) {
-                                                mysqli_stmt_bind_param($notifStmt, "iiis", $wardUserId, $userId, $complaintId, $msg);
-                                                mysqli_stmt_execute($notifStmt);
-                                                mysqli_stmt_close($notifStmt);
+                                            $woNotif = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'citizen_objection_submitted', 'Citizen Submitted Objection', ?, 0, ?)");
+                                            if ($woNotif) {
+                                                mysqli_stmt_bind_param($woNotif, "iiiss", $wardUserId, $userId, $complaintId, $objMsg, $objNotifTime);
+                                                mysqli_stmt_execute($woNotif);
+                                                mysqli_stmt_close($woNotif);
                                             }
                                         }
                                         mysqli_stmt_close($woStmt);
                                     }
 
-                                    $teamSql = "SELECT maintenance_team_id FROM complaint_assignments WHERE complaint_id = ? AND maintenance_team_id IS NOT NULL ORDER BY assigned_at DESC LIMIT 1";
-                                    $teamStmt = mysqli_prepare($conn, $teamSql);
-                                    if ($teamStmt) {
-                                        mysqli_stmt_bind_param($teamStmt, "i", $complaintId);
-                                        mysqli_stmt_execute($teamStmt);
-                                        $teamRes = mysqli_stmt_get_result($teamStmt);
+                                    // 2. Central Officer → central_notifications
+                                    $coSql = "SELECT ca.assigned_by FROM complaint_assignments ca
+                                        JOIN users u ON u.user_id = ca.assigned_by
+                                        WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1";
+                                    $coStmt = mysqli_prepare($conn, $coSql);
+                                    if ($coStmt) {
+                                        mysqli_stmt_bind_param($coStmt, "i", $complaintId);
+                                        mysqli_stmt_execute($coStmt);
+                                        $coResult = mysqli_stmt_get_result($coStmt);
+                                        if ($coRow = mysqli_fetch_assoc($coResult)) {
+                                            $centralUserId = (int)$coRow['assigned_by'];
+                                            $coNotif = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'citizen_objection_submitted', 'Citizen Submitted Objection', ?, 0, ?)");
+                                            if ($coNotif) {
+                                                mysqli_stmt_bind_param($coNotif, "iiiss", $centralUserId, $userId, $complaintId, $objMsg, $objNotifTime);
+                                                mysqli_stmt_execute($coNotif);
+                                                mysqli_stmt_close($coNotif);
+                                            }
+                                        }
+                                        mysqli_stmt_close($coStmt);
+                                    }
+
+                                    // 3. Inspector → inspector_notifications
+                                    $insSqlO = "SELECT inspector_user_id FROM inspection_logs WHERE complaint_id = ? ORDER BY log_id DESC LIMIT 1";
+                                    $insStmtO = mysqli_prepare($conn, $insSqlO);
+                                    if ($insStmtO) {
+                                        mysqli_stmt_bind_param($insStmtO, "i", $complaintId);
+                                        mysqli_stmt_execute($insStmtO);
+                                        $insResultO = mysqli_stmt_get_result($insStmtO);
+                                        if ($insRowO = mysqli_fetch_assoc($insResultO)) {
+                                            $insUserIdO = (int)$insRowO['inspector_user_id'];
+                                            $insNotif = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'citizen_objection_submitted', 'Citizen Submitted Objection', ?, 0, ?)");
+                                            if ($insNotif) {
+                                                mysqli_stmt_bind_param($insNotif, "iiiss", $insUserIdO, $userId, $complaintId, $objMsg, $objNotifTime);
+                                                mysqli_stmt_execute($insNotif);
+                                                mysqli_stmt_close($insNotif);
+                                            }
+                                        }
+                                        mysqli_stmt_close($insStmtO);
+                                    }
+
+                                    // 4. Maintenance Team Leader → maintenance_notifications
+                                    $teamSqlO = "SELECT maintenance_team_id FROM complaint_assignments WHERE complaint_id = ? AND maintenance_team_id IS NOT NULL ORDER BY assigned_at DESC LIMIT 1";
+                                    $teamStmtO = mysqli_prepare($conn, $teamSqlO);
+                                    if ($teamStmtO) {
+                                        mysqli_stmt_bind_param($teamStmtO, "i", $complaintId);
+                                        mysqli_stmt_execute($teamStmtO);
+                                        $teamRes = mysqli_stmt_get_result($teamStmtO);
                                         if ($teamRes && $tRow = mysqli_fetch_assoc($teamRes)) {
                                             $teamId = (int)$tRow['maintenance_team_id'];
                                             $revDupSql = "SELECT review_id FROM maintenance_team_reviews WHERE complaint_id = ? AND citizen_user_id = ? AND maintenance_team_id = ?";
@@ -373,31 +410,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                         mysqli_stmt_bind_param($revIns, "iiiiss", $complaintId, $userId, $teamId, $rating, $feedbackText, $rType);
                                                         mysqli_stmt_execute($revIns);
                                                         mysqli_stmt_close($revIns);
-                                                        
-                                                        $tlSql = "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND role = 'team_leader' LIMIT 1";
-                                                        $tlStmt = mysqli_prepare($conn, $tlSql);
-                                                        if ($tlStmt) {
-                                                            mysqli_stmt_bind_param($tlStmt, "i", $teamId);
-                                                            mysqli_stmt_execute($tlStmt);
-                                                            $tlRes = mysqli_stmt_get_result($tlStmt);
-                                                            if ($tlRes && $tlRow = mysqli_fetch_assoc($tlRes)) {
-                                                                $tlId = (int)$tlRow['user_id'];
-                                                                $msg = "Your team received a new citizen review for complaint ID:$complaintId.";
-                                                                $notifIns = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read) VALUES (?, ?, 'system', 'New Citizen Review', ?, 0)");
-                                                                if ($notifIns) {
-                                                                    mysqli_stmt_bind_param($notifIns, "iis", $tlId, $complaintId, $msg);
-                                                                    mysqli_stmt_execute($notifIns);
-                                                                    mysqli_stmt_close($notifIns);
-                                                                }
-                                                            }
-                                                            mysqli_stmt_close($tlStmt);
-                                                        }
                                                     }
                                                 }
                                                 mysqli_stmt_close($revDupStmt);
                                             }
+                                            $tlSqlO = "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND role = 'team_leader' LIMIT 1";
+                                            $tlStmtO = mysqli_prepare($conn, $tlSqlO);
+                                            if ($tlStmtO) {
+                                                mysqli_stmt_bind_param($tlStmtO, "i", $teamId);
+                                                mysqli_stmt_execute($tlStmtO);
+                                                $tlResO = mysqli_stmt_get_result($tlStmtO);
+                                                if ($tlResO && $tlRowO = mysqli_fetch_assoc($tlResO)) {
+                                                    $tlIdO = (int)$tlRowO['user_id'];
+                                                    $tmMsg = "Citizen submitted an objection for complaint {$cCode}. Please review the objection details.";
+                                                    $tmNotif = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'citizen_objection_submitted', 'Citizen Submitted Objection', ?, 0, ?)");
+                                                    if ($tmNotif) {
+                                                        mysqli_stmt_bind_param($tmNotif, "iiiss", $tlIdO, $userId, $complaintId, $tmMsg, $objNotifTime);
+                                                        mysqli_stmt_execute($tmNotif);
+                                                        mysqli_stmt_close($tmNotif);
+                                                    }
+                                                }
+                                                mysqli_stmt_close($tlStmtO);
+                                            }
                                         }
-                                        mysqli_stmt_close($teamStmt);
+                                        mysqli_stmt_close($teamStmtO);
                                     }
 
                                     mysqli_commit($conn);

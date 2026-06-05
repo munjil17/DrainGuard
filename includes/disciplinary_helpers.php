@@ -123,20 +123,40 @@ function addDemerit($conn, $userId, $memberId, $userRole, $subjectType, $complai
     $updState = mysqli_prepare($conn, "UPDATE disciplinary_state 
         SET active_demerit_points = ?, one_month_suspension_count = ?, six_month_suspension_count = ?, is_permanently_banned = ?, current_penalty_status = ?, suspension_start_at = ?, suspension_end_at = ?, last_penalty_at = NOW() 
         WHERE state_id = ?");
+    if (!$updState) {
+        throw new Exception("Prepare failed: " . mysqli_error($conn));
+    }
     mysqli_stmt_bind_param($updState, "iiiisssi", $newDemerits, $oneMonthCount, $sixMonthCount, $isBanned, $status, $startAt, $endAt, $state['state_id']);
-    mysqli_stmt_execute($updState);
+    if (!mysqli_stmt_execute($updState)) {
+        error_log("[DrainGuard disciplinary] addDemerit update disciplinary_state execute failed | stmt_error: " . mysqli_stmt_error($updState));
+        throw new Exception("Execute failed: " . mysqli_stmt_error($updState));
+    }
     mysqli_stmt_close($updState);
 
     // Insert Record
     $insRecord = mysqli_prepare($conn, "INSERT INTO disciplinary_records 
-        (user_id, member_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, source_type, demerit_points_added, total_demerit_points_after, warning_count_after, one_month_suspension_count_after, six_month_suspension_count_after, start_at, end_at, created_by_user_id, created_by_role) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)");
-    mysqli_stmt_bind_param($insRecord, "iisiissssiiiisssis", 
-        $userId, $memberId, $userRole, $complaintId, $teamId, 
-        $subjectType, $actionType, $reason, $sourceType, 
-        $newDemerits, $newWarnings, $oneMonthCount, $sixMonthCount, 
+        (user_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, demerit_points_added, total_demerit_points_after, suspension_count_after, ban_count_after, start_at, end_at, created_by_user_id, created_by_role) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if (!$insRecord) {
+        throw new Exception("Prepare failed: " . mysqli_error($conn));
+    }
+    $recordSubjectType = ($subjectType === 'team_member') ? 'worker' : $subjectType;
+    if (!in_array($recordSubjectType, ['inspector', 'team_leader', 'worker'], true)) {
+        $recordSubjectType = 'worker';
+    }
+    $recordActionType = in_array($actionType, ['suspension_1_month', 'suspension_6_month'], true) ? 'suspension' : $actionType;
+    $suspensionCountAfter = $oneMonthCount + $sixMonthCount;
+    $banCountAfter = $isBanned ? 1 : 0;
+    $recordUserId = $userId ?: 0;
+    mysqli_stmt_bind_param($insRecord, "isiisssiiissis", 
+        $recordUserId, $userRole, $complaintId, $teamId, 
+        $recordSubjectType, $recordActionType, $reason, 
+        $newDemerits, $suspensionCountAfter, $banCountAfter, 
         $startAt, $endAt, $createdByUserId, $createdByRole);
-    mysqli_stmt_execute($insRecord);
+    if (!mysqli_stmt_execute($insRecord)) {
+        error_log("[DrainGuard disciplinary] addDemerit insert disciplinary_records execute failed | stmt_error: " . mysqli_stmt_error($insRecord));
+        throw new Exception("Execute failed: " . mysqli_stmt_error($insRecord));
+    }
     mysqli_stmt_close($insRecord);
 
     return $actionType;
@@ -159,17 +179,29 @@ function applyTeamMemberWarningOrDemerit($conn, $memberId, $userId, $teamId, $co
         $updState = mysqli_prepare($conn, "UPDATE disciplinary_state 
             SET active_warning_count = ?, current_penalty_status = 'warned', last_penalty_at = NOW() 
             WHERE state_id = ?");
+        if (!$updState) {
+            throw new Exception("Prepare failed: " . mysqli_error($conn));
+        }
         mysqli_stmt_bind_param($updState, "ii", $newWarnings, $state['state_id']);
-        mysqli_stmt_execute($updState);
+        if (!mysqli_stmt_execute($updState)) {
+            error_log("[DrainGuard disciplinary] warning update disciplinary_state execute failed | stmt_error: " . mysqli_stmt_error($updState));
+            throw new Exception("Execute failed: " . mysqli_stmt_error($updState));
+        }
         mysqli_stmt_close($updState);
 
         $insRecord = mysqli_prepare($conn, "INSERT INTO disciplinary_records 
-            (user_id, member_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, source_type, demerit_points_added, total_demerit_points_after, warning_count_after, one_month_suspension_count_after, six_month_suspension_count_after, created_by_user_id, created_by_role) 
-            VALUES (?, ?, 'maintenance_team_member', ?, ?, 'team_member', 'warning', ?, ?, 0, 0, ?, 0, 0, ?, ?)");
-        mysqli_stmt_bind_param($insRecord, "iiiisssiis", 
-            $userId, $memberId, $complaintId, $teamId, $reason, $sourceType, 
-            $newWarnings, $createdByUserId, $createdByRole);
-        mysqli_stmt_execute($insRecord);
+            (user_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, demerit_points_added, total_demerit_points_after, suspension_count_after, ban_count_after, created_by_user_id, created_by_role) 
+            VALUES (?, 'maintenance_team_member', ?, ?, 'worker', 'warning', ?, 0, 0, 0, 0, ?, ?)");
+        if (!$insRecord) {
+            throw new Exception("Prepare failed: " . mysqli_error($conn));
+        }
+        $recordUserId = $userId ?: 0;
+        mysqli_stmt_bind_param($insRecord, "iiisis", 
+            $recordUserId, $complaintId, $teamId, $reason, $createdByUserId, $createdByRole);
+        if (!mysqli_stmt_execute($insRecord)) {
+            error_log("[DrainGuard disciplinary] warning insert disciplinary_records execute failed | stmt_error: " . mysqli_stmt_error($insRecord));
+            throw new Exception("Execute failed: " . mysqli_stmt_error($insRecord));
+        }
         mysqli_stmt_close($insRecord);
 
         return 'warning';

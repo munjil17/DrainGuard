@@ -234,8 +234,10 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
                                         } else {
                                             $notificationLink .= '&redirect=assigned-tasks';
                                         }
-                                    } elseif (in_array($notificationType, ['inspector_review_started', 'inspector_work_approved', 'inspector_false_completion_confirmed'])) {
+                                    } elseif (in_array($notificationType, ['inspector_review_started', 'inspector_work_approved', 'inspector_false_completion_confirmed', 'ward_confirm_inspector_claim', 'ward_reject_inspector_claim'])) {
                                         $notificationLink .= '&redirect=task-history';
+                                    } elseif (in_array($notificationType, ['citizen_feedback_satisfied', 'citizen_objection_submitted'])) {
+                                        $notificationLink .= '&redirect=feedback';
                                     } else {
                                         $notificationLink .= '&redirect=assigned-tasks'; // Or whatever page handles tasks
                                     }

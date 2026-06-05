@@ -263,6 +263,10 @@ if (isset($conn) && $conn instanceof mysqli && $topbarUserId > 0) {
                                         $notificationLink .= '&redirect=discussion';
                                     } elseif ($notification['notification_title'] === 'Inspection Required' || $notificationType === 'maintenance_completion_proof_submitted') {
                                         $notificationLink .= '&redirect=solved-cases';
+                                    } elseif ($notificationType === 'ward_confirm_inspector_claim') {
+                                        $notificationLink .= '&redirect=false-completion-reports';
+                                    } elseif (in_array($notificationType, ['ward_reject_inspector_claim', 'ward_citizen_claim_true', 'ward_citizen_claim_false', 'citizen_objection_submitted'])) {
+                                        $notificationLink .= '&redirect=inspection-logs';
                                     } else {
                                         $notificationLink .= '&redirect=inspection-queue';
                                     }

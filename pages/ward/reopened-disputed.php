@@ -332,57 +332,79 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $citizenId = (int)($complaintInfo['citizen_id'] ?? 0);
                 
                 if ($claimStatus === 'true') {
+                    // === inspector_claim_true: ward_confirm_inspector_claim ===
+
                     // Maintenance Team Leader
-                    $msgTL = "You received 1 demerit point because the false completion claim for complaint {$complaintCode} was confirmed true.";
-                    mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($teamLeaderUserId, $currentUserId, $complaintId, 'system', 'Demerit Issued', '$msgTL', 0, '$notifTime')");
-                    
+                    $msgTL = "Ward Officer confirmed the inspector claim for complaint {$complaintCode}. You received 1 demerit. Complaint is reopened.";
+                    $stmtTL = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_confirm_inspector_claim', 'Inspector Claim Confirmed by Ward Officer', ?, 0, ?)");
+                    if ($stmtTL) { mysqli_stmt_bind_param($stmtTL, "iiiss", $teamLeaderUserId, $currentUserId, $complaintId, $msgTL, $notifTime); mysqli_stmt_execute($stmtTL); mysqli_stmt_close($stmtTL); }
+
                     // Maintenance Team Members
                     $members = fetchAllRows($conn, "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND status = 'active' AND user_id != ?", "ii", [$maintenanceTeamId, $teamLeaderUserId]);
                     foreach ($members as $member) {
-                        $mId = $member['user_id'];
-                        $msgMw = "Inspector claim confirmed true for complaint {$complaintCode}. A warning has been issued.";
-                        mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($mId, $currentUserId, $complaintId, 'system', 'Claim Confirmed', '$msgMw', 0, '$notifTime')");
+                        $mId = (int)$member['user_id'];
+                        $msgMw = "Ward Officer confirmed the inspector claim for complaint {$complaintCode}. A warning has been issued to your team.";
+                        $stmtM = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_confirm_inspector_claim', 'Inspector Claim Confirmed by Ward Officer', ?, 0, ?)");
+                        if ($stmtM) { mysqli_stmt_bind_param($stmtM, "iiiss", $mId, $currentUserId, $complaintId, $msgMw, $notifTime); mysqli_stmt_execute($stmtM); mysqli_stmt_close($stmtM); }
                     }
 
-                    // Inspector
-                    $msgIns = "Your false completion claim for complaint {$complaintCode} was confirmed. Thank you.";
-                    mysqli_query($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($inspectorUserId, $currentUserId, $complaintId, 'system', 'Claim Confirmed', '$msgIns', 0, '$notifTime')");
-                    
+                    // Inspector → false-completion-reports
+                    $msgIns = "Ward Officer confirmed the inspector claim for complaint {$complaintCode}. The false completion case has been validated.";
+                    $stmtIns = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_confirm_inspector_claim', 'Inspector Claim Confirmed by Ward Officer', ?, 0, ?)");
+                    if ($stmtIns) { mysqli_stmt_bind_param($stmtIns, "iiiss", $inspectorUserId, $currentUserId, $complaintId, $msgIns, $notifTime); mysqli_stmt_execute($stmtIns); mysqli_stmt_close($stmtIns); }
+
                     // Citizen
                     if ($citizenId > 0) {
-                        $msgCit = "Your complaint {$complaintCode} has been disputed due to false completion. We are investigating.";
-                        mysqli_query($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($citizenId, $currentUserId, $complaintId, 'system', 'Complaint Disputed', '$msgCit', 0, '$notifTime')");
+                        $msgCit = "Ward Officer confirmed the inspector claim for complaint {$complaintCode}. The false completion case has been validated.";
+                        $stmtCit = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_confirm_inspector_claim', 'Inspector Claim Confirmed by Ward Officer', ?, 0, ?)");
+                        if ($stmtCit) { mysqli_stmt_bind_param($stmtCit, "iiiss", $citizenId, $currentUserId, $complaintId, $msgCit, $notifTime); mysqli_stmt_execute($stmtCit); mysqli_stmt_close($stmtCit); }
                     }
-                    
-                    // Central
-                    $msgCen = "Inspector's false completion claim confirmed for complaint {$complaintCode}.";
-                    mysqli_query($conn, "INSERT INTO central_notifications (sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($currentUserId, $complaintId, 'system', 'Claim Confirmed', '$msgCen', 0, '$notifTime')");
+
+                    // Central Officer (specific - Core Rule)
+                    $cenRow = fetchOne($conn, "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1", "i", [$complaintId]);
+                    if ($cenRow) {
+                        $cenUserId = (int)$cenRow['assigned_by'];
+                        $msgCen = "Inspector's false completion claim confirmed for complaint {$complaintCode}. Ward Officer has validated the case.";
+                        $stmtCen = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_confirm_inspector_claim', 'Inspector Claim Confirmed by Ward Officer', ?, 0, ?)");
+                        if ($stmtCen) { mysqli_stmt_bind_param($stmtCen, "iiiss", $cenUserId, $currentUserId, $complaintId, $msgCen, $notifTime); mysqli_stmt_execute($stmtCen); mysqli_stmt_close($stmtCen); }
+                    }
                 } else {
-                    // Inspector
-                    $msgIns = "Your false completion claim for complaint {$complaintCode} was rejected. You have received 1 demerit point.";
-                    mysqli_query($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($inspectorUserId, $currentUserId, $complaintId, 'system', 'Demerit Issued', '$msgIns', 0, '$notifTime')");
-                    
-                    // Maintenance Team Leader
-                    $msgTL = "The false completion claim for complaint {$complaintCode} against your team was rejected. No penalties were applied.";
-                    mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($teamLeaderUserId, $currentUserId, $complaintId, 'system', 'Claim Rejected', '$msgTL', 0, '$notifTime')");
+                    // === inspector_claim_false: ward_reject_inspector_claim ===
+
+                    // Inspector → inspection-logs
+                    $msgIns = "Ward Officer rejected your false completion claim for complaint {$complaintCode}. You have received 1 demerit point.";
+                    $stmtIns = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reject_inspector_claim', 'Inspector Claim Rejected by Ward Officer', ?, 0, ?)");
+                    if ($stmtIns) { mysqli_stmt_bind_param($stmtIns, "iiiss", $inspectorUserId, $currentUserId, $complaintId, $msgIns, $notifTime); mysqli_stmt_execute($stmtIns); mysqli_stmt_close($stmtIns); }
+
+                    // Maintenance Team Leader → task-history
+                    $msgTL = "Ward Officer rejected the false completion claim for complaint {$complaintCode}. No penalties were applied to your team.";
+                    $stmtTL = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reject_inspector_claim', 'Inspector Claim Rejected by Ward Officer', ?, 0, ?)");
+                    if ($stmtTL) { mysqli_stmt_bind_param($stmtTL, "iiiss", $teamLeaderUserId, $currentUserId, $complaintId, $msgTL, $notifTime); mysqli_stmt_execute($stmtTL); mysqli_stmt_close($stmtTL); }
 
                     // Maintenance Team Members
                     $members = fetchAllRows($conn, "SELECT user_id FROM maintenance_team_members WHERE maintenance_team_id = ? AND status = 'active' AND user_id != ?", "ii", [$maintenanceTeamId, $teamLeaderUserId]);
                     foreach ($members as $member) {
-                        $mId = $member['user_id'];
-                        $msgMw = "Inspector claim rejected for complaint {$complaintCode}. Your completion is accepted.";
-                        mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($mId, $currentUserId, $complaintId, 'system', 'Claim Rejected', '$msgMw', 0, '$notifTime')");
+                        $mId = (int)$member['user_id'];
+                        $msgMw = "Inspector claim rejected for complaint {$complaintCode}. Your completion is accepted. Check Task History.";
+                        $stmtM = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reject_inspector_claim', 'Inspector Claim Rejected by Ward Officer', ?, 0, ?)");
+                        if ($stmtM) { mysqli_stmt_bind_param($stmtM, "iiiss", $mId, $currentUserId, $complaintId, $msgMw, $notifTime); mysqli_stmt_execute($stmtM); mysqli_stmt_close($stmtM); }
                     }
-                    
+
                     // Citizen
                     if ($citizenId > 0) {
-                        $msgCit = "Your complaint {$complaintCode} is solved! Please provide feedback.";
-                        mysqli_query($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($citizenId, $currentUserId, $complaintId, 'system', 'Complaint Solved', '$msgCit', 0, '$notifTime')");
+                        $msgCit = "Your complaint {$complaintCode} is solved! The inspector's false claim was rejected. Please provide feedback.";
+                        $stmtCit = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reject_inspector_claim', 'Inspector Claim Rejected by Ward Officer', ?, 0, ?)");
+                        if ($stmtCit) { mysqli_stmt_bind_param($stmtCit, "iiiss", $citizenId, $currentUserId, $complaintId, $msgCit, $notifTime); mysqli_stmt_execute($stmtCit); mysqli_stmt_close($stmtCit); }
                     }
-                    
-                    // Central
-                    $msgCen = "Complaint {$complaintCode} has been successfully solved.";
-                    mysqli_query($conn, "INSERT INTO central_notifications (sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($currentUserId, $complaintId, 'system', 'Complaint Solved', '$msgCen', 0, '$notifTime')");
+
+                    // Central Officer (specific - Core Rule)
+                    $cenRow = fetchOne($conn, "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1", "i", [$complaintId]);
+                    if ($cenRow) {
+                        $cenUserId = (int)$cenRow['assigned_by'];
+                        $msgCen = "Complaint {$complaintCode} has been successfully solved. Inspector's false claim was rejected by Ward Officer.";
+                        $stmtCen = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reject_inspector_claim', 'Inspector Claim Rejected by Ward Officer', ?, 0, ?)");
+                        if ($stmtCen) { mysqli_stmt_bind_param($stmtCen, "iiiss", $cenUserId, $currentUserId, $complaintId, $msgCen, $notifTime); mysqli_stmt_execute($stmtCen); mysqli_stmt_close($stmtCen); }
+                    }
                 }
                 
                 mysqli_commit($conn);

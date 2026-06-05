@@ -245,6 +245,8 @@ if (isset($conn) && $conn instanceof mysqli && isset($_SESSION["user_id"])) {
                                         $notificationLink .= '&redirect=in-progress-cases';
                                     } elseif ($notificationType === 'inspector_false_completion_confirmed') {
                                         $notificationLink .= '&redirect=reopened-disputed';
+                                    } elseif ($notificationType === 'citizen_objection_submitted') {
+                                        $notificationLink .= '&redirect=citizen-objections';
                                     } else {
                                         $notificationLink .= '&redirect=ward-complaints';
                                     }
