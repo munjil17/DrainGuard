@@ -234,6 +234,8 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
                                         } else {
                                             $notificationLink .= '&redirect=assigned-tasks';
                                         }
+                                    } elseif (in_array($notificationType, ['inspector_review_started', 'work_approved', 'inspector_false_completion_confirmed'])) {
+                                        $notificationLink .= '&redirect=task-history';
                                     } else {
                                         $notificationLink .= '&redirect=assigned-tasks'; // Or whatever page handles tasks
                                     }
