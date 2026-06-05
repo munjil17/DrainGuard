@@ -243,6 +243,8 @@ if (isset($conn) && $conn instanceof mysqli && isset($_SESSION["user_id"])) {
                                         $notificationLink .= '&redirect=local-team-assignment';
                                     } elseif ($notificationType === 'maintenance_support_in_progress' || $notificationType === 'maintenance_start_work') {
                                         $notificationLink .= '&redirect=in-progress-cases';
+                                    } elseif ($notificationType === 'inspector_false_completion_confirmed') {
+                                        $notificationLink .= '&redirect=reopened-disputed';
                                     } else {
                                         $notificationLink .= '&redirect=ward-complaints';
                                     }

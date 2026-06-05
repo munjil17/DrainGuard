@@ -97,6 +97,12 @@ if (isset($_GET["read_id"])) {
                     header("Location: verification-queue.php" . $param);
                     exit;
                 }
+
+                if ($redirectType === "reopened-disputed") {
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    header("Location: reopened-disputed.php" . $param);
+                    exit;
+                }
                 
                 if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
                     header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));
@@ -346,6 +352,8 @@ function nt_build_query($overrides = [])
                                     $linkUrl .= "&redirect=local-team-assignment";
                                 } elseif ($notificationType === 'maintenance_support_in_progress' || $notificationType === 'maintenance_start_work') {
                                     $linkUrl .= "&redirect=in-progress-cases";
+                                } elseif ($notificationType === 'inspector_false_completion_confirmed') {
+                                    $linkUrl .= "&redirect=reopened-disputed";
                                 } else {
                                     $linkUrl .= "&redirect=ward-complaints";
                                 }
