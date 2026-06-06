@@ -644,6 +644,10 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
 
                             <article
                                 class="task-card"
+                                data-complaint-id="<?php echo e($task['complaint_id']); ?>"
+                                data-complaint-code="<?php echo e($task['complaint_code']); ?>"
+                                data-notification-target="<?php echo e($task['complaint_id']); ?>"
+                                data-assignment-id="<?php echo e($task['assignment_id']); ?>"
                                 data-priority="<?php echo e($task['assignment_priority']); ?>"
                                 data-status="<?php echo e($task['assignment_status']); ?>"
                                 data-ward-id="<?php echo e($task['ward_id']); ?>"

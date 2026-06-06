@@ -91,25 +91,25 @@ if (isset($_GET["read_id"])) {
                 mysqli_stmt_close($readStmt);
                 
                 if ($redirectType === "tasks" || $redirectType === "verification-queue" || $redirectType === "inspection-queue") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: inspection-queue.php" . $complaintIdParam);
                     exit;
                 }
                 
                 if ($redirectType === "solved-cases") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: solved-cases.php" . $complaintIdParam);
                     exit;
                 }
 
                 if ($redirectType === "false-completion-reports") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: false-completion-reports.php" . $complaintIdParam);
                     exit;
                 }
 
                 if ($redirectType === "inspection-logs" || in_array($readRow["notification_type"], ['ward_reject_inspector_claim', 'ward_citizen_claim_true', 'ward_citizen_claim_false', 'citizen_objection_submitted'])) {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: inspection-logs.php" . $complaintIdParam);
                     exit;
                 }

@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const filterForm = document.getElementById("beforeAfterFilterForm");
     const caseLinks = document.querySelectorAll(".review-case-link");
     const mediaBoxes = document.querySelectorAll(".media-box");
-    const detailsPanel = document.querySelector(".review-details-panel");
 
     if (filterForm) {
         const searchInput = filterForm.querySelector('input[name="search"]');
@@ -63,17 +62,6 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.href = currentUrl.toString();
         });
     });
-
-    const urlParams = new URLSearchParams(window.location.search);
-
-    if (urlParams.has("complaint_id") && detailsPanel) {
-        setTimeout(function () {
-            detailsPanel.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }, 200);
-    }
 
     mediaBoxes.forEach(function (box) {
         box.addEventListener("click", function () {

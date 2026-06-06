@@ -585,7 +585,10 @@ $logs = ilFetchAll(
 
                                 <tbody>
                                     <?php foreach ($logs as $log): ?>
-                                        <tr>
+                                        <tr
+                                            data-complaint-id="<?php echo (int) $log['complaint_id']; ?>"
+                                            data-complaint-code="<?php echo ilText($log['complaint_code']); ?>"
+                                            data-notification-target="<?php echo (int) $log['complaint_id']; ?>">
                                             <td>
                                                 <span class="task-id">
                                                     <?php echo ilText($log['complaint_code']); ?>

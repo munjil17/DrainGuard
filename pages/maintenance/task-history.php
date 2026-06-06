@@ -532,6 +532,10 @@ $successRate = $totalSubmittedToInspector > 0
 
                                         <tr
                                             class="history-row"
+                                            data-complaint-id="<?php echo e($task['complaint_id']); ?>"
+                                            data-complaint-code="<?php echo e($task['complaint_code']); ?>"
+                                            data-notification-target="<?php echo e($task['complaint_id']); ?>"
+                                            data-assignment-id="<?php echo e($task['assignment_id']); ?>"
                                             data-search="<?php echo e(strtolower(
                                                 ($task['complaint_code'] ?? '') . ' ' .
                                                 ($issueType ?? '') . ' ' .

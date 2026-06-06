@@ -6,3 +6,27 @@
     box-shadow: 0 0 0 3px var(--dg-highlight-shadow, rgba(20, 184, 166, 0.12)) !important;
     transition: all 0.3s ease;
 }
+
+.notification-focus,
+.notification-selected {
+    border: 2px solid var(--role-primary-color, var(--primary-color, #14b8a6)) !important;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06) !important;
+    position: relative;
+}
+
+.notification-focus-message {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 9999;
+    max-width: 360px;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--role-primary-color, var(--primary-color, #14b8a6));
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
+    font-size: 14px;
+    font-weight: 600;
+}

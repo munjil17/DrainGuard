@@ -765,7 +765,11 @@ if ($selectedComplaintId > 0) {
                                     $isActive = ((int) $row['complaint_id'] === $selectedComplaintId);
                                     ?>
 
-                                    <a href="<?php echo barText($caseUrl); ?>" class="review-case-link <?php echo $isActive ? 'active' : ''; ?>">
+                                    <a href="<?php echo barText($caseUrl); ?>"
+                                       class="review-case-link <?php echo $isActive ? 'active' : ''; ?>"
+                                       data-complaint-id="<?php echo (int) $row['complaint_id']; ?>"
+                                       data-complaint-code="<?php echo barText($row['complaint_code']); ?>"
+                                       data-notification-target="<?php echo (int) $row['complaint_id']; ?>">
 
                                         <div class="review-case-code">
                                             <?php echo barText($row['complaint_code']); ?>

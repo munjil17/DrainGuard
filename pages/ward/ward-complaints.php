@@ -688,6 +688,9 @@ foreach ($complaints as $item) {
                                 ?>
 
                                 <tr class="wc-complaint-row"
+                                    data-complaint-id="<?= $complaintId; ?>"
+                                    data-complaint-code="<?= htmlspecialchars($complaint['complaint_code']); ?>"
+                                    data-notification-target="<?= $complaintId; ?>"
                                     data-filter="<?= htmlspecialchars($statusData['filter']); ?>"
                                     data-urgency="<?= htmlspecialchars($urgencyFilter); ?>"
                                     data-search="<?= htmlspecialchars($searchText); ?>">

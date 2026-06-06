@@ -771,6 +771,9 @@ $cases = solvedFetchAll($conn, $casesSql, $types, $params);
 
                             <article
                                 class="case-card"
+                                data-complaint-id="<?php echo (int) $case['complaint_id']; ?>"
+                                data-complaint-code="<?php echo solvedText($case['complaint_code']); ?>"
+                                data-notification-target="<?php echo (int) $case['complaint_id']; ?>"
                             >
 
                                 <div class="case-thumb">

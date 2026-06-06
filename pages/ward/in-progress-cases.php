@@ -530,6 +530,9 @@ foreach ($inProgressCases as $caseItem) {
                                 ?>
 
                                 <tr class="ipc-row <?= $scheduleClass === 'delayed' ? 'is-delayed' : ''; ?>"
+                                    data-complaint-id="<?= (int)$case["complaint_id"]; ?>"
+                                    data-complaint-code="<?= safeText($complaintCode); ?>"
+                                    data-notification-target="<?= (int)$case["complaint_id"]; ?>"
                                     data-search="<?= safeText($searchText); ?>"
                                     data-status="<?= safeText($scheduleClass); ?>">
 

@@ -591,11 +591,14 @@ foreach ($verifiedComplaints as $ci) {
                         $searchText   = strtolower($cCode . " " . $issueName . " " . $areaName . " " . $priority . " " . $problemDesc);
                     ?>
 
-                    <article
-                        class="lta-card"
-                        data-search="<?= safeText($searchText); ?>"
-                        data-priority="<?= safeText($priority); ?>"
-                    >
+                      <article
+                         class="lta-card"
+                         data-complaint-id="<?= $cId; ?>"
+                         data-complaint-code="<?= safeText($cCode); ?>"
+                         data-notification-target="<?= $cId; ?>"
+                         data-search="<?= safeText($searchText); ?>"
+                         data-priority="<?= safeText($priority); ?>"
+                      >
                         <div class="lta-card-top">
                             <div class="lta-card-top-left">
                                 <span class="lta-code"><?= safeText($cCode); ?></span>

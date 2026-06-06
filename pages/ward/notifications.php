@@ -96,37 +96,37 @@ if (isset($_GET["read_id"])) {
                 mysqli_stmt_close($readStmt);
                 
                 if ($redirectType === "complaints" || $redirectType === "ward-complaints") {
-                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: ward-complaints.php" . $param);
                     exit;
                 }
                 
                 if ($redirectType === "local-team-assignment") {
-                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: local-team-assignment.php" . $param);
                     exit;
                 }
 
                 if ($redirectType === "in-progress-cases") {
-                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: in-progress-cases.php" . $param);
                     exit;
                 }
                 
                 if ($redirectType === "verification-queue") {
-                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: verification-queue.php" . $param);
                     exit;
                 }
 
                 if ($redirectType === "reopened-disputed") {
-                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: reopened-disputed.php" . $param);
                     exit;
                 }
 
                 if ($redirectType === "citizen-objections") {
-                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "";
+                    $param = !empty($readRow["related_complaint_id"]) ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: citizen-objections.php" . $param);
                     exit;
                 }

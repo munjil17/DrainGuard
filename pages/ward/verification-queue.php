@@ -618,6 +618,9 @@ foreach ($verificationComplaints as $item) {
 
                         <article
                             class="vq-card"
+                            data-complaint-id="<?php echo $complaintId; ?>"
+                            data-complaint-code="<?php echo $complaintCode; ?>"
+                            data-notification-target="<?php echo $complaintId; ?>"
                             data-code="<?php echo strtolower($complaintCode); ?>"
                             data-issue="<?php echo strtolower($issueType); ?>"
                             data-area="<?php echo strtolower($areaText); ?>"

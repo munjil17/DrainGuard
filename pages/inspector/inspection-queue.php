@@ -1132,9 +1132,12 @@ foreach ($queueRows as $case) {
                             $beforeMedia = $caseBeforeMedia[$cid] ?? [];
                             ?>
 
-                            <article
-                                class="queue-card"
-                            >
+                             <article
+                                 class="queue-card"
+                                 data-complaint-id="<?php echo $cid; ?>"
+                                 data-complaint-code="<?php echo iqText($case['complaint_code']); ?>"
+                                 data-notification-target="<?php echo $cid; ?>"
+                             >
 
                                 <div class="queue-card-top">
 

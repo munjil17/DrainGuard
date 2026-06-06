@@ -53,6 +53,7 @@ $whereSql = "WHERE " . implode(" AND ", $whereParts);
 
 $sql = "
     SELECT 
+        mtr.complaint_id,
         mtr.rating,
         mtr.review_text,
         mtr.created_at,
@@ -156,6 +157,9 @@ function dash_safe($val) {
                         $dateFormatted = date('M d, Y', strtotime($rev['created_at']));
                     ?>
                         <div class="review-card" 
+                             data-complaint-id="<?php echo (int)$rev['complaint_id']; ?>"
+                             data-complaint-code="<?php echo dash_safe($rev['complaint_code']); ?>"
+                             data-notification-target="<?php echo (int)$rev['complaint_id']; ?>"
                              data-name="<?php echo dash_safe($rev['citizen_name']); ?>"
                              data-rating="<?php echo (int)$rev['rating']; ?>"
                              data-date="<?php echo $dateFormatted; ?>"

@@ -98,8 +98,8 @@ if (isset($_GET["read_id"])) {
                 mysqli_stmt_close($readStmt);
                 
                 if ($redirectType === "complaints") {
-                    $highlightParam = $readRow["complaint_code"] ? "?highlight=" . urlencode($readRow["complaint_code"]) : ($readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&highlight=1" : "");
-                    $url = "complaints.php" . $highlightParam;
+                    $focusParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : ($readRow["complaint_code"] ? "?complaint_code=" . urlencode($readRow["complaint_code"]) . "&focus=1" : "");
+                    $url = "complaints.php" . $focusParam;
                 } else if ($redirectType === "discussion") {
                     $complaintIdParam = $readRow["related_complaint_id"] ? "?id=" . urlencode($readRow["related_complaint_id"]) : "";
                     $url = "discussion.php" . $complaintIdParam;

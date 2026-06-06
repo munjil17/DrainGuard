@@ -895,7 +895,10 @@ foreach ($objections as $item) {
                             $teamAfter = $afterMedia[$cid] ?? [];
                             ?>
 
-                            <article class="objection-card">
+                            <article class="objection-card"
+                                     data-complaint-id="<?php echo (int) $item['complaint_id']; ?>"
+                                     data-complaint-code="<?php echo woText($item['complaint_code']); ?>"
+                                     data-notification-target="<?php echo (int) $item['complaint_id']; ?>">
 
                                 <div class="objection-top">
                                     <div>

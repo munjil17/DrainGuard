@@ -648,6 +648,9 @@ $reports = fcrFetchAll($conn, $reportSql, $types, $params);
 
                             <article
                                 class="report-card"
+                                data-complaint-id="<?php echo (int) $report['complaint_id']; ?>"
+                                data-complaint-code="<?php echo fcrText($report['complaint_code']); ?>"
+                                data-notification-target="<?php echo (int) $report['complaint_id']; ?>"
                             >
 
                                 <button type="button" class="report-toggle">

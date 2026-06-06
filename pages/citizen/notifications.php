@@ -195,7 +195,7 @@ if ($readId > 0) {
             mysqli_stmt_close($readStmt);
 
             if ($redirectType === "track" && !empty($readRow["complaint_code"])) {
-                header("Location: track-complaint.php?code=" . urlencode($readRow["complaint_code"]) . "&highlight=1");
+                header("Location: track-complaint.php?code=" . urlencode($readRow["complaint_code"]) . "&complaint_code=" . urlencode($readRow["complaint_code"]) . "&focus=1");
                 exit;
             } else if ($redirectType === "discussion" && !empty($readRow["related_complaint_id"])) {
                 header("Location: discussion.php?id=" . urlencode($readRow["related_complaint_id"]));

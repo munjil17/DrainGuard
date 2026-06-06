@@ -657,7 +657,10 @@ if ($complaint) {
 
             <?php if ($complaint): ?>
 
-                <div class="tc-summary-card">
+                <div class="tc-summary-card"
+                     data-complaint-id="<?php echo (int)$complaint["complaint_id"]; ?>"
+                     data-complaint-code="<?php echo safeText($complaint["complaint_code"]); ?>"
+                     data-notification-target="<?php echo safeText($complaint["complaint_code"]); ?>">
                     <div>
                         <span>Complaint ID</span>
                         <strong><?php echo safeText($complaint["complaint_code"]); ?></strong>

@@ -791,9 +791,12 @@ $totalDisputed = count($reopenRequests);
                         );
                     ?>
 
-                    <article class="rd-card <?= safeText($cardClass); ?>"
-                             data-search="<?= safeText($searchText); ?>"
-                             data-type="<?= safeText($requestType); ?>">
+                     <article class="rd-card <?= safeText($cardClass); ?>"
+                              data-complaint-id="<?= $complaintId; ?>"
+                              data-complaint-code="<?= safeText($complaintCode); ?>"
+                              data-notification-target="<?= $complaintId; ?>"
+                              data-search="<?= safeText($searchText); ?>"
+                              data-type="<?= safeText($requestType); ?>">
 
                         <div class="rd-card-top">
                             <div>

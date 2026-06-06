@@ -95,7 +95,7 @@ if (isset($_GET["read_id"])) {
                 mysqli_stmt_close($readStmt);
                 
                 if ($redirectType === "tasks" || $redirectType === "assigned-tasks") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: assigned-tasks.php" . $complaintIdParam);
                     exit;
                 }
@@ -106,19 +106,19 @@ if (isset($_GET["read_id"])) {
                 }
 
                 if ($redirectType === "in-progress-work") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: in-progress-work.php" . $complaintIdParam);
                     exit;
                 }
 
                 if ($redirectType === "task-history") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: task-history.php" . $complaintIdParam);
                     exit;
                 }
 
                 if ($redirectType === "feedback") {
-                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) : "";
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: feedback.php" . $complaintIdParam);
                     exit;
                 }
