@@ -72,6 +72,35 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     return $rows;
 }
 
+function insertNotification($conn, $tableName, $recipientUserId, $senderUserId, $complaintId, $type, $title, $message, $createdAt)
+{
+    $allowedTables = [
+        "maintenance_notifications",
+        "inspector_notifications",
+        "citizen_notifications",
+        "central_notifications",
+        "ward_notifications"
+    ];
+
+    if (!in_array($tableName, $allowedTables, true) || $recipientUserId <= 0) {
+        return;
+    }
+
+    $sql = "INSERT INTO `$tableName` (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)";
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        throw new Exception("Notification prepare failed: " . mysqli_error($conn));
+    }
+
+    mysqli_stmt_bind_param($stmt, "iiissss", $recipientUserId, $senderUserId, $complaintId, $type, $title, $message, $createdAt);
+    if (!mysqli_stmt_execute($stmt)) {
+        $err = mysqli_stmt_error($stmt);
+        mysqli_stmt_close($stmt);
+        throw new Exception("Notification insert failed: " . $err);
+    }
+    mysqli_stmt_close($stmt);
+}
+
 function tableColumns($conn, $tableName)
 {
     $columns = [];
@@ -330,14 +359,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 
                 if ($claimStatus === 'true') {
                     $msgTL = "You received 1 demerit point because the false completion claim for complaint {$complaintCode} was confirmed true.";
-                    mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($teamLeaderUserId, $currentUserId, $complaintId, 'system', 'Demerit Issued', '$msgTL', 0, '$notifTime')");
+                    insertNotification($conn, "maintenance_notifications", $teamLeaderUserId, $currentUserId, $complaintId, "system", "Demerit Issued", $msgTL, $notifTime);
                     $msgIns = "Your false completion claim for complaint {$complaintCode} was confirmed. Thank you.";
-                    mysqli_query($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($inspectorUserId, $currentUserId, $complaintId, 'system', 'Claim Confirmed', '$msgIns', 0, '$notifTime')");
+                    insertNotification($conn, "inspector_notifications", $inspectorUserId, $currentUserId, $complaintId, "system", "Claim Confirmed", $msgIns, $notifTime);
                 } else {
                     $msgIns = "Your false completion claim for complaint {$complaintCode} was rejected. You have received 1 demerit point.";
-                    mysqli_query($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($inspectorUserId, $currentUserId, $complaintId, 'system', 'Demerit Issued', '$msgIns', 0, '$notifTime')");
+                    insertNotification($conn, "inspector_notifications", $inspectorUserId, $currentUserId, $complaintId, "system", "Demerit Issued", $msgIns, $notifTime);
                     $msgTL = "The false completion claim for complaint {$complaintCode} against your team was rejected. No penalties were applied.";
-                    mysqli_query($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES ($teamLeaderUserId, $currentUserId, $complaintId, 'system', 'Claim Rejected', '$msgTL', 0, '$notifTime')");
+                    insertNotification($conn, "maintenance_notifications", $teamLeaderUserId, $currentUserId, $complaintId, "system", "Claim Rejected", $msgTL, $notifTime);
                 }
                 
                 mysqli_commit($conn);
@@ -362,7 +391,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 WHERE rr.reopen_id = ?
                 AND rr.complaint_id = ?
                 AND l.ward_id = ?
-                AND rr.request_status IN ('pending', 'accepted_by_ward')
+                AND rr.request_status IN ('pending', 'resolved')
                 ORDER BY ca.assignment_id DESC
                 LIMIT 1",
                 "iii",
@@ -638,7 +667,7 @@ try {
         WHERE l.ward_id = ?
         AND (
             (rr.request_status = 'pending' AND rr.request_type IN ('reopened', 'false_completion'))
-            OR (rr.request_status = 'accepted_by_ward' AND rr.request_type = 'citizen_objection')
+            OR (rr.request_status = 'resolved' AND rr.request_type = 'citizen_objection')
         )
     ";
 

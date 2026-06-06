@@ -359,7 +359,7 @@ try {
             OR ca.assignment_status = 'in_progress'
             OR mu.work_status IN ('started', 'in_progress')
         )
-        AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'rejected', 'duplicate')
+        AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'rejected_by_central', 'rejected_by_ward', 'final_rejected', 'duplicate')
 
         ORDER BY
             CASE
@@ -531,8 +531,7 @@ foreach ($inProgressCases as $caseItem) {
 
                                 <tr class="ipc-row <?= $scheduleClass === 'delayed' ? 'is-delayed' : ''; ?>"
                                     data-search="<?= safeText($searchText); ?>"
-                                    data-status="<?= safeText($scheduleClass); ?>"
-                                    data-complaint-code="<?= safeText($complaintCode); ?>">
+                                    data-status="<?= safeText($scheduleClass); ?>">
 
                                     <td>
                                         <span class="ipc-code"><?= safeText($complaintCode); ?></span>

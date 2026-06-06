@@ -7,9 +7,9 @@ require_once "../../auth/session_check.php";
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
 
-if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "maintenance_team") {
-    // If there's a strict role check needed, add it here.
-    // Assuming maintenance team has role 'maintenance_team' or similar.
+if (!isset($_SESSION["user_role"]) || !in_array($_SESSION["user_role"], ["team_leader", "assistant_team_leader"], true)) {
+    header("Location: /DrainGuard/auth/login.php");
+    exit();
 }
 
 function nt_safe($value)
@@ -48,6 +48,25 @@ function nt_type_class($type)
     if ($type === 'ward_reply_support_request') return 'type-alert';
     if ($type === 'comment_reply') return 'type-reply';
     return "type-system";
+}
+
+function nt_type_label($type)
+{
+    $type = strtolower(trim((string)$type));
+    $labels = [
+        "citizen_feedback_satisfied" => "Citizen Satisfied with Work",
+        "citizen_objection_submitted" => "Citizen Submitted Objection",
+        "inspector_false_completion_confirmed" => "False Completion Confirmed",
+        "inspector_review_started" => "Inspector Review Started",
+        "inspector_work_approved" => "Work Approved by Inspector",
+        "system" => "System",
+        "task_assigned" => "Task Assigned",
+        "ward_confirm_inspector_claim" => "Inspector Claim Confirmed by Ward Officer",
+        "ward_reject_inspector_claim" => "Inspector Claim Rejected by Ward Officer",
+        "ward_reply_support_request" => "Ward Officer Replied to Support Request"
+    ];
+
+    return $labels[$type] ?? ucwords(str_replace("_", " ", $type));
 }
 
 if (isset($_GET["read_id"])) {
@@ -126,19 +145,23 @@ if (isset($_GET["mark_all_read"]) && $_GET["mark_all_read"] === "1") {
     exit;
 }
 
-$allowedTypes = [
-    "all",
-    "task_assigned",
-    "status_update",
-    "verified",
-    "rejected",
-    "comment_reply",
-    "ward_reply_support_request",
-    "system",
-    "alert",
-    "task_delayed",
-    "task_deadline_warning"
-];
+$availableTypes = [];
+$typeSql = "SELECT DISTINCT notification_type FROM maintenance_notifications WHERE recipient_user_id = ? ORDER BY notification_type";
+$typeStmt = mysqli_prepare($conn, $typeSql);
+if ($typeStmt) {
+    mysqli_stmt_bind_param($typeStmt, "i", $userId);
+    mysqli_stmt_execute($typeStmt);
+    $typeResult = mysqli_stmt_get_result($typeStmt);
+    if ($typeResult) {
+        while ($typeRow = mysqli_fetch_assoc($typeResult)) {
+            $typeValue = trim((string)($typeRow["notification_type"] ?? ""));
+            if ($typeValue !== "") $availableTypes[] = $typeValue;
+        }
+    }
+    mysqli_stmt_close($typeStmt);
+}
+
+$allowedTypes = array_merge(["all"], $availableTypes);
 
 $filterType = trim($_GET["type"] ?? "all");
 $filterRead = trim($_GET["read"] ?? "all");
@@ -302,16 +325,11 @@ function nt_build_query($overrides = [])
                         <label for="type">Type</label>
                         <select name="type" id="type">
                             <option value="all" <?php echo $filterType === "all" ? "selected" : ""; ?>>All Types</option>
-                            <option value="task_assigned" <?php echo $filterType === "task_assigned" ? "selected" : ""; ?>>Task Assigned</option>
-                            <option value="status_update" <?php echo $filterType === "status_update" ? "selected" : ""; ?>>Status Update</option>
-                            <option value="verified" <?php echo $filterType === "verified" ? "selected" : ""; ?>>Verified</option>
-                            <option value="rejected" <?php echo $filterType === "rejected" ? "selected" : ""; ?>>Rejected</option>
-                            <option value="comment_reply" <?php echo $filterType === "comment_reply" ? "selected" : ""; ?>>Comment Reply</option>
-                            <option value="ward_reply_support_request" <?php echo $filterType === "ward_reply_support_request" ? "selected" : ""; ?>>Ward Officer Reply</option>
-                            <option value="task_delayed" <?php echo $filterType === "task_delayed" ? "selected" : ""; ?>>Task Delayed</option>
-                            <option value="task_deadline_warning" <?php echo $filterType === "task_deadline_warning" ? "selected" : ""; ?>>Deadline Warning</option>
-                            <option value="system" <?php echo $filterType === "system" ? "selected" : ""; ?>>System Message</option>
-                            <option value="alert" <?php echo $filterType === "alert" ? "selected" : ""; ?>>Alert</option>
+                            <?php foreach ($availableTypes as $typeOption): ?>
+                                <option value="<?php echo nt_safe($typeOption); ?>" <?php echo $filterType === $typeOption ? "selected" : ""; ?>>
+                                    <?php echo nt_safe(nt_type_label($typeOption)); ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 

@@ -646,7 +646,9 @@ $reports = fcrFetchAll($conn, $reportSql, $types, $params);
                             $reportPenalties = $penalties[$reviewId] ?? [];
                             ?>
 
-                            <article class="report-card">
+                            <article
+                                class="report-card"
+                            >
 
                                 <button type="button" class="report-toggle">
                                     <div>

@@ -16,7 +16,7 @@ function historyStatusLabel($status)
 {
     $status = strtolower((string)$status);
 
-    if ($status === 'verified' || $status === 'accepted') {
+    if ($status === 'verified_by_ward' || $status === 'accepted') {
         return 'Verified';
     }
 
@@ -36,7 +36,7 @@ function historyStatusLabel($status)
         return 'Closed';
     }
 
-    if ($status === 'rejected') {
+    if (in_array($status, ['rejected_by_central', 'rejected_by_ward', 'final_rejected'], true)) {
         return 'Rejected';
     }
 
@@ -51,7 +51,7 @@ function historyStatusClass($status)
 {
     $status = strtolower((string)$status);
 
-    if ($status === 'verified' || $status === 'accepted' || $status === 'closed') {
+    if ($status === 'verified_by_ward' || $status === 'accepted' || $status === 'closed') {
         return 'verified';
     }
 
@@ -67,7 +67,7 @@ function historyStatusClass($status)
         return 'solved';
     }
 
-    if ($status === 'rejected' || $status === 'reopened') {
+    if (in_array($status, ['rejected_by_central', 'rejected_by_ward', 'final_rejected'], true) || $status === 'reopened') {
         return 'rejected';
     }
 
@@ -220,7 +220,7 @@ if ($teamId > 0) {
         WHERE ca.maintenance_team_id = ?
         AND (
             ca.assignment_status IN ('team_assigned', 'in_progress', 'completed')
-            OR c.complaint_status IN ('verified', 'in_progress', 'solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected')
+            OR c.complaint_status IN ('verified_by_ward', 'in_progress', 'solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected_by_central', 'rejected_by_ward', 'final_rejected')
         )
 
         GROUP BY
@@ -281,7 +281,7 @@ if ($teamId > 0) {
         WHERE ca.maintenance_team_id = ?
         AND (
             ca.assignment_status IN ('team_assigned', 'in_progress', 'completed')
-            OR c.complaint_status IN ('verified', 'in_progress', 'solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected')
+            OR c.complaint_status IN ('verified_by_ward', 'in_progress', 'solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected_by_central', 'rejected_by_ward', 'final_rejected')
         )
         ORDER BY a.area_name ASC
     ";
@@ -587,7 +587,6 @@ $successRate = $totalSubmittedToInspector > 0
                                                 <button
                                                     type="button"
                                                     class="view-history-btn"
-                                                    data-code="<?php echo e($task['complaint_code']); ?>"
                                                     data-issue="<?php echo e($issueType); ?>"
                                                     data-area="<?php echo e($areaText); ?>"
                                                     data-ward="<?php echo e($wardText); ?>"

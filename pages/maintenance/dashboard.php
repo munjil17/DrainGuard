@@ -109,7 +109,7 @@ if ($teamId > 0) {
             SUM(CASE WHEN ca.assignment_status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress,
             SUM(CASE WHEN c.complaint_status = 'solved_by_team' THEN 1 ELSE 0 END) AS solved_by_team,
             SUM(CASE WHEN c.complaint_status = 'closed' THEN 1 ELSE 0 END) AS inspector_closed,
-            SUM(CASE WHEN c.complaint_status IN ('rejected', 'disputed') THEN 1 ELSE 0 END) AS inspector_rejected,
+            SUM(CASE WHEN c.complaint_status IN ('rejected_by_central', 'rejected_by_ward', 'final_rejected', 'disputed') THEN 1 ELSE 0 END) AS inspector_rejected,
             SUM(CASE WHEN c.complaint_status = 'reopened' THEN 1 ELSE 0 END) AS reopen
         FROM complaint_assignments ca
         INNER JOIN complaints c

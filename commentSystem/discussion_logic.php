@@ -103,10 +103,7 @@ function cs_has_discussion_access($context, $userId, $userRole) {
     if ($userRole === 'central_officer') {
         // Any central officer or only the specific one?
         // User rules: "Central Officer who sent/routed"
-        if ($context["central_officer_id"] > 0) {
-            return ($userId === $context["central_officer_id"]);
-        }
-        return true; // fallback if assignment not found
+        return ($context["central_officer_id"] > 0 && $userId === $context["central_officer_id"]);
     }
 
     if ($userRole === 'ward_officer') {

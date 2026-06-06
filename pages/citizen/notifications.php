@@ -122,6 +122,16 @@ function nt_type_label($type)
         "ward_reject" => "Ward Rejected",
         "ward_duplicate" => "Ward Duplicate",
         "maintenance_start_work" => "Work Started",
+        "maintenance_completion_proof_submitted" => "Completion Proof Submitted",
+        "inspector_review_started" => "Inspector Review Started",
+        "inspector_work_approved" => "Work Approved by Inspector",
+        "status_update" => "Status Update",
+        "system" => "System",
+        "ward_citizen_claim_true" => "Citizen Claim Marked True",
+        "ward_citizen_claim_false" => "Citizen Claim Marked False",
+        "ward_confirm_inspector_claim" => "Inspector Claim Confirmed by Ward",
+        "ward_reject_inspector_claim" => "Inspector Claim Rejected by Ward",
+        "ward_reopen_assign_team" => "Reopened Complaint Assigned",
         "objection_submitted" => "Objection Submitted",
         "objection_under_review" => "Objection Under Review",
         "objection_reopened" => "Complaint Reopened",
@@ -222,21 +232,30 @@ if (isset($_GET["mark_all_read"]) && $_GET["mark_all_read"] === "1") {
     redirect_to("pages/citizen/notifications.php");
 }
 
-$allowedTypes = [
-    "all",
-    "complaint_accepted",
-    "complaint_rejected",
-    "complaint_status_updated",
-    "ward_accept_verify",
-    "ward_reject",
-    "ward_duplicate",
-    "objection_submitted",
-    "objection_under_review",
-    "objection_reopened",
-    "objection_final_rejected",
-    "comment_reply",
-    "maintenance_start_work"
-];
+$availableTypes = [];
+$typeSql = "
+    SELECT DISTINCT notification_type
+    FROM citizen_notifications
+    WHERE recipient_user_id = ?
+    ORDER BY notification_type
+";
+$typeStmt = mysqli_prepare($conn, $typeSql);
+if ($typeStmt) {
+    mysqli_stmt_bind_param($typeStmt, "i", $userId);
+    mysqli_stmt_execute($typeStmt);
+    $typeResult = mysqli_stmt_get_result($typeStmt);
+    if ($typeResult) {
+        while ($typeRow = mysqli_fetch_assoc($typeResult)) {
+            $typeValue = trim((string)($typeRow["notification_type"] ?? ""));
+            if ($typeValue !== "") {
+                $availableTypes[] = $typeValue;
+            }
+        }
+    }
+    mysqli_stmt_close($typeStmt);
+}
+
+$allowedTypes = array_merge(["all"], $availableTypes);
 
 $filterType = trim($_GET["type"] ?? "all");
 $filterRead = trim($_GET["read"] ?? "all");
@@ -429,18 +448,11 @@ function nt_build_query($overrides = [])
                         <label for="type">Type</label>
                         <select name="type" id="type">
                             <option value="all" <?php echo $filterType === "all" ? "selected" : ""; ?>>All Types</option>
-                            <option value="complaint_accepted" <?php echo $filterType === "complaint_accepted" ? "selected" : ""; ?>>Complaint Accepted</option>
-                            <option value="complaint_rejected" <?php echo $filterType === "complaint_rejected" ? "selected" : ""; ?>>Complaint Rejected</option>
-                            <option value="complaint_status_updated" <?php echo $filterType === "complaint_status_updated" ? "selected" : ""; ?>>Track Update</option>
-                            <option value="ward_accept_verify" <?php echo $filterType === "ward_accept_verify" ? "selected" : ""; ?>>Ward Verified</option>
-                            <option value="ward_reject" <?php echo $filterType === "ward_reject" ? "selected" : ""; ?>>Ward Rejected</option>
-                            <option value="ward_duplicate" <?php echo $filterType === "ward_duplicate" ? "selected" : ""; ?>>Ward Duplicate</option>
-                            <option value="maintenance_start_work" <?php echo $filterType === "maintenance_start_work" ? "selected" : ""; ?>>Work Started</option>
-                            <option value="objection_submitted" <?php echo $filterType === "objection_submitted" ? "selected" : ""; ?>>Objection Submitted</option>
-                            <option value="objection_under_review" <?php echo $filterType === "objection_under_review" ? "selected" : ""; ?>>Objection Under Review</option>
-                            <option value="objection_reopened" <?php echo $filterType === "objection_reopened" ? "selected" : ""; ?>>Objection Reopened</option>
-                            <option value="objection_final_rejected" <?php echo $filterType === "objection_final_rejected" ? "selected" : ""; ?>>Objection Final Rejected</option>
-                            <option value="comment_reply" <?php echo $filterType === "comment_reply" ? "selected" : ""; ?>>Comment Reply</option>
+                            <?php foreach ($availableTypes as $typeOption): ?>
+                                <option value="<?php echo nt_safe($typeOption); ?>" <?php echo $filterType === $typeOption ? "selected" : ""; ?>>
+                                    <?php echo nt_safe(nt_type_label($typeOption)); ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 

@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         AND ca.deadline_at IS NOT NULL
         AND ca.deadline_at < CURDATE()
         AND ca.assignment_status IN ('team_assigned', 'in_progress')
-        AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected')
+        AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected_by_central', 'rejected_by_ward', 'final_rejected')
         LIMIT 1
     ";
 
@@ -332,7 +332,7 @@ if ($teamId > 0) {
         AND ca.deadline_at IS NOT NULL
         AND ca.deadline_at < CURDATE()
         AND ca.assignment_status IN ('team_assigned', 'in_progress')
-        AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected')
+        AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'reopened', 'rejected_by_central', 'rejected_by_ward', 'final_rejected')
 
         ORDER BY
             overdue_days DESC,

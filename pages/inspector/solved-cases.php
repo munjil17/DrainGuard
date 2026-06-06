@@ -174,7 +174,7 @@ function solvedStatusLabel($status)
         'submitted' => 'Submitted',
         'received' => 'Received',
         'pending_verification' => 'Ward Officer Pending Verification',
-        'verified' => 'Verified by Ward Officer',
+        'verified_by_ward' => 'Verified by Ward Officer',
         'team_assigned' => 'Team Assigned',
         'in_progress' => 'In Progress',
         'solved_by_team' => 'Solved by Maintenance Team',
@@ -182,7 +182,9 @@ function solvedStatusLabel($status)
         'closed' => 'Solved',
         'reopened' => 'Reopened',
         'disputed' => 'Disputed',
-        'rejected' => 'Rejected',
+        'rejected_by_central' => 'Rejected by Central Officer',
+        'rejected_by_ward' => 'Rejected by Ward Officer',
+        'final_rejected' => 'Final Rejected',
         'duplicate' => 'Duplicate'
     ];
 
@@ -300,7 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
             AND ca.ward_id = ?
             AND mp.proof_stage = 'after'
             AND mp.proof_status = 'submitted'
-            AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected', 'duplicate')
+            AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected_by_central', 'rejected_by_ward', 'final_rejected', 'duplicate')
             LIMIT 1",
             "ii",
             [$complaintId, $assignedWardId]
@@ -468,7 +470,7 @@ $teamRows = solvedFetchAll(
     WHERE ca.ward_id = ?
     AND mp.proof_stage = 'after'
     AND mp.proof_status = 'submitted'
-    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'rejected', 'duplicate')
+    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'rejected_by_central', 'rejected_by_ward', 'final_rejected', 'duplicate')
     ORDER BY mt.team_name ASC",
     "i",
     [$assignedWardId]
@@ -499,7 +501,7 @@ $countRow = solvedFetchOne(
     WHERE ca.ward_id = ?
     AND mp.proof_stage = 'after'
     AND mp.proof_status = 'submitted'
-    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected', 'duplicate')",
+    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected_by_central', 'rejected_by_ward', 'final_rejected', 'duplicate')",
     "i",
     [$assignedWardId]
 );
@@ -513,7 +515,7 @@ $totalSolvedByTeam = $countRow ? (int) $countRow['total'] : 0;
 $whereSql = "
     WHERE ca.ward_id = ?
     AND after_proof.proof_id IS NOT NULL
-    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected', 'duplicate')
+    AND c.complaint_status NOT IN ('inspector_verification', 'closed', 'reopened', 'disputed', 'rejected_by_central', 'rejected_by_ward', 'final_rejected', 'duplicate')
 ";
 
 $types = "i";
@@ -767,7 +769,9 @@ $cases = solvedFetchAll($conn, $casesSql, $types, $params);
                             $priority = $case['assignment_priority'] ?: 'Medium';
                             ?>
 
-                            <article class="case-card">
+                            <article
+                                class="case-card"
+                            >
 
                                 <div class="case-thumb">
 

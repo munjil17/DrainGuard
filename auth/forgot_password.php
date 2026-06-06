@@ -49,14 +49,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $mail = new PHPMailer(true);
                     try {
                         $mail->isSMTP();
-                        $mail->Host       = 'smtp.gmail.com';
+                        $mail->Host       = DG_SMTP_HOST;
                         $mail->SMTPAuth   = true;
-                        $mail->Username   = 'munjilislambd17@gmail.com'; 
-                        $mail->Password   = 'jrmbycmwjbncojph'; 
+                        $mail->Username   = DG_SMTP_USERNAME;
+                        $mail->Password   = DG_SMTP_PASSWORD;
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port       = 587;
+                        $mail->Port       = DG_SMTP_PORT;
 
-                        $mail->setFrom('munjilislambd17@gmail.com', 'DrainGuard Support');
+                        $mail->setFrom(DG_SMTP_FROM_EMAIL, DG_SMTP_FROM_NAME);
                         $mail->addAddress($email, $userName);
 
                         $resetLink = "http://localhost/DrainGuard/auth/reset_password.php?token=" . $token;
@@ -78,7 +78,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $message = "A password reset link has been sent to your email!";
                         $messageType = "success";
                     } catch (Exception $e) {
-                        $message = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                        error_log("[DrainGuard forgot_password] Mailer Error: " . $mail->ErrorInfo);
+                        $message = "Could not send the reset email right now. Please try again later.";
                         $messageType = "error";
                     }
                 } else {

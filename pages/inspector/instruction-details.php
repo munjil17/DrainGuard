@@ -63,7 +63,6 @@ if (!$instruction) {
     <link rel="stylesheet" href="../../css/global/global.css">
     <link rel="stylesheet" href="../../css/inspector/sidebar.css">
     <link rel="stylesheet" href="../../css/inspector/topbar.css">
-    <link rel="stylesheet" href="../../css/inspector/inspectorTextFix.css">
     <style>
         .id-page {
             padding: 24px;

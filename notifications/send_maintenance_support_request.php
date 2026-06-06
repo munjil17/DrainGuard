@@ -131,12 +131,6 @@ try {
     mysqli_stmt_close($insertStmt);
 
     // 3. Send Notification to Ward Officer
-    // Determine URL based on complaint status
-    $notifUrl = "/DrainGuard/pages/ward/local-team-assignment.php?highlight=" . $complaintCode;
-    if ($complaintStatus === 'in_progress') {
-        $notifUrl = "/DrainGuard/pages/ward/in-progress-cases.php?highlight=" . $complaintCode;
-    }
-
     $sourcePage = trim($_POST['source_page'] ?? 'assigned_tasks');
 
     if ($sourcePage === 'in_progress_work') {

@@ -644,7 +644,6 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
 
                             <article
                                 class="task-card"
-                                data-code="<?php echo e($task['complaint_code']); ?>"
                                 data-priority="<?php echo e($task['assignment_priority']); ?>"
                                 data-status="<?php echo e($task['assignment_status']); ?>"
                                 data-ward-id="<?php echo e($task['ward_id']); ?>"
@@ -785,7 +784,6 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
                                         <button
                                             type="button"
                                             class="task-btn details-btn"
-                                            data-complaint-code="<?php echo e($task['complaint_code']); ?>"
                                             data-issue="<?php echo e($issueTitle); ?>"
                                             data-priority="<?php echo e($task['assignment_priority']); ?>"
                                             data-assignment-status="<?php echo e(statusLabel($task['assignment_status'])); ?>"
@@ -810,7 +808,6 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
                                             type="button" 
                                             class="task-btn support-btn need-support-btn"
                                             data-assignment-id="<?php echo e($task['assignment_id']); ?>"
-                                            data-complaint-code="<?php echo e($task['complaint_code']); ?>"
                                         >
                                             <i class="bi bi-bell"></i>
                                             Need Support

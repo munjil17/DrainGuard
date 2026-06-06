@@ -425,6 +425,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $assignmentId = (int) $allowedComplaint['assignment_id'];
         $maintenanceTeamId = (int) $allowedComplaint['maintenance_team_id'];
+        $decisionType = ($action === 'approve') ? 'approved' : $action;
 
         // Add to inspection_logs
         $logStmt = mysqli_prepare(
@@ -438,8 +439,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception(mysqli_error($conn));
         }
         
-        mysqli_stmt_bind_param($logStmt, "iiiss", $complaintId, $assignmentId, $userId, $action, $inspectionNote);
-        mysqli_stmt_execute($logStmt);
+        mysqli_stmt_bind_param($logStmt, "iiiss", $complaintId, $assignmentId, $userId, $decisionType, $inspectionNote);
+        if (!mysqli_stmt_execute($logStmt)) {
+            throw new Exception(mysqli_stmt_error($logStmt));
+        }
         mysqli_stmt_close($logStmt);
 
         if ($action === 'approve') {
@@ -1129,7 +1132,9 @@ foreach ($queueRows as $case) {
                             $beforeMedia = $caseBeforeMedia[$cid] ?? [];
                             ?>
 
-                            <article class="queue-card">
+                            <article
+                                class="queue-card"
+                            >
 
                                 <div class="queue-card-top">
 

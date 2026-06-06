@@ -345,7 +345,7 @@ function buildReportRows($conn, $reportType, $wardId, $areaId, $startDate, $endD
             WHERE l.ward_id = ?
             AND c.updated_at BETWEEN ? AND ?
             $areaCondition
-            AND c.complaint_status IN ('pending_verification', 'verified', 'rejected', 'duplicate')
+            AND c.complaint_status IN ('pending_verification', 'verified_by_ward', 'rejected_by_central', 'rejected_by_ward', 'final_rejected', 'duplicate')
             ORDER BY c.updated_at DESC
         ";
 

@@ -733,7 +733,6 @@ foreach ($complaints as $item) {
                                                 class="wc-view-btn"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#complaintDetailsModal"
-                                                data-code="<?= htmlspecialchars($complaint['complaint_code']); ?>"
                                                 data-issue="<?= htmlspecialchars($issueName); ?>"
                                                 data-area="<?= htmlspecialchars($areaName); ?>"
                                                 data-priority="<?= htmlspecialchars($priority); ?>"

@@ -202,7 +202,7 @@ function lta_insertNotification($conn, $table, $recipientUserId, $senderUserId, 
 
 /*
 |--------------------------------------------------------------------------
-| Process POST â€“ assign team
+| Process POST – assign team
 |--------------------------------------------------------------------------
 */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -298,7 +298,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 /* Identify central officer from existing assignment's assigned_by */
                 $centralOfficerUserId = (int)($existingAssignment["assigned_by"] ?? 0);
-                // Re-fetch because lta_fetchOne selected only assignment_id â€” re-query
+                // Re-fetch because lta_fetchOne selected only assignment_id — re-query
                 $assignRow = lta_fetchOne(
                     $conn,
                     "SELECT assigned_by FROM complaint_assignments WHERE assignment_id = ? LIMIT 1",
@@ -595,7 +595,6 @@ foreach ($verifiedComplaints as $ci) {
                         class="lta-card"
                         data-search="<?= safeText($searchText); ?>"
                         data-priority="<?= safeText($priority); ?>"
-                        data-complaint-code="<?= safeText($cCode); ?>"
                     >
                         <div class="lta-card-top">
                             <div class="lta-card-top-left">

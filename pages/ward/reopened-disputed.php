@@ -72,6 +72,13 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     return $rows;
 }
 
+function queryOrThrow($conn, $sql, $context)
+{
+    if (!mysqli_query($conn, $sql)) {
+        throw new Exception($context . ": " . mysqli_error($conn));
+    }
+}
+
 function tableColumns($conn, $tableName)
 {
     $columns = [];
@@ -246,7 +253,7 @@ try {
 | Handle actions
 |--------------------------------------------------------------------------
 | Same team: back to team_assigned.
-| Different team: back to verified so Local Team Assignment can assign another team.
+| Different team: back to team_assigned so Local Team Assignment can assign another team.
 | Inspector: send to inspector_verification.
 |--------------------------------------------------------------------------
 */
@@ -299,13 +306,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
 
                     // Reopen complaint
-                    mysqli_query($conn, "UPDATE complaints SET complaint_status = 'reopened' WHERE complaint_id = $complaintId");
-                    mysqli_query($conn, "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after' AND proof_status = 'submitted'");
+                    queryOrThrow($conn, "UPDATE complaints SET complaint_status = 'reopened' WHERE complaint_id = $complaintId", "Reopen complaint update failed");
+                    queryOrThrow($conn, "UPDATE maintenance_proofs SET proof_status = 'rejected' WHERE complaint_id = $complaintId AND proof_stage = 'after' AND proof_status = 'submitted'", "Reject after proof update failed");
                     
                     // Add to reopen_requests
                     $insReq = mysqli_prepare($conn, "INSERT INTO reopen_requests (complaint_id, requested_by, request_type, reason, request_status, ward_note) VALUES (?, ?, 'false_completion', ?, 'pending', ?)");
+                    if (!$insReq) {
+                        throw new Exception("Reopen request prepare failed: " . mysqli_error($conn));
+                    }
                     mysqli_stmt_bind_param($insReq, "iiss", $complaintId, $currentUserId, $decisionNote, $decisionNote);
-                    mysqli_stmt_execute($insReq);
+                    if (!mysqli_stmt_execute($insReq)) {
+                        $err = mysqli_stmt_error($insReq);
+                        mysqli_stmt_close($insReq);
+                        throw new Exception("Reopen request insert failed: " . $err);
+                    }
+                    mysqli_stmt_close($insReq);
                     
                     $claimStatus = 'true';
                     $successMessage = "Inspector claim confirmed true. Maintenance team penalized and complaint disputed/reopened.";
@@ -315,9 +330,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     // Inspector gets 1 demerit
                     addDemerit($conn, $inspectorUserId, null, 'inspector', 'inspector', $complaintId, null, 'false_completion_claim_false', $decisionNote, $currentUserId, 'ward_officer');
 
-                    mysqli_query($conn, "UPDATE complaints SET complaint_status = 'closed', closed_at = CURRENT_TIMESTAMP WHERE complaint_id = $complaintId");
-                    mysqli_query($conn, "UPDATE complaint_assignments SET assignment_status = 'completed' WHERE complaint_id = $complaintId AND assignment_status != 'completed'");
-                    mysqli_query($conn, "UPDATE maintenance_proofs SET proof_status = 'accepted' WHERE complaint_id = $complaintId AND proof_stage = 'after'");
+                    queryOrThrow($conn, "UPDATE complaints SET complaint_status = 'closed', closed_at = CURRENT_TIMESTAMP WHERE complaint_id = $complaintId", "Close complaint update failed");
+                    queryOrThrow($conn, "UPDATE complaint_assignments SET assignment_status = 'completed' WHERE complaint_id = $complaintId AND assignment_status != 'completed'", "Complete assignment update failed");
+                    queryOrThrow($conn, "UPDATE maintenance_proofs SET proof_status = 'accepted' WHERE complaint_id = $complaintId AND proof_stage = 'after'", "Accept after proof update failed");
                     $claimStatus = 'false';
                     $successMessage = "Inspector claim marked false. Inspector penalized and complaint solved. Ready for Citizen Feedback.";
                 }
@@ -474,7 +489,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_close($updateAssignmentStmt);
             } elseif ($action === "different_team") {
                 $requestStatus = "reassigned_different_team";
-                $complaintStatus = "verified";
+                $complaintStatus = "team_assigned";
 
                 $updateAssignmentSql = "
                     UPDATE complaint_assignments

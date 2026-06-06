@@ -241,7 +241,9 @@ if (!empty($task['ward_name'])) {
                             $issueTitle = 'Drainage Complaint';
                             ?>
 
-                            <article class="task-card">
+                            <article
+                                class="task-card"
+                            >
                                 <div class="task-media">
                                     <?php if ($hasImage): ?>
                                         <a href="<?php echo e($downloadPath); ?>" download class="media-download-link" title="Download complaint photo">
@@ -378,7 +380,6 @@ if (!empty($task['ward_name'])) {
                                         <button
                                             type="button"
                                             class="task-btn details-btn"
-                                            data-complaint-code="<?php echo e($task['complaint_code']); ?>"
                                             data-issue="<?php echo e($issueTitle); ?>"
                                             data-priority="<?php echo e($task['assignment_priority']); ?>"
                                             data-address="<?php echo e($task['address_description'] ?: 'Address not provided'); ?>"
@@ -400,7 +401,6 @@ if (!empty($task['ward_name'])) {
                                             type="button" 
                                             class="task-btn support-btn need-support-btn"
                                             data-assignment-id="<?php echo e($task['assignment_id']); ?>"
-                                            data-complaint-code="<?php echo e($task['complaint_code']); ?>"
                                         >
                                             <i class="bi bi-bell"></i>
                                             Need Support

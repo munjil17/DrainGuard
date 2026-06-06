@@ -27,6 +27,35 @@ $database = "drainguard";
 $baseUrl = "/DrainGuard/";
 
 /* =========================================================
+   SMTP CONFIGURATION
+   Set these in your local environment before using forgot password:
+   DG_SMTP_USERNAME, DG_SMTP_PASSWORD, optional DG_SMTP_FROM_EMAIL.
+========================================================= */
+if (!defined("DG_SMTP_HOST")) {
+    define("DG_SMTP_HOST", getenv("DG_SMTP_HOST") ?: "smtp.gmail.com");
+}
+
+if (!defined("DG_SMTP_PORT")) {
+    define("DG_SMTP_PORT", (int)(getenv("DG_SMTP_PORT") ?: 587));
+}
+
+if (!defined("DG_SMTP_USERNAME")) {
+    define("DG_SMTP_USERNAME", getenv("DG_SMTP_USERNAME") ?: "");
+}
+
+if (!defined("DG_SMTP_PASSWORD")) {
+    define("DG_SMTP_PASSWORD", getenv("DG_SMTP_PASSWORD") ?: "");
+}
+
+if (!defined("DG_SMTP_FROM_EMAIL")) {
+    define("DG_SMTP_FROM_EMAIL", getenv("DG_SMTP_FROM_EMAIL") ?: DG_SMTP_USERNAME);
+}
+
+if (!defined("DG_SMTP_FROM_NAME")) {
+    define("DG_SMTP_FROM_NAME", getenv("DG_SMTP_FROM_NAME") ?: "DrainGuard Support");
+}
+
+/* =========================================================
    DATABASE CONNECTION
 ========================================================= */
 mysqli_report(MYSQLI_REPORT_OFF);

@@ -101,7 +101,7 @@ function hra_get_drain_breakdown($conn, $thanaId, $wardId, $areaId)
         WHERE l.thana_id = ?
         AND l.ward_id = ?
         AND l.area_id = ?
-        AND c.complaint_status NOT IN ('rejected')
+        AND c.complaint_status NOT IN ('rejected_by_central', 'rejected_by_ward', 'final_rejected')
         AND c.submitted_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         GROUP BY
             d.drain_id,

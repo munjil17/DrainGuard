@@ -3,6 +3,11 @@
 
 require_once "config.php";
 
+if (($_GET["key"] ?? "") !== "DG_TEST_2026") {
+    http_response_code(403);
+    exit("403 Forbidden");
+}
+
 $message = "";
 $messageType = "";
 
