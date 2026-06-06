@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer")
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
@@ -27,7 +27,7 @@ function lta_fetchOne($conn, $sql, $types = "", $params = [])
 {
     $stmt = mysqli_prepare($conn, $sql);
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
     if ($types !== "" && !empty($params)) {
         mysqli_stmt_bind_param($stmt, $types, ...$params);
@@ -43,7 +43,7 @@ function lta_fetchAll($conn, $sql, $types = "", $params = [])
 {
     $stmt = mysqli_prepare($conn, $sql);
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
     if ($types !== "" && !empty($params)) {
         mysqli_stmt_bind_param($stmt, $types, ...$params);
@@ -113,7 +113,7 @@ $teamCodeCol      = lta_firstColumn($teamColumns, ["team_code", "maintenance_tea
 $teamPhoneCol     = lta_firstColumn($teamColumns, ["team_phone", "phone", "phone_number", "contact_number"]);
 
 if (!$teamIdCol || !$teamNameCol || !$teamCityCorCol || !$teamAnchalCol) {
-    die("maintenance_teams table is missing required columns.");
+    die("Maintenance team information is not available right now.");
 }
 
 /*
@@ -184,7 +184,7 @@ function lta_insertNotification($conn, $table, $recipientUserId, $senderUserId, 
             VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
 
     $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) throw new Exception("Notification prepare failed: " . mysqli_error($conn));
+    if (!$stmt) throw new Exception("Unable to complete this action. Please try again.");
 
     mysqli_stmt_bind_param($stmt, "iiisss",
         $recipientUserId,
@@ -195,14 +195,14 @@ function lta_insertNotification($conn, $table, $recipientUserId, $senderUserId, 
         $message
     );
     if (!mysqli_stmt_execute($stmt)) {
-        throw new Exception("Notification insert failed: " . mysqli_stmt_error($stmt));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
     mysqli_stmt_close($stmt);
 }
 
 /*
 |--------------------------------------------------------------------------
-| Process POST – assign team
+| Process POST ï¿½ assign team
 |--------------------------------------------------------------------------
 */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -291,14 +291,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         assigned_at          = CURRENT_TIMESTAMP
                     WHERE assignment_id = ?
                 ");
-                if (!$upd) throw new Exception("Assignment update failed: " . mysqli_error($conn));
+                if (!$upd) throw new Exception("Unable to complete this action. Please try again.");
                 mysqli_stmt_bind_param($upd, "isssi", $maintenanceTeamId, $deadlineAt, $assignmentPriority, $taskNote, $assignmentId);
-                if (!mysqli_stmt_execute($upd)) throw new Exception("Assignment update failed: " . mysqli_stmt_error($upd));
+                if (!mysqli_stmt_execute($upd)) throw new Exception("Unable to complete this action. Please try again.");
                 mysqli_stmt_close($upd);
 
                 /* Identify central officer from existing assignment's assigned_by */
                 $centralOfficerUserId = (int)($existingAssignment["assigned_by"] ?? 0);
-                // Re-fetch because lta_fetchOne selected only assignment_id — re-query
+                // Re-fetch because lta_fetchOne selected only assignment_id ï¿½ re-query
                 $assignRow = lta_fetchOne(
                     $conn,
                     "SELECT assigned_by FROM complaint_assignments WHERE assignment_id = ? LIMIT 1",
@@ -314,9 +314,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                          assignment_status, assigned_at, deadline_at, assignment_priority, task_note)
                     VALUES (?, ?, ?, ?, 'team_assigned', CURRENT_TIMESTAMP, ?, ?, ?)
                 ");
-                if (!$ins) throw new Exception("Assignment insert failed: " . mysqli_error($conn));
+                if (!$ins) throw new Exception("Unable to complete this action. Please try again.");
                 mysqli_stmt_bind_param($ins, "iiiisss", $complaintId, $wardId, $maintenanceTeamId, $currentUserId, $deadlineAt, $assignmentPriority, $taskNote);
-                if (!mysqli_stmt_execute($ins)) throw new Exception("Assignment insert failed: " . mysqli_stmt_error($ins));
+                if (!mysqli_stmt_execute($ins)) throw new Exception("Unable to complete this action. Please try again.");
                 mysqli_stmt_close($ins);
 
                 $centralOfficerUserId = 0; // new assignment has no prior central officer recorded
@@ -329,9 +329,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     updated_at       = CURRENT_TIMESTAMP
                 WHERE complaint_id = ?
             ");
-            if (!$updComp) throw new Exception("Complaint status update failed: " . mysqli_error($conn));
+            if (!$updComp) throw new Exception("Unable to complete this action. Please try again.");
             mysqli_stmt_bind_param($updComp, "i", $complaintId);
-            if (!mysqli_stmt_execute($updComp)) throw new Exception("Complaint status update failed: " . mysqli_stmt_error($updComp));
+            if (!mysqli_stmt_execute($updComp)) throw new Exception("Unable to complete this action. Please try again.");
             mysqli_stmt_close($updComp);
 
             /* --- 5. Find maintenance team leader's user_id for notification --- */
@@ -571,7 +571,7 @@ foreach ($verifiedComplaints as $ci) {
         <div class="lta-toolbar">
             <div class="lta-search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" id="ltaSearch" placeholder="Search by complaint ID, issue, or area...">
+                <input type="text" id="ltaSearch" placeholder="Search by complaint ID, issue, or area">
             </div>
         </div>
 
@@ -662,7 +662,7 @@ foreach ($verifiedComplaints as $ci) {
                                         <textarea
                                             name="task_note"
                                             rows="3"
-                                            placeholder="Write instruction for maintenance team..."
+                                            placeholder="Write a short instruction for the maintenance team"
                                         ></textarea>
                                     </div>
 
@@ -705,7 +705,7 @@ foreach ($verifiedComplaints as $ci) {
                                             <form method="POST" action="reply_support.php" style="margin-top: 15px;">
                                                 <input type="hidden" name="support_request_id" value="<?= $complaint["support_request_id"]; ?>">
                                                 <input type="hidden" name="redirect_to" value="local-team-assignment.php">
-                                                <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team..." style="width:100%; box-sizing:border-box; resize:vertical; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
+                                                <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team" style="width:100%; box-sizing:border-box; resize:vertical; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
                                                 <div style="text-align: left; margin-top: 10px;">
                                                     <button type="submit" style="background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
                                                 </div>

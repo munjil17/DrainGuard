@@ -334,7 +334,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $insertAreaStmt = mysqli_prepare($conn, $insertAreaSql);
 
                 if (!$insertAreaStmt) {
-                    throw new Exception("Area insert failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_bind_param($insertAreaStmt, "is", $wardId, $areaName);
@@ -342,7 +342,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if (!mysqli_stmt_execute($insertAreaStmt)) {
                     $error = mysqli_stmt_error($insertAreaStmt);
                     mysqli_stmt_close($insertAreaStmt);
-                    throw new Exception("Area insert failed: " . $error);
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 $areaId = (int)mysqli_insert_id($conn);
@@ -368,7 +368,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $insertLocationStmt = mysqli_prepare($conn, $insertLocationSql);
 
             if (!$insertLocationStmt) {
-                throw new Exception("Location mapping insert failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($insertLocationStmt, "iiiii", $cityId, $cityCorId, $thanaId, $wardId, $areaId);
@@ -376,7 +376,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (!mysqli_stmt_execute($insertLocationStmt)) {
                 $error = mysqli_stmt_error($insertLocationStmt);
                 mysqli_stmt_close($insertLocationStmt);
-                throw new Exception("Location mapping insert failed: " . $error);
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($insertLocationStmt);
@@ -496,7 +496,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if (!mysqli_stmt_execute($notifStmt)) {
                 mysqli_stmt_close($notifStmt);
-                throw new Exception("Notification insertion failed.");
+                throw new Exception("Unable to complete this action. Please try again.");
             }
             $notificationId = mysqli_insert_id($conn);
             mysqli_stmt_close($notifStmt);

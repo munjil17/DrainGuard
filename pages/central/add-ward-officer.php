@@ -140,7 +140,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $address === "" ||
         $loginAccess === ""
     ) {
-        setFlashMessage("error", "Please fill up all required fields.");
+        setFlashMessage("error", "Please complete all required fields.");
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -187,7 +187,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkCityCorStmt = mysqli_prepare($conn, $checkCityCorSql);
 
     if (!$checkCityCorStmt) {
-        setFlashMessage("error", "Database error while checking city corporation.");
+        setFlashMessage("error", "Unable to verify the selected city corporation. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkCityCorStmt, "i", $cityCorId);
@@ -219,7 +219,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkWardStmt = mysqli_prepare($conn, $checkWardSql);
 
     if (!$checkWardStmt) {
-        setFlashMessage("error", "Database error while checking ward.");
+        setFlashMessage("error", "Unable to verify the selected ward. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkWardStmt, "ii", $assignedWardId, $cityCorId);
@@ -264,7 +264,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkUserStmt = mysqli_prepare($conn, $checkUserSql);
 
     if (!$checkUserStmt) {
-        setFlashMessage("error", "Database error while checking users table email.");
+        setFlashMessage("error", "Unable to check this email right now. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkUserStmt, "s", $email);
@@ -274,7 +274,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($checkUserResult && mysqli_num_rows($checkUserResult) > 0) {
         mysqli_stmt_close($checkUserStmt);
-        setFlashMessage("error", "This email already exists in users table.");
+        setFlashMessage("error", "This email is already in use.");
     }
 
     mysqli_stmt_close($checkUserStmt);
@@ -295,7 +295,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkWardOfficerStmt = mysqli_prepare($conn, $checkWardOfficerSql);
 
     if (!$checkWardOfficerStmt) {
-        setFlashMessage("error", "Database error while checking ward officers table email.");
+        setFlashMessage("error", "Unable to check this email right now. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkWardOfficerStmt, "s", $email);
@@ -305,7 +305,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($checkWardOfficerResult && mysqli_num_rows($checkWardOfficerResult) > 0) {
         mysqli_stmt_close($checkWardOfficerStmt);
-        setFlashMessage("error", "This email already exists in ward officers table.");
+        setFlashMessage("error", "This email is already in use.");
     }
 
     mysqli_stmt_close($checkWardOfficerStmt);
@@ -344,7 +344,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $insertUserStmt = mysqli_prepare($conn, $insertUserSql);
 
         if (!$insertUserStmt) {
-            throw new Exception("User insert preparation failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param(
@@ -357,7 +357,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if (!mysqli_stmt_execute($insertUserStmt)) {
-            throw new Exception("User insert failed: " . mysqli_stmt_error($insertUserStmt));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         $userId = (int)mysqli_insert_id($conn);
@@ -389,7 +389,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $insertWardOfficerStmt = mysqli_prepare($conn, $insertWardOfficerSql);
 
         if (!$insertWardOfficerStmt) {
-            throw new Exception("Ward officer insert preparation failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param(
@@ -408,7 +408,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if (!mysqli_stmt_execute($insertWardOfficerStmt)) {
-            throw new Exception("Ward officer insert failed: " . mysqli_stmt_error($insertWardOfficerStmt));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         $wardOfficerId = (int)mysqli_insert_id($conn);
@@ -431,13 +431,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $updateCodeStmt = mysqli_prepare($conn, $updateCodeSql);
 
         if (!$updateCodeStmt) {
-            throw new Exception("Employee code update preparation failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param($updateCodeStmt, "si", $employeeCode, $wardOfficerId);
 
         if (!mysqli_stmt_execute($updateCodeStmt)) {
-            throw new Exception("Employee code update failed: " . mysqli_stmt_error($updateCodeStmt));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_close($updateCodeStmt);

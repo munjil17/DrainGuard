@@ -107,7 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $cityCorId <= 0 ||
         $anchalId <= 0
     ) {
-        setFlashMessage("error", "Please fill up all required fields.");
+        setFlashMessage("error", "Please complete all required fields.");
     }
 
     if (strlen($teamName) < 3) {
@@ -130,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkCityCorStmt = mysqli_prepare($conn, $checkCityCorSql);
 
     if (!$checkCityCorStmt) {
-        setFlashMessage("error", "Database error while checking city corporation.");
+        setFlashMessage("error", "Unable to verify the selected city corporation. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkCityCorStmt, "i", $cityCorId);
@@ -162,7 +162,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkAnchalStmt = mysqli_prepare($conn, $checkAnchalSql);
 
     if (!$checkAnchalStmt) {
-        setFlashMessage("error", "Database error while checking anchal.");
+        setFlashMessage("error", "Unable to verify the selected zone. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkAnchalStmt, "ii", $anchalId, $cityCorId);
@@ -193,7 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkTeamStmt = mysqli_prepare($conn, $checkTeamSql);
 
     if (!$checkTeamStmt) {
-        setFlashMessage("error", "Database error while checking maintenance team.");
+        setFlashMessage("error", "Unable to verify the selected maintenance team. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkTeamStmt, "s", $teamName);
@@ -224,7 +224,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $insertTeamStmt = mysqli_prepare($conn, $insertTeamSql);
 
         if (!$insertTeamStmt) {
-            throw new Exception("Maintenance team insert preparation failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param(
@@ -236,7 +236,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if (!mysqli_stmt_execute($insertTeamStmt)) {
-            throw new Exception("Maintenance team insert failed: " . mysqli_stmt_error($insertTeamStmt));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         $maintenanceTeamId = (int)mysqli_insert_id($conn);

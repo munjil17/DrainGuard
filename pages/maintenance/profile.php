@@ -174,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'uploa
             unlink($targetAbsolute);
         }
 
-        jsonResponse(false, 'Profile photo update prepare failed.');
+        jsonResponse(false, 'Unable to update your profile photo. Please try again.');
     }
 
     $memberId = (int)$profile['member_id'];
@@ -265,7 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     $duplicateStmt = mysqli_prepare($conn, $duplicateSql);
 
     if (!$duplicateStmt) {
-        jsonResponse(false, 'Employee duplicate check prepare failed.');
+        jsonResponse(false, 'Unable to check this employee code. Please try again.');
     }
 
     mysqli_stmt_bind_param($duplicateStmt, "si", $employeeCode, $memberId);
@@ -290,7 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     $emailDuplicateStmt = mysqli_prepare($conn, $emailDuplicateSql);
 
     if (!$emailDuplicateStmt) {
-        jsonResponse(false, 'Email duplicate check prepare failed.');
+        jsonResponse(false, 'Unable to check this email right now. Please try again.');
     }
 
     mysqli_stmt_bind_param($emailDuplicateStmt, "si", $userMail, $userId);
@@ -323,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         $updateMemberStmt = mysqli_prepare($conn, $updateMemberSql);
 
         if (!$updateMemberStmt) {
-            throw new Exception('Profile update prepare failed.');
+            throw new Exception('Unable to update your profile. Please try again.');
         }
 
         mysqli_stmt_bind_param(
@@ -356,7 +356,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         $updateUserStmt = mysqli_prepare($conn, $updateUserSql);
 
         if (!$updateUserStmt) {
-            throw new Exception('User update prepare failed.');
+            throw new Exception('Unable to update account details. Please try again.');
         }
 
         mysqli_stmt_bind_param($updateUserStmt, "ssi", $fullName, $userMail, $userId);
@@ -377,7 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             $updateTeamStmt = mysqli_prepare($conn, $updateTeamSql);
 
             if (!$updateTeamStmt) {
-                throw new Exception('Assistant login access update prepare failed.');
+                throw new Exception('Unable to update assistant sign-in access. Please try again.');
             }
 
             mysqli_stmt_bind_param($updateTeamStmt, "si", $assistantLoginAccess, $teamId);
@@ -402,7 +402,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             $assistantStmt = mysqli_prepare($conn, $assistantSql);
 
             if (!$assistantStmt) {
-                throw new Exception('Assistant user access update prepare failed.');
+                throw new Exception('Unable to update assistant sign-in access. Please try again.');
             }
 
             mysqli_stmt_bind_param($assistantStmt, "ii", $assistantLoginValue, $teamId);
@@ -472,7 +472,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'chang
     $updatePasswordStmt = mysqli_prepare($conn, $updatePasswordSql);
 
     if (!$updatePasswordStmt) {
-        jsonResponse(false, 'Password update prepare failed.');
+        jsonResponse(false, 'Unable to update your password. Please try again.');
     }
 
     mysqli_stmt_bind_param($updatePasswordStmt, "si", $hashedPassword, $userId);

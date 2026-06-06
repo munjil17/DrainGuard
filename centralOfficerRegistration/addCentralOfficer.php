@@ -60,9 +60,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $gender === "" || $designation === "" || $address === "" || $officeAddress === "" ||
         $password === "" || $confirmPassword === ""
     ) {
-        $error = "Please fill up all required fields.";
+        $error = "Please complete all required fields.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Invalid email format.";
+        $error = "Please enter a valid email address.";
     } elseif (!preg_match("/^01[0-9]{9}$/", $phone)) {
         $error = "Phone number must start with 01 and contain exactly 11 digits.";
     } elseif (!in_array($gender, ["male", "female", "other"], true)) {
@@ -129,7 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         } catch (Exception $e) {
             mysqli_rollback($conn);
-            $error = "Database Error: " . $e->getMessage();
+            $error = "Unable to complete registration. Please try again. " . $e->getMessage();
         }
     }
 }

@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 roleNote.className = "atm-note leader";
                 roleNote.innerHTML = `
                     <i class="bi bi-check-circle"></i>
-                    <span>Team Leader will be inserted into users table as team_leader and can login.</span>
+                    <span>Team Leader will receive sign-in access.</span>
                 `;
             }
         }
@@ -196,12 +196,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (access === "yes") {
                     roleNote.innerHTML = `
                         <i class="bi bi-info-circle"></i>
-                        <span>Assistant Team Leader will be inserted into users table and can login.</span>
+                        <span>Assistant Team Leader will receive sign-in access.</span>
                     `;
                 } else {
                     roleNote.innerHTML = `
                         <i class="bi bi-info-circle"></i>
-                        <span>Assistant Team Leader will be inserted into users table, but login_access will be 0.</span>
+                        <span>Assistant Team Leader will be added without sign-in access.</span>
                     `;
                 }
             }
@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 roleNote.className = "atm-note worker";
                 roleNote.innerHTML = `
                     <i class="bi bi-info-circle"></i>
-                    <span>Worker will be inserted only into maintenance_team_members table. No users table insert.</span>
+                    <span>Worker will be added as a maintenance team member only.</span>
                 `;
             }
         }

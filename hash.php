@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $message = "Please fill up all fields.";
         $messageType = "error";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Invalid email format.";
+        $message = "Please enter a valid email address.";
         $messageType = "error";
     } elseif (!preg_match("/^[a-zA-Z0-9._%+-]+@gmail\.com$/", $email)) {
         $message = "Only Gmail addresses are allowed.";
@@ -78,7 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $checkStmt = mysqli_prepare($conn, $checkSql);
 
         if (!$checkStmt) {
-            $message = "Email check failed. SQL Error: " . mysqli_error($conn);
+            $message = "Unable to check this email right now. Please try again.";
             $messageType = "error";
         } else {
             mysqli_stmt_bind_param($checkStmt, "s", $email);
@@ -112,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $updateStmt = mysqli_prepare($conn, $updateSql);
 
                 if (!$updateStmt) {
-                    $message = "Password update prepare failed. SQL Error: " . mysqli_error($conn);
+                    $message = "Unable to update the password. Please try again.";
                     $messageType = "error";
                 } else {
                     mysqli_stmt_bind_param($updateStmt, "si", $hashedPassword, $user["user_id"]);
@@ -121,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $message = "Password updated successfully for " . $user["user_role"] . ".";
                         $messageType = "success";
                     } else {
-                        $message = "Failed to update password. SQL Error: " . mysqli_stmt_error($updateStmt);
+                        $message = "Unable to update the password. Please try again.";
                         $messageType = "error";
                     }
 

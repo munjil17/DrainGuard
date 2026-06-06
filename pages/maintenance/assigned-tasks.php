@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
     if ($userId <= 0 || $assignmentId <= 0) {
         echo json_encode([
             'success' => false,
-            'message' => 'Invalid request.'
+            'message' => 'Invalid request. Please try again.'
         ]);
         exit;
     }
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
     if (!$checkStmt) {
         echo json_encode([
             'success' => false,
-            'message' => 'Database prepare failed.'
+            'message' => 'Unable to load records. Please try again.'
         ]);
         exit;
     }
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
         $updateAssignmentStmt = mysqli_prepare($conn, $updateAssignmentSql);
 
         if (!$updateAssignmentStmt) {
-            throw new Exception('Assignment update prepare failed.');
+            throw new Exception('Unable to update this assignment. Please try again.');
         }
 
         mysqli_stmt_bind_param($updateAssignmentStmt, "i", $assignmentId);
@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
         $updateComplaintStmt = mysqli_prepare($conn, $updateComplaintSql);
 
         if (!$updateComplaintStmt) {
-            throw new Exception('Complaint update prepare failed.');
+            throw new Exception('Unable to update this complaint. Please try again.');
         }
 
         mysqli_stmt_bind_param($updateComplaintStmt, "i", $complaintId);

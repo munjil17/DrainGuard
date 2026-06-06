@@ -130,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $address === "" ||
         $memberStatus === ""
     ) {
-        setFlashMessage("error", "Please fill up all required fields.");
+        setFlashMessage("error", "Please complete all required fields.");
     }
 
     if (!is_numeric($maintenanceTeamId) || (int)$maintenanceTeamId <= 0) {
@@ -243,7 +243,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $checkUserStmt = mysqli_prepare($conn, $checkUserSql);
 
         if (!$checkUserStmt) {
-            setFlashMessage("error", "Database error while checking users table email.");
+            setFlashMessage("error", "Unable to check this email right now. Please try again.");
         }
 
         mysqli_stmt_bind_param($checkUserStmt, "s", $gmail);
@@ -253,7 +253,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($checkUserResult && mysqli_num_rows($checkUserResult) > 0) {
             mysqli_stmt_close($checkUserStmt);
-            setFlashMessage("error", "This Gmail already exists in users table.");
+            setFlashMessage("error", "This Gmail address is already in use.");
         }
 
         mysqli_stmt_close($checkUserStmt);
@@ -269,7 +269,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkMemberStmt = mysqli_prepare($conn, $checkMemberSql);
 
     if (!$checkMemberStmt) {
-        setFlashMessage("error", "Database error while checking maintenance member email.");
+        setFlashMessage("error", "Unable to check this email right now. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkMemberStmt, "s", $gmail);
@@ -279,7 +279,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($checkMemberResult && mysqli_num_rows($checkMemberResult) > 0) {
         mysqli_stmt_close($checkMemberStmt);
-        setFlashMessage("error", "This Gmail already exists in maintenance team members table.");
+        setFlashMessage("error", "This Gmail address is already in use.");
     }
 
     mysqli_stmt_close($checkMemberStmt);
@@ -309,7 +309,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $teamCheckStmt = mysqli_prepare($conn, $teamCheckSql);
 
         if (!$teamCheckStmt) {
-            throw new Exception("Team check preparation failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param($teamCheckStmt, "i", $maintenanceTeamId);
@@ -342,7 +342,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $checkRoleStmt = mysqli_prepare($conn, $checkRoleSql);
 
             if (!$checkRoleStmt) {
-                throw new Exception("Role check preparation failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($checkRoleStmt, "is", $maintenanceTeamId, $memberRole);
@@ -401,7 +401,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $insertUserStmt = mysqli_prepare($conn, $insertUserSql);
 
             if (!$insertUserStmt) {
-                throw new Exception("User insert preparation failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param(
@@ -416,7 +416,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             );
 
             if (!mysqli_stmt_execute($insertUserStmt)) {
-                throw new Exception("User insert failed: " . mysqli_stmt_error($insertUserStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             $userId = (int)mysqli_insert_id($conn);
@@ -448,7 +448,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $insertMemberStmt = mysqli_prepare($conn, $insertMemberSql);
 
         if (!$insertMemberStmt) {
-            throw new Exception("Member insert preparation failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param(
@@ -466,7 +466,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if (!mysqli_stmt_execute($insertMemberStmt)) {
-            throw new Exception("Member insert failed: " . mysqli_stmt_error($insertMemberStmt));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         $memberId = (int)mysqli_insert_id($conn);
@@ -489,13 +489,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $updateCodeStmt = mysqli_prepare($conn, $updateCodeSql);
 
         if (!$updateCodeStmt) {
-            throw new Exception("Employee code update preparation failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param($updateCodeStmt, "si", $employeeCode, $memberId);
 
         if (!mysqli_stmt_execute($updateCodeStmt)) {
-            throw new Exception("Employee code update failed: " . mysqli_stmt_error($updateCodeStmt));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_close($updateCodeStmt);
@@ -578,7 +578,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         <div>
                             <h2>Select Team & Role</h2>
-                            <p>Team names come from maintenance_teams table.</p>
+                            <p>Select the maintenance team this member belongs to.</p>
                         </div>
                     </div>
 

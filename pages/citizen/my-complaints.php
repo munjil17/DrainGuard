@@ -145,7 +145,7 @@ $userId = (int)($_SESSION["user_id"] ?? 0);
 $stmt = mysqli_prepare($conn, $sql);
 
 if (!$stmt) {
-    die("My complaints query failed: " . mysqli_error($conn));
+    die("Unable to load your complaints. Please try again.");
 }
 
 mysqli_stmt_bind_param($stmt, "i", $userId);

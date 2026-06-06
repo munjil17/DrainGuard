@@ -38,7 +38,7 @@ $sql = "
 
 $stmt = mysqli_prepare($conn, $sql);
 if (!$stmt) {
-    die("Database error: " . mysqli_error($conn));
+    die("Unable to load this page. Please try again.");
 }
 
 mysqli_stmt_bind_param($stmt, "ii", $instructionId, $userId);

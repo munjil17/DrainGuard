@@ -262,7 +262,7 @@ $sql = "
 $result = mysqli_query($conn, $sql);
 
 if (!$result) {
-    die("High risk area query failed: " . mysqli_error($conn));
+    die("Unable to load high-risk areas. Please try again.");
 }
 
 while ($row = mysqli_fetch_assoc($result)) {

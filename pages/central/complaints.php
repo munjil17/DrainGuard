@@ -354,10 +354,7 @@ function cm_send_citizen_mail($toEmail, $toName, $subject, $htmlBody, $plainBody
         $mail->Host       = "smtp.gmail.com";
         $mail->SMTPAuth   = true;
 
-        /*
-            এই দুইটা value তোমার working forgot_password.php থেকে copy করে বসাবে.
-            Placeholder থাকলে mail যাবে না, কিন্তু complaint action কাজ করবে.
-        */
+     
         $mail->Username   = "munjilislambd17@gmail.com";
         $mail->Password   = "PASTE_YOUR_GMAIL_APP_PASSWORD_HERE";
 
@@ -446,7 +443,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkStmt = mysqli_prepare($conn, $checkSql);
 
     if (!$checkStmt) {
-        setComplaintFlash("error", "Complaint check query failed: " . mysqli_error($conn));
+        setComplaintFlash("error", "Unable to load complaint details. Please try again.");
     }
 
     mysqli_stmt_bind_param($checkStmt, "i", $complaintId);
@@ -488,14 +485,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $updateStmt = mysqli_prepare($conn, $updateSql);
 
         if (!$updateStmt) {
-            throw new Exception("Complaint update query failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param($updateStmt, "si", $newStatus, $complaintId);
 
         if (!mysqli_stmt_execute($updateStmt)) {
             mysqli_stmt_close($updateStmt);
-            throw new Exception("Complaint update failed.");
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         if (mysqli_stmt_affected_rows($updateStmt) !== 1) {
@@ -514,7 +511,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $centralUserId,
                 "Central officer accepted and received the complaint."
             )) {
-                throw new Exception("Status log insert failed.");
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             if (!cm_insert_citizen_notification(
@@ -526,13 +523,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "Complaint Accepted",
                 "Your complaint {$complaintCode} has been accepted by Central Officer and marked as Received."
             )) {
-                throw new Exception("Citizen notification insert failed.");
+                throw new Exception("Unable to complete this action. Please try again.");
             }
         }
 
         if ($action === "reject") {
             if (!cm_insert_decision($conn, $complaintId, $centralUserId, $rejectReason)) {
-                throw new Exception("Decision reason insert failed.");
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             if (!cm_insert_status_log(
@@ -543,7 +540,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $centralUserId,
                 "Central officer rejected the complaint."
             )) {
-                throw new Exception("Status log insert failed.");
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             if (!cm_insert_citizen_notification(
@@ -555,7 +552,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 "Complaint Rejected",
                 "Your complaint {$complaintCode} has been rejected by Central Officer. Please check the rejection reason."
             )) {
-                throw new Exception("Citizen notification insert failed.");
+                throw new Exception("Unable to complete this action. Please try again.");
             }
         }
 
@@ -583,8 +580,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         setComplaintFlash(
             "success",
             $mailSent
-                ? "Complaint accepted, status log saved, citizen notification inserted, and email sent."
-                : "Complaint accepted, status log saved, and citizen notification inserted. Email was not sent."
+                ? "Complaint accepted successfully and marked as received."
+                : "Complaint accepted successfully and marked as received."
         );
     }
 
@@ -607,8 +604,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         setComplaintFlash(
             "success",
             $mailSent
-                ? "Complaint rejected, reason saved, status log saved, citizen notification inserted, and email sent."
-                : "Complaint rejected, reason saved, status log saved, and citizen notification inserted. Email was not sent."
+                ? "Complaint rejected successfully."
+                : "Complaint rejected successfully."
         );
     }
 }
@@ -803,7 +800,7 @@ if ($result) {
         $complaints[(int)$row["complaint_id"]] = $row;
     }
 } else {
-    $errorMessage = "Complaint fetch failed: " . mysqli_error($conn);
+    $errorMessage = "Unable to load complaints. Please try again.";
 }
 
 /*
@@ -935,7 +932,7 @@ $complaints = array_values($complaints);
                     <input
                         type="text"
                         id="complaintSearch"
-                        placeholder="Search complaints by ID, location, issue, citizen, or description..."
+                        placeholder="Search by complaint ID, citizen name, ward, area, or issue"
                     >
                 </div>
 
@@ -1121,7 +1118,7 @@ $complaints = array_values($complaints);
                                                         <input type="hidden" name="complaint_id" value="<?php echo $complaintId; ?>">
                                                         <input type="hidden" name="action" value="accept">
 
-                                                        <button type="submit" class="cm-icon-btn accept" title="Accept / Mark as Received">
+                                                        <button type="submit" class="cm-icon-btn accept" title="Accept Complaint">
                                                             <i class="bi bi-check-circle"></i>
                                                         </button>
                                                     </form>
@@ -1172,7 +1169,7 @@ $complaints = array_values($complaints);
                                                     <a
                                                         href="discussion.php?id=<?php echo $complaintId; ?>"
                                                         class="cm-discussion-btn"
-                                                        title="Comment / Discussion"
+                                                        title="Open Discussion"
                                                     >
                                                         <i class="bi bi-chat-dots"></i> Discussion <?php echo ($complaint["comment_count"] > 0) ? "(" . $complaint["comment_count"] . ")" : ""; ?>
                                                     </a>
@@ -1291,7 +1288,7 @@ $complaints = array_values($complaints);
                 <textarea
                     name="reject_reason"
                     id="rejectReason"
-                    placeholder="Write a clear reason for rejecting this complaint..."
+                    placeholder="Enter rejection reason"
                     minlength="8"
                     maxlength="1000"
                     required

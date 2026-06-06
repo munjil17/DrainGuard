@@ -16,7 +16,7 @@ function cs_delete_json_response($success, $message, $extra = [])
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    cs_delete_json_response(false, "Invalid request method.");
+    cs_delete_json_response(false, "Invalid request. Please try again. Please try again.");
 }
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
@@ -99,7 +99,7 @@ if (!$deleteStmt) {
 mysqli_stmt_bind_param($deleteStmt, "i", $commentId);
 if (!mysqli_stmt_execute($deleteStmt)) {
     mysqli_stmt_close($deleteStmt);
-    cs_delete_json_response(false, "Failed to delete comment.");
+    cs_delete_json_response(false, "Unable to delete comment. Please try again.");
 }
 
 mysqli_stmt_close($deleteStmt);

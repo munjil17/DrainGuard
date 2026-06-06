@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const isVideo = allowedVideoTypes.includes(file.type);
 
         if (!isImage && !isVideo) {
-            return "Allowed files: JPG, JPEG, PNG, WEBP, MP4, WEBM.";
+            return "Please upload JPG, JPEG, PNG, WEBP, MP4, or WEBM files.";
         }
 
         if (isImage) {

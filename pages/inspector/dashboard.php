@@ -10,7 +10,7 @@ if (!isset($conn) && isset($connection)) {
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 if (!isset($_SESSION['user_id'])) {

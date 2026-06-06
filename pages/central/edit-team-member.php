@@ -76,7 +76,7 @@ $memberSql = "
 $memberStmt = mysqli_prepare($conn, $memberSql);
 
 if (!$memberStmt) {
-    $_SESSION["user_management_error"] = "Team member query failed.";
+    $_SESSION["user_management_error"] = "Unable to load team member details. Please try again.";
     redirectUserManagement();
 }
 
@@ -113,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $address === "" ||
         $status === ""
     ) {
-        $_SESSION["user_management_error"] = "Please fill up all required fields.";
+        $_SESSION["user_management_error"] = "Please complete all required fields.";
         redirectEditTeamMember($memberId);
     }
 
@@ -152,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $teamCheckStmt = mysqli_prepare($conn, $teamCheckSql);
 
     if (!$teamCheckStmt) {
-        $_SESSION["user_management_error"] = "Database error while checking team.";
+        $_SESSION["user_management_error"] = "Unable to verify the selected team. Please try again.";
         redirectEditTeamMember($memberId);
     }
 
@@ -182,7 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $roleCheckStmt = mysqli_prepare($conn, $roleCheckSql);
 
         if (!$roleCheckStmt) {
-            $_SESSION["user_management_error"] = "Database error while checking role duplication.";
+            $_SESSION["user_management_error"] = "Unable to verify this role assignment. Please try again.";
             redirectEditTeamMember($memberId);
         }
 
@@ -211,7 +211,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $emailCheckStmt = mysqli_prepare($conn, $emailCheckSql);
 
     if (!$emailCheckStmt) {
-        $_SESSION["user_management_error"] = "Database error while checking member email.";
+        $_SESSION["user_management_error"] = "Unable to check this email right now. Please try again.";
         redirectEditTeamMember($memberId);
     }
 
@@ -267,7 +267,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $updateUserStmt = mysqli_prepare($conn, $updateUserSql);
 
                 if (!$updateUserStmt) {
-                    throw new Exception("User update preparation failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_bind_param(
@@ -281,7 +281,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 );
 
                 if (!mysqli_stmt_execute($updateUserStmt)) {
-                    throw new Exception("User update failed: " . mysqli_stmt_error($updateUserStmt));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_close($updateUserStmt);
@@ -307,7 +307,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $updateMemberStmt = mysqli_prepare($conn, $updateMemberSql);
 
             if (!$updateMemberStmt) {
-                throw new Exception("Member update preparation failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param(
@@ -342,7 +342,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $updateMemberStmt = mysqli_prepare($conn, $updateMemberSql);
 
             if (!$updateMemberStmt) {
-                throw new Exception("Member update preparation failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param(
@@ -362,7 +362,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if (!mysqli_stmt_execute($updateMemberStmt)) {
-            throw new Exception("Member update failed: " . mysqli_stmt_error($updateMemberStmt));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_close($updateMemberStmt);

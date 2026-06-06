@@ -50,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === 'pr
     if ($fullName === '' || $email === '') {
         $errorMessage = "Full name and email are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errorMessage = "Invalid email format.";
+        $errorMessage = "Please enter a valid email address.";
     } elseif (!preg_match("/^[a-zA-Z0-9._%+-]+@gmail\.com$/", $email)) {
         $errorMessage = "Only Gmail addresses are allowed.";
     } else {
@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === 'pr
                     $updateUserStmt = mysqli_prepare($conn, $updateUserSql);
 
                     if (!$updateUserStmt) {
-                        throw new Exception("User update prepare failed.");
+                        throw new Exception("Unable to complete this action. Please try again.");
                     }
 
                     mysqli_stmt_bind_param($updateUserStmt, "ssi", $fullName, $email, $userId);
@@ -100,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === 'pr
                     $updateCitizenStmt = mysqli_prepare($conn, $updateCitizenSql);
 
                     if (!$updateCitizenStmt) {
-                        throw new Exception("Citizen update prepare failed.");
+                        throw new Exception("Unable to complete this action. Please try again.");
                     }
 
                     mysqli_stmt_bind_param($updateCitizenStmt, "si", $phone, $userId);

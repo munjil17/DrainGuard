@@ -21,7 +21,7 @@ function cs_clean_text($value)
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    cs_json_response(false, "Invalid request method.");
+    cs_json_response(false, "Invalid request. Please try again. Please try again.");
 }
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
@@ -88,7 +88,7 @@ mysqli_stmt_execute($stmt);
 
 if (mysqli_stmt_affected_rows($stmt) <= 0) {
     mysqli_stmt_close($stmt);
-    cs_json_response(false, "Failed to insert comment.");
+    cs_json_response(false, "Unable to add comment. Please try again.");
 }
 
 $commentId = mysqli_insert_id($conn);

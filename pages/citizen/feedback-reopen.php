@@ -17,7 +17,7 @@ if (!isset($conn) && isset($connection)) {
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $userId = (int) $_SESSION['user_id'];
@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $feedbackText = trim($_POST['feedback_text'] ?? '');
 
     if ($complaintId <= 0 || $actionType === '') {
-        $errorMessage = "Invalid request.";
+        $errorMessage = "Invalid request. Please try again.";
     } else {
         $checkSql = "
             SELECT complaint_id, complaint_code, complaint_status
@@ -280,7 +280,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     $feedbackStmt = mysqli_prepare($conn, $insertFeedbackSql);
 
                                     if (!$feedbackStmt) {
-                                        throw new Exception("Feedback insert prepare failed.");
+                                        throw new Exception("Unable to complete this action. Please try again.");
                                     }
 
                                     mysqli_stmt_bind_param($feedbackStmt, "iiis", $complaintId, $userId, $rating, $feedbackText);
@@ -296,7 +296,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     $reopenStmt = mysqli_prepare($conn, $insertReopenSql);
 
                                     if (!$reopenStmt) {
-                                        throw new Exception("Reopen request insert prepare failed.");
+                                        throw new Exception("Unable to complete this action. Please try again.");
                                     }
 
                                     mysqli_stmt_bind_param($reopenStmt, "iis", $complaintId, $userId, $feedbackText);
@@ -315,7 +315,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     $updateStmt = mysqli_prepare($conn, $updateComplaintSql);
 
                                     if (!$updateStmt) {
-                                        throw new Exception("Complaint update prepare failed.");
+                                        throw new Exception("Unable to complete this action. Please try again.");
                                     }
 
                                     mysqli_stmt_bind_param($updateStmt, "ii", $complaintId, $userId);

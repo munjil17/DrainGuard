@@ -120,7 +120,7 @@ function nt_type_label($type)
         "complaint_status_updated" => "Track Update",
         "ward_accept_verify" => "Ward Verified",
         "ward_reject" => "Ward Rejected",
-        "ward_duplicate" => "Ward Duplicate",
+        "ward_duplicate" => "Marked as Duplicate",
         "maintenance_start_work" => "Work Started",
         "maintenance_completion_proof_submitted" => "Completion Proof Submitted",
         "inspector_review_started" => "Inspector Review Started",

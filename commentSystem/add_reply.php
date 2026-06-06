@@ -21,7 +21,7 @@ function cs_reply_clean_text($value)
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    cs_reply_json_response(false, "Invalid request method.");
+    cs_reply_json_response(false, "Invalid request. Please try again. Please try again.");
 }
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
@@ -87,7 +87,7 @@ $parentSql = "
 $parentStmt = mysqli_prepare($conn, $parentSql);
 
 if (!$parentStmt) {
-    cs_reply_json_response(false, "Reply prepare failed: " . mysqli_error($conn));
+    cs_reply_json_response(false, "Unable to add reply. Please try again." . mysqli_error($conn));
 }
 
 mysqli_stmt_bind_param($parentStmt, "ii", $parentCommentId, $complaintId);
@@ -126,7 +126,7 @@ mysqli_stmt_execute($stmt);
 
 if (mysqli_stmt_affected_rows($stmt) <= 0) {
     mysqli_stmt_close($stmt);
-    cs_reply_json_response(false, "Failed to insert reply.");
+    cs_reply_json_response(false, "Unable to add reply. Please try again.");
 }
 
 $replyId = mysqli_insert_id($conn);

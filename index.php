@@ -33,9 +33,7 @@ $pageTitle = "DrainGuard";
 
                 <h2>Smart Urban Drainage Management System</h2>
 
-                <p>
-                    A transparent public drainage accountability system for better urban infrastructure
-                </p>
+                <p> A transparent platform for reporting, tracking, and resolving urban drainage issues. </p>
 
                 <button type="button" class="login-btn" id="loginRegisterBtn">
                     Login / Register
@@ -53,7 +51,7 @@ $pageTitle = "DrainGuard";
 
                             <h3>Real-time Tracking</h3>
 
-                            <p>Monitor complaint progress publicly</p>
+                            <p>Track complaint status from submission to final resolution.</p>
                         </div>
                     </div>
 
@@ -65,7 +63,7 @@ $pageTitle = "DrainGuard";
 
                             <h3>Verified Work Proof</h3>
 
-                            <p>Photo evidence for all tasks</p>
+                            <p>Confirm maintenance work with photo and video evidence.</p>
                         </div>
                     </div>
 
@@ -77,7 +75,7 @@ $pageTitle = "DrainGuard";
 
                             <h3>High Risk Detection</h3>
 
-                            <p>AI-powered zone analysis</p>
+                            <p>Identify emergency drainage zones based on severity and location.</p>
                         </div>
                     </div>
 
@@ -89,7 +87,7 @@ $pageTitle = "DrainGuard";
 
                             <h3>Public Accountability</h3>
 
-                            <p>Transparent team tracking</p>
+                            <p>Ensure transparent complaint handling for citizens and authorities.</p>
                         </div>
                     </div>
 

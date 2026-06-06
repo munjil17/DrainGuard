@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         
         <div class="header-section text-center">
             <h1>Create Citizen Account</h1>
-            <p>Join DrainGuard Smart Urban Drainage Platform</p>
+           
         </div>
 
         <?php if ($error): ?>
@@ -157,7 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
 
             <!-- Section: Account Security -->
-            <div class="section-title">Account Security</div>
+            <div class="section-title">Login Credentials</div>
             <div class="row g-3 mb-compact">
                 <div class="col-md-6">
                     <label class="form-label">Password <span class="text-danger">*</span></label>

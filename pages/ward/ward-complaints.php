@@ -6,7 +6,7 @@ $activePage = "ward-complaints";
 $pageTitle = "Ward Complaints";
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found. Please check config.php");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = $_SESSION['user_id'] ?? 0;
@@ -17,7 +17,7 @@ function wc_fetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     if (!empty($types) && !empty($params)) {
@@ -38,7 +38,7 @@ function wc_fetchAll($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     if (!empty($types) && !empty($params)) {
@@ -348,7 +348,7 @@ if (!$wardOfficer && !empty($currentUserMail)) {
 }
 
 if (!$wardOfficer) {
-    die("No ward officer found. Please login with a valid ward officer account.");
+    die("Your ward assignment could not be found. Please sign in again.");
 }
 
 $wardId = (int)$wardOfficer['assigned_ward_id'];
@@ -562,7 +562,7 @@ foreach ($complaints as $item) {
                 <i class="bi bi-search"></i>
                 <input type="text"
                        id="wardComplaintSearch"
-                       placeholder="Search complaints by ID, area, issue, status, or urgency...">
+                       placeholder="Search by complaint ID, area, issue, status, or urgency">
             </div>
 
             <div class="wc-filter-dropdown">

@@ -119,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === "ph
             }
 
             if (!is_writable($uploadDir)) {
-                $errorMessage = "Citizen upload folder is not writable.";
+                $errorMessage = "Unable to upload your profile photo right now. Please try again.";
             } else {
                 $newFileName = "citizen_" . $userId . "_" . time() . "." . $extension;
                 $targetFile = $uploadDir . $newFileName;
@@ -173,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST['form_type'] ?? '') === 'pr
     if ($fullName === '' || $email === '') {
         $errorMessage = "Full name and email are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errorMessage = "Invalid email format.";
+        $errorMessage = "Please enter a valid email address.";
     } elseif (!preg_match("/^[a-zA-Z0-9._%+-]+@gmail\.com$/", $email)) {
         $errorMessage = "Only Gmail addresses are allowed.";
     } else {

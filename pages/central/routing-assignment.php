@@ -87,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $checkStmt = mysqli_prepare($conn, $checkSql);
 
             if (!$checkStmt) {
-                throw new Exception("Complaint check failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($checkStmt, "i", $complaintId);
@@ -116,7 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $duplicateStmt = mysqli_prepare($conn, $duplicateSql);
 
             if (!$duplicateStmt) {
-                throw new Exception("Assignment check failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($duplicateStmt, "i", $complaintId);
@@ -144,13 +144,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $insertStmt = mysqli_prepare($conn, $insertSql);
 
             if (!$insertStmt) {
-                throw new Exception("Assignment insert failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($insertStmt, "iii", $complaintId, $wardId, $centralUserId);
 
             if (!mysqli_stmt_execute($insertStmt)) {
-                throw new Exception("Assignment save failed: " . mysqli_stmt_error($insertStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($insertStmt);
@@ -165,13 +165,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $updateStmt = mysqli_prepare($conn, $updateSql);
 
             if (!$updateStmt) {
-                throw new Exception("Complaint status update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($updateStmt, "i", $complaintId);
 
             if (!mysqli_stmt_execute($updateStmt)) {
-                throw new Exception("Complaint status update failed: " . mysqli_stmt_error($updateStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateStmt);
@@ -417,7 +417,7 @@ if ($result) {
         $awaitingComplaints[] = $row;
     }
 } else {
-    $errorMessage = "Complaint fetch failed: " . mysqli_error($conn);
+    $errorMessage = "Unable to load complaints. Please try again.";
 }
 
 /*

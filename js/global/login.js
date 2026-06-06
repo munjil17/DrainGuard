@@ -161,39 +161,39 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (result === "inactive") {
-                showEmailError("Your account is inactive. Contact central control.");
+                showEmailError("Your account is inactive. Please contact the office.");
                 return false;
             }
 
             if (result === "access_disabled") {
-                showEmailError("Your login access is disabled.");
+                showEmailError("Your sign-in access has been disabled. Please contact the office.");
                 return false;
             }
 
             if (result === "invalid_gmail" || result === "invalid_email") {
-                showEmailError("Invalid email format.");
+                showEmailError("Please enter a valid email address.");
                 return false;
             }
 
             if (result === "invalid_role") {
-                showEmailError("Invalid selected role.");
+                showEmailError("Please select a valid role.");
                 return false;
             }
 
             if (result === "blocked_domain") {
-                showEmailError("This email domain is not allowed for security reasons.");
+                showEmailError("Please use a valid email address.");
                 return false;
             }
 
             if (result === "sql_error") {
-                showEmailError("Server query error. Check users table columns.");
+                showEmailError("Unable to check this email right now. Please try again.");
                 return false;
             }
 
-            showEmailError("Email verification failed. Try again.");
+            showEmailError("Unable to check this email. Please try again.");
             return false;
         } catch (error) {
-            showEmailError("Could not verify email. Check server/AJAX path.");
+            showEmailError("Unable to check this email right now. Please try again.");
             return false;
         }
     }

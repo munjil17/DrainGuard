@@ -97,7 +97,7 @@
 
             const replyForm = !isReply
                 ? `<form class="dg-reply-form" data-reply-form="${comment.comment_id}">
-                        <textarea name="comment_text" placeholder="Write a reply..." maxlength="1000" required></textarea>
+                        <textarea name="comment_text" placeholder="Write a short reply" maxlength="1000" required></textarea>
                         <div class="dg-reply-actions">
                             <button type="button" class="dg-reply-cancel" data-reply-cancel="${comment.comment_id}">Cancel</button>
                             <button type="submit" class="dg-reply-submit"><i class="bi bi-send"></i> Reply</button>
@@ -189,7 +189,7 @@
                     if (txtBox) txtBox.value = "";
                     await window.loadComments();
                 } catch (error) {
-                    showAlert("Failed to add comment.");
+                    showAlert("Unable to add comment. Please try again.");
                 }
             });
         }
@@ -243,7 +243,7 @@
                         if (!data.success) { showAlert(data.message); return; }
                         await window.loadComments();
                     } catch (error) {
-                        showAlert("Failed to react.");
+                        showAlert("Unable to update your reaction. Please try again.");
                     }
                 }
 
@@ -265,7 +265,7 @@
                                 if (!data.success) { showAlert(data.message); return; }
                                 await window.loadComments();
                             } catch (error) {
-                                showAlert("Failed to delete comment.");
+                                showAlert("Unable to delete comment. Please try again.");
                             }
                         }
                     });
@@ -299,7 +299,7 @@
                     replyForm.classList.remove("show");
                     await window.loadComments();
                 } catch (error) {
-                    showAlert("Failed to add reply.");
+                    showAlert("Unable to add reply. Please try again.");
                 }
             });
         }

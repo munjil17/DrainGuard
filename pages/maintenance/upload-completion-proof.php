@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $taskStmt = mysqli_prepare($conn, $taskSql);
 
     if (!$taskStmt) {
-        jsonResponse(false, 'Task validation prepare failed.');
+        jsonResponse(false, 'Unable to verify this task. Please try again.');
     }
 
     mysqli_stmt_bind_param($taskStmt, "ii", $assignmentId, $teamId);
@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $checkProofStmt = mysqli_prepare($conn, $checkProofSql);
 
     if (!$checkProofStmt) {
-        jsonResponse(false, 'Proof duplicate check prepare failed.');
+        jsonResponse(false, 'Unable to check this proof upload. Please try again.');
     }
 
     mysqli_stmt_bind_param($checkProofStmt, "i", $assignmentId);
@@ -329,7 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         $insertProofStmt = mysqli_prepare($conn, $insertProofSql);
 
         if (!$insertProofStmt) {
-            throw new Exception('Proof insert prepare failed.');
+            throw new Exception('Unable to submit completion proof. Please try again.');
         }
 
         foreach ($preparedFiles as $file) {
@@ -368,7 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         $updateAssignmentStmt = mysqli_prepare($conn, $updateAssignmentSql);
 
         if (!$updateAssignmentStmt) {
-            throw new Exception('Assignment update prepare failed.');
+            throw new Exception('Unable to update this assignment. Please try again.');
         }
 
         mysqli_stmt_bind_param($updateAssignmentStmt, "i", $assignmentId);
@@ -390,7 +390,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         $updateComplaintStmt = mysqli_prepare($conn, $updateComplaintSql);
 
         if (!$updateComplaintStmt) {
-            throw new Exception('Complaint update prepare failed.');
+            throw new Exception('Unable to update this complaint. Please try again.');
         }
 
         mysqli_stmt_bind_param($updateComplaintStmt, "i", $complaintId);
@@ -410,7 +410,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         $updateTeamStmt = mysqli_prepare($conn, $updateTeamSql);
 
         if (!$updateTeamStmt) {
-            throw new Exception('Team availability update prepare failed.');
+            throw new Exception('Unable to update team availability. Please try again.');
         }
 
         mysqli_stmt_bind_param($updateTeamStmt, "i", $maintenanceTeamId);

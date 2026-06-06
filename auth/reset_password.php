@@ -41,7 +41,7 @@ if (empty($token)) {
                 $messageType = "error";
             }
         } else {
-            $message = "Invalid reset token.";
+            $message = "This reset link is invalid. Please request a new one.";
             $messageType = "error";
         }
     }
@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $isValidToken) {
         $message = "Password must be at least 8 characters long.";
         $messageType = "error";
     } elseif ($newPassword !== $confirmPassword) {
-        $message = "Passwords do not match! Please try again.";
+        $message = "Passwords do not match. Please try again.";
         $messageType = "error";
     } else {
         // নতুন পাসওয়ার্ড সিকিউরলি হ্যাশ করা
@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $isValidToken) {
         if ($updateStmt) {
             mysqli_stmt_bind_param($updateStmt, "ss", $hashedPassword, $userEmail);
             if (mysqli_stmt_execute($updateStmt)) {
-                $message = "Password updated successfully! You can now log in.";
+                $message = "Password updated successfully. You can now sign in.";
                 $messageType = "success";
                 $isValidToken = false; // পাসওয়ার্ড আপডেট হয়ে গেলে ফর্মটি হাইড করে দেবো
             } else {

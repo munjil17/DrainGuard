@@ -320,7 +320,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_user_id"])) {
     $userStmt = mysqli_prepare($conn, $userSql);
 
     if (!$userStmt) {
-        setUserManagementFlash("error", "Database error while finding user.");
+        setUserManagementFlash("error", "Unable to find this user. Please try again.");
     }
 
     mysqli_stmt_bind_param($userStmt, "i", $deleteUserId);
@@ -439,7 +439,7 @@ $sql = "
 $result = mysqli_query($conn, $sql);
 
 if (!$result) {
-    die("User query failed: " . mysqli_error($conn));
+    die("Unable to load users. Please try again.");
 }
 
 $users = [];

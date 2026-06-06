@@ -16,7 +16,7 @@ function cs_react_json_response($success, $message, $extra = [])
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    cs_react_json_response(false, "Invalid request method.");
+    cs_react_json_response(false, "Invalid request. Please try again. Please try again.");
 }
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
@@ -164,7 +164,7 @@ if ($existingResult && mysqli_num_rows($existingResult) === 1) {
     $insertStmt = mysqli_prepare($conn, $insertSql);
 
     if (!$insertStmt) {
-        cs_react_json_response(false, "Reaction insert failed.");
+        cs_react_json_response(false, "Unable to update your reaction. Please try again.");
     }
 
     mysqli_stmt_bind_param($insertStmt, "iis", $commentId, $userId, $reactionType);

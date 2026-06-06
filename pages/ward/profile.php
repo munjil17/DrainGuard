@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer")
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
@@ -28,7 +28,7 @@ function fetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -49,7 +49,7 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -129,7 +129,7 @@ function makeImagePath($path)
 $wardOfficerColumns = tableColumns($conn, "ward_officers");
 
 if (!in_array("profile_image", $wardOfficerColumns, true)) {
-    die("Missing column: ward_officers.profile_image. Run: ALTER TABLE ward_officers ADD COLUMN profile_image VARCHAR(255) NULL AFTER office_address;");
+    die("Profile photo is not available right now.");
 }
 
 /*
@@ -247,13 +247,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "ph
                 );
 
                 if (!$stmt) {
-                    throw new Exception("Photo update failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_bind_param($stmt, "si", $dbPath, $currentUserId);
 
                 if (!mysqli_stmt_execute($stmt)) {
-                    throw new Exception("Photo update failed: " . mysqli_stmt_error($stmt));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_close($stmt);
@@ -339,7 +339,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             $updateWardStmt = mysqli_prepare($conn, $updateWardSql);
 
             if (!$updateWardStmt) {
-                throw new Exception("Ward officer update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param(
@@ -353,7 +353,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             );
 
             if (!mysqli_stmt_execute($updateWardStmt)) {
-                throw new Exception("Ward officer update failed: " . mysqli_stmt_error($updateWardStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateWardStmt);
@@ -369,13 +369,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             $updateUserStmt = mysqli_prepare($conn, $updateUserSql);
 
             if (!$updateUserStmt) {
-                throw new Exception("User update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($updateUserStmt, "ssi", $newFullName, $newEmail, $currentUserId);
 
             if (!mysqli_stmt_execute($updateUserStmt)) {
-                throw new Exception("User update failed: " . mysqli_stmt_error($updateUserStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateUserStmt);
@@ -452,13 +452,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pa
             );
 
             if (!$updatePasswordStmt) {
-                throw new Exception("Password update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($updatePasswordStmt, "si", $hashedPassword, $currentUserId);
 
             if (!mysqli_stmt_execute($updatePasswordStmt)) {
-                throw new Exception("Password update failed: " . mysqli_stmt_error($updatePasswordStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updatePasswordStmt);

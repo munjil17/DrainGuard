@@ -11,7 +11,7 @@ $pageTitle = "Ward Office Operations Dashboard";
 |--------------------------------------------------------------------------
 */
 if (!isset($conn) || !$conn) {
-    die("Database connection not found. Please check config.php");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 /*
@@ -653,7 +653,7 @@ $recentReports = fetchAllRows(
                     <div class="empty-state">
                         <i class="bi bi-folder2-open"></i>
                         <h3>No ward complaints</h3>
-                        <p>No complaints currently in workflow.</p>
+                        <p>No complaints are currently in progress.</p>
                     </div>
                 <?php endif; ?>
             </div>

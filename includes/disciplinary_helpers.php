@@ -124,12 +124,12 @@ function addDemerit($conn, $userId, $memberId, $userRole, $subjectType, $complai
         SET active_demerit_points = ?, one_month_suspension_count = ?, six_month_suspension_count = ?, is_permanently_banned = ?, current_penalty_status = ?, suspension_start_at = ?, suspension_end_at = ?, last_penalty_at = NOW() 
         WHERE state_id = ?");
     if (!$updState) {
-        throw new Exception("Prepare failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
     mysqli_stmt_bind_param($updState, "iiiisssi", $newDemerits, $oneMonthCount, $sixMonthCount, $isBanned, $status, $startAt, $endAt, $state['state_id']);
     if (!mysqli_stmt_execute($updState)) {
         error_log("[DrainGuard disciplinary] addDemerit update disciplinary_state execute failed | stmt_error: " . mysqli_stmt_error($updState));
-        throw new Exception("Execute failed: " . mysqli_stmt_error($updState));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
     mysqli_stmt_close($updState);
 
@@ -138,7 +138,7 @@ function addDemerit($conn, $userId, $memberId, $userRole, $subjectType, $complai
         (user_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, demerit_points_added, total_demerit_points_after, suspension_count_after, ban_count_after, start_at, end_at, created_by_user_id, created_by_role) 
         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)");
     if (!$insRecord) {
-        throw new Exception("Prepare failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
     $recordSubjectType = ($subjectType === 'team_member') ? 'worker' : $subjectType;
     if (!in_array($recordSubjectType, ['inspector', 'team_leader', 'worker'], true)) {
@@ -155,7 +155,7 @@ function addDemerit($conn, $userId, $memberId, $userRole, $subjectType, $complai
         $startAt, $endAt, $createdByUserId, $createdByRole);
     if (!mysqli_stmt_execute($insRecord)) {
         error_log("[DrainGuard disciplinary] addDemerit insert disciplinary_records execute failed | stmt_error: " . mysqli_stmt_error($insRecord));
-        throw new Exception("Execute failed: " . mysqli_stmt_error($insRecord));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
     mysqli_stmt_close($insRecord);
 
@@ -180,12 +180,12 @@ function applyTeamMemberWarningOrDemerit($conn, $memberId, $userId, $teamId, $co
             SET active_warning_count = ?, current_penalty_status = 'warned', last_penalty_at = NOW() 
             WHERE state_id = ?");
         if (!$updState) {
-            throw new Exception("Prepare failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
         mysqli_stmt_bind_param($updState, "ii", $newWarnings, $state['state_id']);
         if (!mysqli_stmt_execute($updState)) {
             error_log("[DrainGuard disciplinary] warning update disciplinary_state execute failed | stmt_error: " . mysqli_stmt_error($updState));
-            throw new Exception("Execute failed: " . mysqli_stmt_error($updState));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
         mysqli_stmt_close($updState);
 
@@ -193,14 +193,14 @@ function applyTeamMemberWarningOrDemerit($conn, $memberId, $userId, $teamId, $co
             (user_id, user_role, related_complaint_id, related_team_id, penalty_subject_type, action_type, reason, demerit_points_added, total_demerit_points_after, suspension_count_after, ban_count_after, created_by_user_id, created_by_role) 
             VALUES (?, 'maintenance_team_member', ?, ?, 'worker', 'warning', ?, 0, 0, 0, 0, ?, ?)");
         if (!$insRecord) {
-            throw new Exception("Prepare failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
         $recordUserId = $userId ?: 0;
         mysqli_stmt_bind_param($insRecord, "iiisis", 
             $recordUserId, $complaintId, $teamId, $reason, $createdByUserId, $createdByRole);
         if (!mysqli_stmt_execute($insRecord)) {
             error_log("[DrainGuard disciplinary] warning insert disciplinary_records execute failed | stmt_error: " . mysqli_stmt_error($insRecord));
-            throw new Exception("Execute failed: " . mysqli_stmt_error($insRecord));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
         mysqli_stmt_close($insRecord);
 

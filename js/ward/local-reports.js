@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (startDate.value > endDate.value) {
                     event.preventDefault();
-                    showWarningModal("Start date cannot be after end date.");
+                    showWarningModal("Start date cannot be after the end date.");
                     startDate.focus();
                     return;
                 }

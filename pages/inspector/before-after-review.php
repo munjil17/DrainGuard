@@ -10,7 +10,7 @@ if (!isset($conn) && isset($connection)) {
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 if (!isset($_SESSION['user_id'])) {
@@ -48,7 +48,7 @@ function barFetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     barBindParams($stmt, $types, $params);
@@ -67,7 +67,7 @@ function barFetchAll($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     barBindParams($stmt, $types, $params);

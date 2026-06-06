@@ -86,7 +86,7 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
 
         <div class="role-selector">
 
-            <p class="role-helper">Select your role below to continue.</p>
+            <p class="role-helper">Choose your access level to continue.</p>
 
             <div class="role-list">
 
@@ -96,8 +96,8 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     </span>
 
                     <div class="role-info">
-                        <h3>Citizen <span>Public Access</span></h3>
-                        <p>Submit complaints, track progress, and reopen issues.</p>
+                        <h3>Citizen <span>Complaint Portal</span></h3>
+                        <p>Report drainage issues and track your complaint status.</p>
                     </div>
 
                     <i class="bi bi-check-circle check-icon"></i>
@@ -109,8 +109,8 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     </span>
 
                     <div class="role-info">
-                        <h3>Central Control <span>Full Oversight</span></h3>
-                        <p>Monitor complaints, route wards, and manage city operations.</p>
+                        <h3>Central Control <span>City Oversight</span></h3>
+                        <p>Review, route, and monitor citywide drainage complaints.</p>
                     </div>
 
                     <i class="bi bi-check-circle check-icon"></i>
@@ -122,8 +122,8 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     </span>
 
                     <div class="role-info">
-                        <h3>Ward Officer <span>Ward Access</span></h3>
-                        <p>Verify ward complaints and assign local teams.</p>
+                        <h3>Ward Officer <span>Local Verification</span></h3>
+                        <p>Verify local complaints and assign maintenance teams.</p>
                     </div>
 
                     <i class="bi bi-check-circle check-icon"></i>
@@ -135,8 +135,8 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     </span>
 
                     <div class="role-info">
-                        <h3>Maintenance <span>Task Access</span></h3>
-                        <p>Update assigned tasks and upload completion proof.</p>
+                        <h3>Maintenance <span>Field Operations</span></h3>
+                        <p>Manage assigned work and submit completion evidence.</p>
                     </div>
 
                     <i class="bi bi-check-circle check-icon"></i>
@@ -148,8 +148,8 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     </span>
 
                     <div class="role-info">
-                        <h3>Inspector <span>QA Access</span></h3>
-                        <p>Review solved cases and verify proof.</p>
+                        <h3>Inspector <span>Quality Verification</span></h3>
+                        <p>Review completed work and confirm final resolution.</p>
                     </div>
 
                     <i class="bi bi-check-circle check-icon"></i>
@@ -166,12 +166,12 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
 
             <div class="login-badge">
                 <span></span>
-                Signing in as <strong id="selectedRoleText">Citizen</strong>
+                Accessing <strong id="selectedRoleText">Citizen Portal</strong>
             </div>
 
             <div class="login-header">
-                <h1 id="loginTitle">Citizen Login</h1>
-                <p id="loginSubtitle">Access your complaint portal</p>
+                <h1 id="loginTitle">Citizen Complaint Portal</h1>
+                <p id="loginSubtitle">Report and track your drainage complaint</p>
             </div>
 
             <?php if (!empty($successMessage)): ?>
@@ -253,7 +253,7 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
 
                 <button type="submit" class="submit-btn" id="submitBtn">
                     <i class="bi bi-shield-lock"></i>
-                    <span id="submitBtnText">Sign In as Citizen</span>
+                    <span id="submitBtnText">Continue to Citizen Portal</span>
                     <i class="bi bi-arrow-right"></i>
                 </button>
 
@@ -262,8 +262,8 @@ $showCitizenSignup = ($selectedRole === "citizen") ? "flex" : "none";
                     id="citizenSignupRedirect" 
                     style="display: <?php echo safeText($showCitizenSignup); ?>;"
                 >
-                    <span>New citizen user?</span>
-                   <a href="../citizenRegistration/citizen_signup.php">Citizen Sign Up</a>
+                    <span>Need an account?</span>
+                   <a href="../citizenRegistration/citizen_signup.php">Register as Citizen</a>
                 </div>
 
             </form>

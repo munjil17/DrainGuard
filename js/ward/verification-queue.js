@@ -289,14 +289,14 @@ document.addEventListener("DOMContentLoaded", function () {
     rejectButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
             event.preventDefault();
-            openReasonModal("Reject Complaint", "Give a reason for rejection or click duplicate.", this.closest("form"), "reject");
+            openReasonModal("Reject Complaint", "Enter a reason before submitting this decision.", this.closest("form"), "reject");
         });
     });
 
     duplicateButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
             event.preventDefault();
-            openReasonModal("Mark as Duplicate", "Provide the reference Complaint ID or reason for duplicate.", this.closest("form"), "duplicate");
+            openReasonModal("Mark as Duplicate", "Enter the related complaint ID or a short reason.", this.closest("form"), "duplicate");
         });
     });
 

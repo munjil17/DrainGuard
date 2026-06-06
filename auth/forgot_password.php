@@ -75,11 +75,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         ";
 
                         $mail->send();
-                        $message = "A password reset link has been sent to your email!";
+                        $message = "If this email is registered, a reset link will be sent shortly.";
                         $messageType = "success";
                     } catch (Exception $e) {
                         error_log("[DrainGuard forgot_password] Mailer Error: " . $mail->ErrorInfo);
-                        $message = "Could not send the reset email right now. Please try again later.";
+                        $message = "Unable to send the reset link right now. Please try again later.";
                         $messageType = "error";
                     }
                 } else {

@@ -148,7 +148,7 @@ if ($officerStmt) {
 }
 
 if ($assignedWardId <= 0) {
-    $errorMessage = "No valid assigned ward found for this Ward Officer.";
+    $errorMessage = "No assigned ward found for this Ward Officer.";
 }
 
 /*
@@ -164,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
     $allowedActions = ["verify", "reject", "duplicate"];
 
     if ($complaintId <= 0 || !in_array($action, $allowedActions, true)) {
-        $errorMessage = "Invalid request.";
+        $errorMessage = "Invalid request. Please try again.";
     } else {
         $allowedComplaintStatuses = getEnumValues($conn, "complaints", "complaint_status");
 
@@ -202,7 +202,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
             $checkStmt = mysqli_prepare($conn, $checkSql);
 
             if (!$checkStmt) {
-                throw new Exception("Complaint check failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($checkStmt, "iii", $complaintId, $assignedWardId, $assignedCityCorId);
@@ -227,13 +227,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
             $updateStmt = mysqli_prepare($conn, $updateSql);
 
             if (!$updateStmt) {
-                throw new Exception("Complaint update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($updateStmt, "si", $newStatus, $complaintId);
 
             if (!mysqli_stmt_execute($updateStmt)) {
-                throw new Exception("Complaint status update failed: " . mysqli_stmt_error($updateStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateStmt);
@@ -254,11 +254,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
                 ";
                 $decisionStmt = mysqli_prepare($conn, $decisionSql);
                 if (!$decisionStmt) {
-                    throw new Exception("Decision insert failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
                 mysqli_stmt_bind_param($decisionStmt, "iiss", $complaintId, $wardOfficerUserId, $decisionType, $reasonText);
                 if (!mysqli_stmt_execute($decisionStmt)) {
-                    throw new Exception("Decision save failed: " . mysqli_stmt_error($decisionStmt));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
                 mysqli_stmt_close($decisionStmt);
             }
@@ -273,7 +273,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
             if ($action === "verify") {
                 $citNotifType = "ward_accept_verify";
                 $citTitle = "Complaint Verified by Ward Officer";
-                $citMsg = "Your complaint has been verified by the Ward Officer and moved forward in the workflow.";
+                $citMsg = "Your complaint has been verified by the Ward Officer and moved forward.";
                 $cenNotifType = "ward_accept_verify";
                 $cenTitle = "Complaint Verified by Ward Officer";
                 $cenMsg = "Ward Officer has verified complaint {$complaintCode}. Please check the complaint status from the Central Complaints page.";
@@ -316,9 +316,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
             }
 
             if ($action === "verify") {
-                $successMessage = "Complaint accepted and verified successfully.";
+                $successMessage = "Complaint verified successfully.";
             } elseif ($action === "duplicate") {
-                $successMessage = "Complaint marked as duplicate and removed from queue.";
+                $successMessage = "Complaint marked as duplicate.";
             } else {
                 $successMessage = "Complaint rejected successfully.";
             }
@@ -414,7 +414,7 @@ if ($assignedWardId > 0) {
 
         mysqli_stmt_close($stmt);
     } else {
-        $errorMessage = "Verification queue query failed: " . mysqli_error($conn);
+        $errorMessage = "Unable to load complaints waiting for verification. Please try again.";
     }
 }
 
@@ -566,7 +566,7 @@ foreach ($verificationComplaints as $item) {
             <div class="vq-toolbar">
                 <div class="vq-search-box">
                     <i class="bi bi-search"></i>
-                    <input type="text" id="vqSearch" placeholder="Search by complaint ID, issue, area, citizen...">
+                    <input type="text" id="vqSearch" placeholder="Search by complaint ID, citizen name, ward, area, or issue">
                 </div>
 
                 <select id="vqPriorityFilter">
@@ -717,7 +717,7 @@ foreach ($verificationComplaints as $item) {
 
                                     <button type="submit" class="vq-btn vq-duplicate-btn">
                                         <i class="bi bi-files"></i>
-                                        Duplicate
+                                        Mark Duplicate
                                     </button>
                                 </form>
 
@@ -816,7 +816,7 @@ foreach ($verificationComplaints as $item) {
     </div>
 </div>
 
-<!-- Reason Modal for Reject / Duplicate -->
+<!-- Reason Modal for Reject / Mark Duplicate -->
 <div class="vq-modal-overlay" id="vqReasonModal">
     <div class="vq-modal" style="max-width: 480px;">
         <div class="vq-modal-header">
@@ -828,8 +828,8 @@ foreach ($verificationComplaints as $item) {
             </button>
         </div>
         <div class="vq-modal-body">
-            <p id="vqReasonSubtitle" style="color: #64748B; margin-bottom: 12px; font-size: 14px;">Give a reason for rejection or click duplicate.</p>
-            <textarea id="vqReasonInput" class="vq-reason-textarea" rows="4" placeholder="Type reason here..." style="width: 100%; border: 1px solid #CBD5E1; border-radius: 8px; padding: 12px; outline: none; resize: none; font-family: inherit; font-size: 14px;"></textarea>
+            <p id="vqReasonSubtitle" style="color: #64748B; margin-bottom: 12px; font-size: 14px;">Enter a reason before submitting this decision.</p>
+            <textarea id="vqReasonInput" class="vq-reason-textarea" rows="4" placeholder="Enter rejection reason" style="width: 100%; border: 1px solid #CBD5E1; border-radius: 8px; padding: 12px; outline: none; resize: none; font-family: inherit; font-size: 14px;"></textarea>
             <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" class="vq-btn vq-reason-submit" id="vqReasonSubmit" style="width: auto; padding: 0 24px; background: #0F766E;">Submit</button>
             </div>

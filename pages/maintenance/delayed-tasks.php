@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $taskStmt = mysqli_prepare($conn, $taskSql);
 
     if (!$taskStmt) {
-        jsonResponse(false, 'Task validation prepare failed.');
+        jsonResponse(false, 'Unable to verify this task. Please try again.');
     }
 
     mysqli_stmt_bind_param($taskStmt, "ii", $assignmentId, $teamId);
@@ -188,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $duplicateStmt = mysqli_prepare($conn, $duplicateSql);
 
     if (!$duplicateStmt) {
-        jsonResponse(false, 'Duplicate check prepare failed.');
+        jsonResponse(false, 'Unable to check this record. Please try again.');
     }
 
     mysqli_stmt_bind_param($duplicateStmt, "is", $assignmentId, $requestType);
@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
     $insertStmt = mysqli_prepare($conn, $insertSql);
 
     if (!$insertStmt) {
-        jsonResponse(false, 'Delay request insert prepare failed.');
+        jsonResponse(false, 'Unable to send the delay request. Please try again.');
     }
 
     $additionalNoteValue = $additionalNote !== '' ? $additionalNote : null;

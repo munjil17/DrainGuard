@@ -116,7 +116,7 @@ $sql = "
 $stmt = mysqli_prepare($conn, $sql);
 
 if (!$stmt) {
-    cs_fetch_json_response(false, "Comment fetch prepare failed: " . mysqli_error($conn));
+    cs_fetch_json_response(false, "Unable to load comments. Please try again." . mysqli_error($conn));
 }
 
 mysqli_stmt_bind_param($stmt, "ii", $userId, $complaintId);

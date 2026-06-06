@@ -143,7 +143,7 @@ $sql = "
 $result = mysqli_query($conn, $sql);
 
 if (!$result) {
-    die("Public board query failed: " . mysqli_error($conn));
+    die("Unable to load public complaints. Please try again.");
 }
 
 while ($row = mysqli_fetch_assoc($result)) {

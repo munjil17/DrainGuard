@@ -69,7 +69,7 @@ function sc_generate_complaint_code($conn)
         $stmt = mysqli_prepare($conn, $sql);
 
         if (!$stmt) {
-            throw new Exception("Complaint code check failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param($stmt, "s", $code);
@@ -101,7 +101,7 @@ function sc_generate_drain_code($conn, $locId)
         $stmt = mysqli_prepare($conn, $sql);
 
         if (!$stmt) {
-            throw new Exception("Drain code check failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param($stmt, "s", $code);
@@ -144,7 +144,7 @@ function sc_get_or_create_drain_id($conn, $locId, $addressDescription)
     $findStmt = mysqli_prepare($conn, $findSql);
 
     if (!$findStmt) {
-        throw new Exception("Drain lookup failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($findStmt, "is", $locId, $addressDescription);
@@ -178,7 +178,7 @@ function sc_get_or_create_drain_id($conn, $locId, $addressDescription)
     $insertStmt = mysqli_prepare($conn, $insertSql);
 
     if (!$insertStmt) {
-        throw new Exception("Drain insert failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param(
@@ -194,7 +194,7 @@ function sc_get_or_create_drain_id($conn, $locId, $addressDescription)
         $insertError = mysqli_stmt_error($insertStmt);
         mysqli_stmt_close($insertStmt);
 
-        throw new Exception("Drain insert failed: " . $insertError);
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     $drainId = (int)mysqli_insert_id($conn);
@@ -240,7 +240,7 @@ function sc_check_repeat_rule($conn, $userId, $locId, $drainId, $issueId, $affec
     $activeStmt = mysqli_prepare($conn, $activeSql);
 
     if (!$activeStmt) {
-        throw new Exception("Active repeat complaint check failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($activeStmt, "iiiii", $userId, $locId, $drainId, $issueId, $affectedAreaId);
@@ -277,7 +277,7 @@ function sc_check_repeat_rule($conn, $userId, $locId, $drainId, $issueId, $affec
     $closedStmt = mysqli_prepare($conn, $closedSql);
 
     if (!$closedStmt) {
-        throw new Exception("Closed repeat complaint check failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($closedStmt, "iiiii", $userId, $locId, $drainId, $issueId, $affectedAreaId);
@@ -319,7 +319,7 @@ function sc_check_repeat_rule($conn, $userId, $locId, $drainId, $issueId, $affec
     $oldClosedStmt = mysqli_prepare($conn, $oldClosedSql);
 
     if (!$oldClosedStmt) {
-        throw new Exception("Old closed complaint check failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($oldClosedStmt, "iiiii", $userId, $locId, $drainId, $issueId, $affectedAreaId);
@@ -357,7 +357,7 @@ function sc_insert_status_log($conn, $complaintId, $oldStatus, $newStatus, $acti
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("Status log insert failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param(
@@ -375,7 +375,7 @@ function sc_insert_status_log($conn, $complaintId, $oldStatus, $newStatus, $acti
         $error = mysqli_stmt_error($stmt);
         mysqli_stmt_close($stmt);
 
-        throw new Exception("Status log insert failed: " . $error);
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_close($stmt);
@@ -419,7 +419,7 @@ function sc_upload_error_message($errorCode)
     }
 
     if ($errorCode === UPLOAD_ERR_NO_TMP_DIR) {
-        return "Server temporary upload folder is missing.";
+        return "Unable to upload files right now. Please try again.";
     }
 
     if ($errorCode === UPLOAD_ERR_CANT_WRITE) {
@@ -427,10 +427,10 @@ function sc_upload_error_message($errorCode)
     }
 
     if ($errorCode === UPLOAD_ERR_EXTENSION) {
-        return "File upload was blocked by a PHP extension.";
+        return "Unable to upload this file. Please try again.";
     }
 
-    return "File upload failed. Error code: " . $errorCode;
+    return "Unable to upload this file. Please try again.";
 }
 
 function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUploadedFiles)
@@ -453,16 +453,16 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
 
     if (!is_dir($uploadDir)) {
         if (!mkdir($uploadDir, 0777, true)) {
-            throw new Exception("Upload folder could not be created.");
+            throw new Exception("Unable to upload files right now. Please try again.");
         }
     }
 
     if (!is_writable($uploadDir)) {
-        throw new Exception("Upload folder is not writable.");
+        throw new Exception("Unable to upload files right now. Please try again.");
     }
 
     if (!function_exists("finfo_open")) {
-        throw new Exception("PHP fileinfo extension is not enabled.");
+        throw new Exception("Unable to verify the uploaded file. Please try again.");
     }
 
     $imageCount = 0;
@@ -475,7 +475,7 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
         }
 
         if (!is_uploaded_file($file["tmp_name"])) {
-            throw new Exception("Invalid uploaded file detected.");
+            throw new Exception("Please upload a valid file.");
         }
 
         $originalName = basename($file["name"]);
@@ -483,7 +483,7 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
         $duplicateKey = strtolower($originalName) . "|" . $file["size"];
 
         if (isset($duplicateKeys[$duplicateKey])) {
-            throw new Exception("Duplicate file detected: " . $originalName);
+            throw new Exception("This file has already been selected: " . $originalName);
         }
 
         $duplicateKeys[$duplicateKey] = true;
@@ -491,7 +491,7 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
         $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
 
         if (!$fileInfo) {
-            throw new Exception("Unable to verify uploaded file type.");
+            throw new Exception("Unable to verify this file. Please try another file.");
         }
 
         $mimeType = finfo_file($fileInfo, $file["tmp_name"]);
@@ -526,7 +526,7 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
                 throw new Exception("Video must be 150MB or less.");
             }
         } else {
-            throw new Exception("Allowed files: JPG, JPEG, PNG, WEBP, MP4, WEBM.");
+            throw new Exception("Please upload JPG, JPEG, PNG, WEBP, MP4, or WEBM files.");
         }
 
         $safeExtension = ($extension === "jpeg") ? "jpg" : $extension;
@@ -542,7 +542,7 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
         $targetPath = $uploadDir . $newFileName;
 
         if (!move_uploaded_file($file["tmp_name"], $targetPath)) {
-            throw new Exception("Failed to save uploaded file.");
+            throw new Exception("Unable to save the uploaded file. Please try again.");
         }
 
         $savedUploadedFiles[] = $targetPath;
@@ -564,7 +564,7 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
         $insertStmt = mysqli_prepare($conn, $insertSql);
 
         if (!$insertStmt) {
-            throw new Exception("Media insert failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param(
@@ -582,7 +582,7 @@ function sc_upload_media_files($conn, $complaintId, $userId, $files, &$savedUplo
             $mediaError = mysqli_stmt_error($insertStmt);
             mysqli_stmt_close($insertStmt);
 
-            throw new Exception("Media insert failed: " . $mediaError);
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_close($insertStmt);
@@ -601,7 +601,7 @@ function sc_get_issue_name($conn, $issueId)
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("Issue validation failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($stmt, "i", $issueId);
@@ -632,7 +632,7 @@ function sc_get_affected_area_name($conn, $affectedAreaId)
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("Affected area validation failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($stmt, "i", $affectedAreaId);
@@ -719,7 +719,7 @@ function sc_get_complaint_count_for_days($conn, $locId, $days)
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("Complaint count failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($stmt, "ii", $locId, $days);
@@ -751,7 +751,7 @@ function sc_get_complaint_count_this_week($conn, $locId)
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("Weekly complaint count failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($stmt, "i", $locId);
@@ -906,7 +906,7 @@ function sc_update_risk_area(
     $findStmt = mysqli_prepare($conn, $findSql);
 
     if (!$findStmt) {
-        throw new Exception("Risk lookup failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($findStmt, "s", $riskAreaKey);
@@ -936,7 +936,7 @@ function sc_update_risk_area(
         $updateStmt = mysqli_prepare($conn, $updateSql);
 
         if (!$updateStmt) {
-            throw new Exception("Risk update failed: " . mysqli_error($conn));
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_bind_param(
@@ -954,7 +954,7 @@ function sc_update_risk_area(
             $error = mysqli_stmt_error($updateStmt);
             mysqli_stmt_close($updateStmt);
 
-            throw new Exception("Risk update failed: " . $error);
+            throw new Exception("Unable to complete this action. Please try again.");
         }
 
         mysqli_stmt_close($updateStmt);
@@ -987,7 +987,7 @@ function sc_update_risk_area(
     $insertStmt = mysqli_prepare($conn, $insertSql);
 
     if (!$insertStmt) {
-        throw new Exception("Risk insert failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param(
@@ -1010,7 +1010,7 @@ function sc_update_risk_area(
         $error = mysqli_stmt_error($insertStmt);
         mysqli_stmt_close($insertStmt);
 
-        throw new Exception("Risk insert failed: " . $error);
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_close($insertStmt);
@@ -1080,7 +1080,7 @@ $locationCheckSql = "
 $locationStmt = mysqli_prepare($conn, $locationCheckSql);
 
 if (!$locationStmt) {
-    sc_redirect_error("Location validation failed: " . mysqli_error($conn));
+    sc_redirect_error("Unable to validate the selected location. Please try again.");
 }
 
 mysqli_stmt_bind_param(
@@ -1155,7 +1155,7 @@ try {
     $insertStmt = mysqli_prepare($conn, $insertSql);
 
     if (!$insertStmt) {
-        throw new Exception("Complaint insert failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param(
@@ -1230,7 +1230,7 @@ try {
             while ($coRow = mysqli_fetch_assoc($centralNotifResult)) {
                 $recipientId = (int)$coRow['user_id'];
                 if (!mysqli_stmt_execute($insertCentralNotifStmt)) {
-                    throw new Exception("Central notification insert failed: " . mysqli_stmt_error($insertCentralNotifStmt));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
             }
             mysqli_stmt_close($insertCentralNotifStmt);

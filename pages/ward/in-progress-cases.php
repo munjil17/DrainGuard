@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer")
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
@@ -27,7 +27,7 @@ function fetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -48,7 +48,7 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -218,7 +218,7 @@ $teamNameColumn = firstExistingColumn($teamColumns, [
 ]);
 
 if (!$teamIdColumn || !$teamNameColumn) {
-    die("maintenance_teams table must have a team id and team name column.");
+    die("Maintenance team information is not available right now.");
 }
 
 /*
@@ -468,7 +468,7 @@ foreach ($inProgressCases as $caseItem) {
         <div class="ipc-toolbar">
             <div class="ipc-search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" id="ipcSearch" placeholder="Search by complaint ID, issue, area, team...">
+                <input type="text" id="ipcSearch" placeholder="Search by complaint ID, area, issue, or team">
             </div>
 
             <select id="ipcStatusFilter">
@@ -577,7 +577,7 @@ foreach ($inProgressCases as $caseItem) {
                                                 <form method="POST" action="reply_support.php" style="margin-top: 15px;">
                                                     <input type="hidden" name="support_request_id" value="<?= $case["support_request_id"]; ?>">
                                                     <input type="hidden" name="redirect_to" value="in-progress-cases.php">
-                                                    <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team..." style="width:100%; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
+                                                    <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team" style="width:100%; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
                                                     <button type="submit" style="margin-top: 10px; background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
                                                 </form>
                                             <?php else: ?>

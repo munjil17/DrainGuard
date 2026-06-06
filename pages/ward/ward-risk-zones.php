@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer")
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
@@ -27,7 +27,7 @@ function fetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -48,7 +48,7 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -320,7 +320,7 @@ foreach ($riskZones as $zone) {
         <div class="wrz-toolbar">
             <div class="wrz-search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" id="wrzSearch" placeholder="Search by area, risk level, or complaint ID...">
+                <input type="text" id="wrzSearch" placeholder="Search by area, risk level, or complaint ID">
             </div>
 
             <select id="wrzRiskFilter">

@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer")
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
@@ -26,7 +26,7 @@ function safeText($value)
 function fetchOne($conn, $sql, $types = "", $params = [])
 {
     $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+    if (!$stmt) throw new Exception("Unable to load records. Please try again.");
     if ($types !== "" && !empty($params)) {
         mysqli_stmt_bind_param($stmt, $types, ...$params);
     }
@@ -40,7 +40,7 @@ function fetchOne($conn, $sql, $types = "", $params = [])
 function fetchAllRows($conn, $sql, $types = "", $params = [])
 {
     $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+    if (!$stmt) throw new Exception("Unable to load records. Please try again.");
     if ($types !== "" && !empty($params)) {
         mysqli_stmt_bind_param($stmt, $types, ...$params);
     }
@@ -73,14 +73,14 @@ function insertNotification($conn, $tableName, $recipientUserId, $senderUserId, 
     $sql = "INSERT INTO `$tableName` (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)";
     $stmt = mysqli_prepare($conn, $sql);
     if (!$stmt) {
-        throw new Exception("Notification prepare failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($stmt, "iiissss", $recipientUserId, $senderUserId, $complaintId, $type, $title, $message, $createdAt);
     if (!mysqli_stmt_execute($stmt)) {
         $err = mysqli_stmt_error($stmt);
         mysqli_stmt_close($stmt);
-        throw new Exception("Notification insert failed: " . $err);
+        throw new Exception("Unable to complete this action. Please try again.");
     }
     mysqli_stmt_close($stmt);
 }
@@ -134,7 +134,7 @@ $teamColumns = tableColumns($conn, "maintenance_teams");
 $teamIdColumn = firstExistingColumn($teamColumns, ["maintenance_team_id", "team_id", "id"]);
 $teamNameColumn = firstExistingColumn($teamColumns, ["team_name", "maintenance_team_name", "name"]);
 if (!$teamIdColumn || !$teamNameColumn) {
-    die("maintenance_teams table must have a team id and team name column.");
+    die("Maintenance team information is not available right now.");
 }
 
 try {
@@ -180,7 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $allowedActions = ["inspector_claim_true", "inspector_claim_false"];
 
     if ($reviewId <= 0 || $complaintId <= 0 || !in_array($action, $allowedActions, true)) {
-        $errorMessage = "Invalid request.";
+        $errorMessage = "Invalid request. Please try again.";
     } else {
         mysqli_begin_transaction($conn);
         try {
@@ -487,7 +487,7 @@ $totalReviews = count($reviews);
                             <input type="hidden" name="complaint_id" value="<?= $complaintId; ?>">
                             
                             <label>Ward Officer Decision Note:</label>
-                            <textarea name="decision_note" class="decision-textarea" rows="3" required placeholder="Explain your decision..."></textarea>
+                            <textarea name="decision_note" class="decision-textarea" rows="3" required placeholder="Write a short decision note"></textarea>
 
                             <div class="rd-actions">
                                 <button type="submit" name="action" value="inspector_claim_true" class="rd-btn true-claim">

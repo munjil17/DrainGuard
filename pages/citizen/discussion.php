@@ -30,7 +30,7 @@ if ($roleStmt) {
 
 $context = cs_get_discussion_context($conn, $complaintId);
 if (!cs_has_discussion_access($context, $citizenUserId, $currentUserRole)) {
-    die("Access denied or discussion not available for this complaint.");
+    die("Discussion is not available for this complaint.");
 }
 
 // Fetch basic info for UI
@@ -108,7 +108,7 @@ if ($infoStmt) {
                         <textarea
                             name="comment_text"
                             data-comment-text
-                            placeholder="Write your comment..."
+                            placeholder="Write a short comment"
                             maxlength="1000"
                             required
                         ></textarea>

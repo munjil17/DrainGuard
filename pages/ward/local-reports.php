@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer")
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
@@ -29,7 +29,7 @@ function fetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -50,7 +50,7 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -378,7 +378,7 @@ function saveReportFile($reportRows, $reportName, $exportFormat, $reportDirAbsol
             }
         } else {
             fputcsv($fp, ["Message"]);
-            fputcsv($fp, ["No data found for selected report."]);
+            fputcsv($fp, ["No records found for selected report."]);
         }
 
         fclose($fp);
@@ -406,7 +406,7 @@ function saveReportFile($reportRows, $reportName, $exportFormat, $reportDirAbsol
             $tableHtml .= "</tr>";
         }
     } else {
-        $tableHtml .= "<th>Message</th></tr></thead><tbody><tr><td>No data found for selected report.</td></tr>";
+        $tableHtml .= "<th>Message</th></tr></thead><tbody><tr><td>No records found for selected report.</td></tr>";
     }
 
     $tableHtml .= "</tbody></table>";
@@ -562,11 +562,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $allowedFormats = ["PDF", "XLSX", "CSV", "DOCX"];
 
     if (!in_array($reportType, $allowedReportTypes, true)) {
-        $errorMessage = "Invalid report type selected.";
+        $errorMessage = "Please select a valid report type.";
     } elseif (!in_array($reportPeriod, $allowedPeriods, true)) {
         $errorMessage = "Invalid report period selected.";
     } elseif (!in_array($exportFormat, $allowedFormats, true)) {
-        $errorMessage = "Invalid export format selected.";
+        $errorMessage = "Please select a valid export format.";
     } else {
         try {
             [$startDate, $endDate] = getDateRangeByPeriod($reportPeriod, $customStart, $customEnd);
@@ -577,7 +577,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
 
                 if (strtotime($startDate) > strtotime($endDate)) {
-                    throw new Exception("Start date cannot be after end date.");
+                    throw new Exception("Start date cannot be after the end date.");
                 }
             }
 
@@ -632,7 +632,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $insertStmt = mysqli_prepare($conn, $insertSql);
 
             if (!$insertStmt) {
-                throw new Exception("Report insert failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param(

@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             showConfirmModal({
                 title: "Delete User",
-                message: "Are you sure you want to delete this user? This will delete the user from users table and related role table.",
+                message: "Are you sure you want to delete this user? This action cannot be undone.",
                 confirmText: "Delete",
                 cancelText: "Cancel",
                 type: "danger",

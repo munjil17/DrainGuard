@@ -10,7 +10,7 @@ if (!isset($conn) && isset($connection)) {
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 if (!isset($_SESSION['user_id'])) {
@@ -48,7 +48,7 @@ function woLogDbFailure($context, $conn, $stmt = null)
     $dbError = mysqli_error($conn);
 
     if ($dbError !== '') {
-        $message .= " | mysqli_error: " . $dbError;
+        $message .= " Details were logged. ". $dbError;
     }
 
     if ($stmt) {
@@ -67,7 +67,7 @@ function woPrepareOrThrow($conn, $sql, $context)
 
     if (!$stmt) {
         woLogDbFailure($context . " prepare failed | SQL: " . preg_replace('/\s+/', ' ', trim($sql)), $conn);
-        throw new Exception($context . " prepare failed");
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     return $stmt;
@@ -78,7 +78,7 @@ function woExecuteOrThrow($conn, $stmt, $context, $sql = '')
     if (!mysqli_stmt_execute($stmt)) {
         $sqlContext = $sql !== '' ? " | SQL: " . preg_replace('/\s+/', ' ', trim($sql)) : "";
         woLogDbFailure($context . " execute failed" . $sqlContext, $conn, $stmt);
-        throw new Exception($context . " execute failed");
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 }
 
@@ -86,7 +86,7 @@ function woQueryOrThrow($conn, $sql, $context)
 {
     if (!mysqli_query($conn, $sql)) {
         woLogDbFailure($context . " query failed | SQL: " . preg_replace('/\s+/', ' ', trim($sql)), $conn);
-        throw new Exception($context . " query failed");
+        throw new Exception("Unable to load records. Please try again.");
     }
 }
 
@@ -96,14 +96,14 @@ function woFetchOne($conn, $sql, $types = "", $params = [])
 
     if (!$stmt) {
         woLogDbFailure("Fetch one prepare failed", $conn);
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     woBindParams($stmt, $types, $params);
 
     if (!mysqli_stmt_execute($stmt)) {
         woLogDbFailure("Fetch one execute failed", $conn, $stmt);
-        die("SQL Execute Failed: " . mysqli_stmt_error($stmt));
+        die("Unable to load records. Please try again.");
     }
     $result = mysqli_stmt_get_result($stmt);
     $row = mysqli_fetch_assoc($result);
@@ -119,14 +119,14 @@ function woFetchAll($conn, $sql, $types = "", $params = [])
 
     if (!$stmt) {
         woLogDbFailure("Fetch all prepare failed", $conn);
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     woBindParams($stmt, $types, $params);
 
     if (!mysqli_stmt_execute($stmt)) {
         woLogDbFailure("Fetch all execute failed", $conn, $stmt);
-        die("SQL Execute Failed: " . mysqli_stmt_error($stmt));
+        die("Unable to load records. Please try again.");
     }
     $result = mysqli_stmt_get_result($stmt);
 

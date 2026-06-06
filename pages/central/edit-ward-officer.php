@@ -74,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $officeAddress = trim($_POST["office_address"] ?? "");
 
     if ($designation === "" || $cityCorId <= 0 || $assignedWardId <= 0 || $officeAddress === "") {
-        $_SESSION["user_management_error"] = "Please fill up all required fields.";
+        $_SESSION["user_management_error"] = "Please complete all required fields.";
         redirectEditWardOfficer($wardOfficerId);
     }
 
@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $checkWardStmt = mysqli_prepare($conn, $checkWardSql);
 
     if (!$checkWardStmt) {
-        $_SESSION["user_management_error"] = "Database error while checking ward.";
+        $_SESSION["user_management_error"] = "Unable to verify the selected ward. Please try again.";
         redirectEditWardOfficer($wardOfficerId);
     }
 
@@ -168,7 +168,7 @@ $wardOfficerSql = "
 $wardOfficerStmt = mysqli_prepare($conn, $wardOfficerSql);
 
 if (!$wardOfficerStmt) {
-    $_SESSION["user_management_error"] = "Ward officer query failed.";
+    $_SESSION["user_management_error"] = "Unable to load ward officer details. Please try again.";
     redirectUserManagement();
 }
 

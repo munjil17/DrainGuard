@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer")
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
@@ -28,7 +28,7 @@ function fetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -49,7 +49,7 @@ function fetchAllRows($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        throw new Exception("SQL Prepare Failed: " . mysqli_error($conn));
+        throw new Exception("Unable to load records. Please try again.");
     }
 
     if ($types !== "" && !empty($params)) {
@@ -89,14 +89,14 @@ function insertNotification($conn, $tableName, $recipientUserId, $senderUserId, 
     $sql = "INSERT INTO `$tableName` (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)";
     $stmt = mysqli_prepare($conn, $sql);
     if (!$stmt) {
-        throw new Exception("Notification prepare failed: " . mysqli_error($conn));
+        throw new Exception("Unable to complete this action. Please try again.");
     }
 
     mysqli_stmt_bind_param($stmt, "iiissss", $recipientUserId, $senderUserId, $complaintId, $type, $title, $message, $createdAt);
     if (!mysqli_stmt_execute($stmt)) {
         $err = mysqli_stmt_error($stmt);
         mysqli_stmt_close($stmt);
-        throw new Exception("Notification insert failed: " . $err);
+        throw new Exception("Unable to complete this action. Please try again.");
     }
     mysqli_stmt_close($stmt);
 }
@@ -226,7 +226,7 @@ $teamNameColumn = firstExistingColumn($teamColumns, [
 ]);
 
 if (!$teamIdColumn || !$teamNameColumn) {
-    die("maintenance_teams table must have a team id and team name column.");
+    die("Maintenance team information is not available right now.");
 }
 
 /*
@@ -290,7 +290,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $allowedActions = ["same_team", "different_team", "inspector", "inspector_claim_true", "inspector_claim_false"];
 
     if ($complaintId <= 0 || !in_array($action, $allowedActions, true)) {
-        $errorMessage = "Invalid request.";
+        $errorMessage = "Invalid request. Please try again.";
     } else {
         mysqli_begin_transaction($conn);
 
@@ -422,7 +422,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $updateAssignmentStmt = mysqli_prepare($conn, $updateAssignmentSql);
 
                 if (!$updateAssignmentStmt) {
-                    throw new Exception("Assignment update failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 $assignmentId = (int)$requestCheck["assignment_id"];
@@ -430,7 +430,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_bind_param($updateAssignmentStmt, "si", $assignmentStatus, $assignmentId);
 
                 if (!mysqli_stmt_execute($updateAssignmentStmt)) {
-                    throw new Exception("Assignment update failed: " . mysqli_stmt_error($updateAssignmentStmt));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_close($updateAssignmentStmt);
@@ -451,13 +451,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $updateAssignmentStmt = mysqli_prepare($conn, $updateAssignmentSql);
 
                 if (!$updateAssignmentStmt) {
-                    throw new Exception("Assignment update failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_bind_param($updateAssignmentStmt, "ii", $complaintId, $wardId);
 
                 if (!mysqli_stmt_execute($updateAssignmentStmt)) {
-                    throw new Exception("Assignment update failed: " . mysqli_stmt_error($updateAssignmentStmt));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_close($updateAssignmentStmt);
@@ -475,13 +475,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $updateRequestStmt = mysqli_prepare($conn, $updateRequestSql);
 
             if (!$updateRequestStmt) {
-                throw new Exception("Reopen request update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($updateRequestStmt, "sii", $requestStatus, $currentUserId, $reopenId);
 
             if (!mysqli_stmt_execute($updateRequestStmt)) {
-                throw new Exception("Reopen request update failed: " . mysqli_stmt_error($updateRequestStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateRequestStmt);
@@ -497,13 +497,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $updateComplaintStmt = mysqli_prepare($conn, $updateComplaintSql);
 
             if (!$updateComplaintStmt) {
-                throw new Exception("Complaint status update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($updateComplaintStmt, "si", $complaintStatus, $complaintId);
 
             if (!mysqli_stmt_execute($updateComplaintStmt)) {
-                throw new Exception("Complaint status update failed: " . mysqli_stmt_error($updateComplaintStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateComplaintStmt);
@@ -760,7 +760,7 @@ foreach ($reopenRequests as $item) {
         <div class="rd-toolbar">
             <div class="rd-search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" id="rdSearch" placeholder="Search by complaint ID, issue, area, team...">
+                <input type="text" id="rdSearch" placeholder="Search by complaint ID, area, issue, or team">
             </div>
         </div>
 

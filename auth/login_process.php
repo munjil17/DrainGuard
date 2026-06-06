@@ -40,7 +40,7 @@ unset(
 |--------------------------------------------------------------------------
 */
 if ($email === "" || $password === "" || $role === "") {
-    $_SESSION["email_error"] = "Please fill up all required fields.";
+    $_SESSION["email_error"] = "Please complete all required fields.";
     redirect_to("auth/login.php");
 }
 
@@ -50,7 +50,7 @@ if ($email === "" || $password === "" || $role === "") {
 |--------------------------------------------------------------------------
 */
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $_SESSION["email_error"] = "Invalid email format.";
+    $_SESSION["email_error"] = "Please enter a valid email address.";
     redirect_to("auth/login.php");
 }
 
@@ -59,7 +59,7 @@ $blockedDomains = ['example.com', 'test.com', 'localhost', 'fake.com'];
 $domain = substr(strrchr($email, "@"), 1);
 
 if (in_array($domain, $blockedDomains)) {
-    $_SESSION["email_error"] = "This email domain is not allowed for security reasons.";
+    $_SESSION["email_error"] = "Please use a valid email address.";
     redirect_to("auth/login.php");
 }
 
@@ -85,7 +85,7 @@ $roleMap = [
 $allowedRoles = $roleMap[$role] ?? [];
 
 if (empty($allowedRoles)) {
-    $_SESSION["email_error"] = "Invalid selected role.";
+    $_SESSION["email_error"] = "Please select a valid role.";
     redirect_to("auth/login.php");
 }
 
@@ -114,7 +114,7 @@ $sql = "
 $stmt = mysqli_prepare($conn, $sql);
 
 if (!$stmt) {
-    $_SESSION["email_error"] = "System error during login.";
+    $_SESSION["email_error"] = "Unable to sign in right now. Please try again.";
     redirect_to("auth/login.php");
 }
 
@@ -128,7 +128,7 @@ $result = mysqli_stmt_get_result($stmt);
 
 if (!$result || mysqli_num_rows($result) !== 1) {
     mysqli_stmt_close($stmt);
-    $_SESSION["email_error"] = "Invalid email or role.";
+    $_SESSION["email_error"] = "No account matches that email and role.";
     redirect_to("auth/login.php");
 }
 
@@ -160,12 +160,12 @@ if ($checkStatusStmt) {
 }
 
 if (strtolower(trim($user["user_status"] ?? "")) !== "active") {
-    $_SESSION["email_error"] = "Your account is inactive. Please contact support.";
+    $_SESSION["email_error"] = "Your account is inactive. Please contact the office.";
     redirect_to("auth/login.php");
 }
 
 if (isset($user["login_access"]) && (int)$user["login_access"] !== 1) {
-    $_SESSION["email_error"] = "Your login access has been disabled.";
+    $_SESSION["email_error"] = "Your sign-in access has been disabled. Please contact the office.";
     redirect_to("auth/login.php");
 }
 
@@ -175,7 +175,7 @@ if (isset($user["login_access"]) && (int)$user["login_access"] !== 1) {
 |--------------------------------------------------------------------------
 */
 if (!password_verify($password, $user["user_password"])) {
-    $_SESSION["password_error"] = "Incorrect password.";
+    $_SESSION["password_error"] = "Incorrect password. Please try again.";
     redirect_to("auth/login.php");
 }
 

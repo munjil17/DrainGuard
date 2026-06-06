@@ -10,7 +10,7 @@ if (!isset($conn) && isset($connection)) {
 }
 
 if (!isset($conn) || !$conn) {
-    die("Database connection not found.");
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 if (!isset($_SESSION['user_id'])) {
@@ -47,7 +47,7 @@ function solvedFetchOne($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     solvedBindParams($stmt, $types, $params);
@@ -66,7 +66,7 @@ function solvedFetchAll($conn, $sql, $types = "", $params = [])
     $stmt = mysqli_prepare($conn, $sql);
 
     if (!$stmt) {
-        die("SQL Prepare Failed: " . mysqli_error($conn));
+        die("Unable to load records. Please try again.");
     }
 
     solvedBindParams($stmt, $types, $params);

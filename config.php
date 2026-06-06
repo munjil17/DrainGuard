@@ -40,11 +40,11 @@ if (!defined("DG_SMTP_PORT")) {
 }
 
 if (!defined("DG_SMTP_USERNAME")) {
-    define("DG_SMTP_USERNAME", getenv("DG_SMTP_USERNAME") ?: "");
+    define("DG_SMTP_USERNAME", getenv("DG_SMTP_USERNAME") ?: "munjilislambd17@gmail.com");
 }
 
 if (!defined("DG_SMTP_PASSWORD")) {
-    define("DG_SMTP_PASSWORD", getenv("DG_SMTP_PASSWORD") ?: "");
+    define("DG_SMTP_PASSWORD", getenv("DG_SMTP_PASSWORD") ?: "jrmbycmwjbncojph");
 }
 
 if (!defined("DG_SMTP_FROM_EMAIL")) {
@@ -63,7 +63,7 @@ mysqli_report(MYSQLI_REPORT_OFF);
 $conn = mysqli_connect($host, $username, $password, $database);
 
 if (!$conn) {
-    die("Database connection failed: " . mysqli_connect_error());
+    die("Service is temporarily unavailable. Please try again.");
 }
 
 mysqli_set_charset($conn, "utf8mb4");
@@ -139,8 +139,8 @@ function dg_debug_db($conn)
     $dbRow    = $dbResult ? mysqli_fetch_assoc($dbResult) : null;
 
     echo "<pre>";
-    echo "Connected Database : " . ($dbRow['db_name'] ?? "Unknown") . PHP_EOL;
-    echo "MySQL Error        : " . mysqli_error($conn) . PHP_EOL;
+    echo "Service status    : " . ($dbRow['db_name'] ?? "Unknown") . PHP_EOL;
+    echo "Last service error: " . mysqli_error($conn) . PHP_EOL;
     echo "Timezone           : " . date_default_timezone_get() . PHP_EOL;
     echo "Current Time       : " . date("Y-m-d H:i:s") . PHP_EOL;
     echo "</pre>";
@@ -153,7 +153,7 @@ function dg_table_count($conn, $tableName)
     $result    = mysqli_query($conn, $sql);
 
     if (!$result) {
-        return "SQL Error: " . mysqli_error($conn);
+        return "Unable to load records. " . mysqli_error($conn);
     }
 
     $row = mysqli_fetch_assoc($result);

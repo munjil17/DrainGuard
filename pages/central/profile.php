@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             $emailCheckStmt = mysqli_prepare($conn, $emailCheckSql);
 
             if (!$emailCheckStmt) {
-                throw new Exception("Email check failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($emailCheckStmt, "si", $email, $userId);
@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             $employeeCheckStmt = mysqli_prepare($conn, $employeeCheckSql);
 
             if (!$employeeCheckStmt) {
-                throw new Exception("Employee Code check failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($employeeCheckStmt, "si", $employeeCode, $userId);
@@ -166,13 +166,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             $updateUserStmt = mysqli_prepare($conn, $updateUserSql);
 
             if (!$updateUserStmt) {
-                throw new Exception("User update failed: " . mysqli_error($conn));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_bind_param($updateUserStmt, "ssi", $fullName, $email, $userId);
 
             if (!mysqli_stmt_execute($updateUserStmt)) {
-                throw new Exception("User update failed: " . mysqli_stmt_error($updateUserStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateUserStmt);
@@ -196,7 +196,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
                 $updateCentralStmt = mysqli_prepare($conn, $updateCentralSql);
 
                 if (!$updateCentralStmt) {
-                    throw new Exception("Central officer update failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_bind_param(
@@ -221,7 +221,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
                 $updateCentralStmt = mysqli_prepare($conn, $updateCentralSql);
 
                 if (!$updateCentralStmt) {
-                    throw new Exception("Central officer update failed: " . mysqli_error($conn));
+                    throw new Exception("Unable to complete this action. Please try again.");
                 }
 
                 mysqli_stmt_bind_param(
@@ -231,7 +231,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["form_type"] ?? "") === "pr
             }
 
             if (!mysqli_stmt_execute($updateCentralStmt)) {
-                throw new Exception("Central officer update failed: " . mysqli_stmt_error($updateCentralStmt));
+                throw new Exception("Unable to complete this action. Please try again.");
             }
 
             mysqli_stmt_close($updateCentralStmt);

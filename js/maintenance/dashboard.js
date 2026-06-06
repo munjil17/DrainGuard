@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         complaints.work_started_at = NOW()
                     */
 
-                    showWarningModal("Start Work backend is not connected yet. Next we will create the process file.");
+                    showWarningModal("Unable to start work right now. Please try again later.");
 
                     button.disabled = false;
                     button.innerHTML = '<i class="bi bi-wrench"></i> Start Work';
