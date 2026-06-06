@@ -44,10 +44,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     
                     if ($leaderRow) {
                         $leaderUserId = $leaderRow["user_id"];
-                        $url = "/DrainGuard/pages/maintenance/assigned-tasks.php?highlight=" . $row["complaint_code"];
-                        if ($complaintStatus === 'in_progress') {
-                            $url = "/DrainGuard/pages/maintenance/in-progress-work.php?highlight=" . $row["complaint_code"];
-                        }
                         
                         $notifSql = "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read) 
                                      VALUES (?, ?, ?, 'ward_reply_support_request', 'Ward Officer Replied to Support Request', ?, 0)";

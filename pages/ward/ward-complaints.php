@@ -580,56 +580,28 @@ foreach ($complaints as $item) {
             </div>
         </div>
 
-        <div class="wc-tabs" id="wardComplaintTabs">
-            <button class="wc-tab active" type="button" data-filter="all">
-                All
-                <span><?= $totalComplaints; ?></span>
-            </button>
+        <div class="wc-status-filter-bar">
+            <div class="wc-status-select-wrap">
+                <label for="wardStatusFilter">Filter by Status</label>
 
-            <button class="wc-tab" type="button" data-filter="pending">
-                Pending
-                <span><?= $statusCounts['pending']; ?></span>
-            </button>
+                <select id="wardStatusFilter" class="wc-status-select">
+                    <option value="all" data-count="<?= $totalComplaints; ?>">All</option>
+                    <option value="pending" data-count="<?= $statusCounts['pending']; ?>">Pending</option>
+                    <option value="verified" data-count="<?= $statusCounts['verified']; ?>">Verified</option>
+                    <option value="assigned-team" data-count="<?= $statusCounts['assigned-team']; ?>">Assigned to Team</option>
+                    <option value="in-progress" data-count="<?= $statusCounts['in-progress']; ?>">In Progress</option>
+                    <option value="solved-by-team" data-count="<?= $statusCounts['solved-by-team']; ?>">Solved by Team</option>
+                    <option value="inspector-verification" data-count="<?= $statusCounts['inspector-verification']; ?>">Inspector Verification</option>
+                    <option value="closed-solved" data-count="<?= $statusCounts['closed-solved']; ?>">Closed / Solved</option>
+                    <option value="rejected-duplicate" data-count="<?= $statusCounts['rejected-duplicate']; ?>">Rejected / Duplicate</option>
+                    <option value="reopened-disputed" data-count="<?= $statusCounts['reopened-disputed']; ?>">Reopened / Disputed</option>
+                </select>
+            </div>
 
-            <button class="wc-tab" type="button" data-filter="verified">
-                Verified
-                <span><?= $statusCounts['verified']; ?></span>
-            </button>
-
-            <button class="wc-tab" type="button" data-filter="assigned-team">
-                Assigned to Team
-                <span><?= $statusCounts['assigned-team']; ?></span>
-            </button>
-
-            <button class="wc-tab" type="button" data-filter="in-progress">
-                In Progress
-                <span><?= $statusCounts['in-progress']; ?></span>
-            </button>
-
-            <button class="wc-tab" type="button" data-filter="solved-by-team">
-                Solved by Team
-                <span><?= $statusCounts['solved-by-team']; ?></span>
-            </button>
-
-            <button class="wc-tab" type="button" data-filter="inspector-verification">
-                Inspector Verification
-                <span><?= $statusCounts['inspector-verification']; ?></span>
-            </button>
-
-            <button class="wc-tab" type="button" data-filter="closed-solved">
-                Closed / Solved
-                <span><?= $statusCounts['closed-solved']; ?></span>
-            </button>
-
-            <button class="wc-tab" type="button" data-filter="rejected-duplicate">
-                Rejected / Duplicate
-                <span><?= $statusCounts['rejected-duplicate']; ?></span>
-            </button>
-
-            <button class="wc-tab" type="button" data-filter="reopened-disputed">
-                Reopened / Disputed
-                <span><?= $statusCounts['reopened-disputed']; ?></span>
-            </button>
+            <div class="wc-status-count-box">
+                <span>Complaints</span>
+                <strong id="wardSelectedStatusCount"><?= $totalComplaints; ?></strong>
+            </div>
         </div>
 
         <div class="wc-table-card">

@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("wardComplaintSearch");
     const topbarSearchInput = document.getElementById("wardTopbarSearch");
-    const tabButtons = document.querySelectorAll(".wc-tab");
+    const statusFilter = document.getElementById("wardStatusFilter");
+    const selectedStatusCount = document.getElementById("wardSelectedStatusCount");
     const complaintRows = document.querySelectorAll(".wc-complaint-row");
     const emptyState = document.getElementById("wardComplaintEmptyState");
 
@@ -13,6 +14,15 @@ document.addEventListener("DOMContentLoaded", function () {
     let activeStatusFilter = "all";
     let activeUrgencyFilter = "all";
     let searchValue = "";
+
+    function updateSelectedStatusCount() {
+        if (!statusFilter || !selectedStatusCount) {
+            return;
+        }
+
+        const selectedOption = statusFilter.options[statusFilter.selectedIndex];
+        selectedStatusCount.textContent = selectedOption ? selectedOption.getAttribute("data-count") || "0" : "0";
+    }
 
     function escapeHtml(value) {
         return String(value || "")
@@ -78,18 +88,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    tabButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-            tabButtons.forEach(function (tab) {
-                tab.classList.remove("active");
-            });
+    if (statusFilter) {
+        activeStatusFilter = statusFilter.value || "all";
+        updateSelectedStatusCount();
 
-            button.classList.add("active");
-            activeStatusFilter = button.getAttribute("data-filter") || "all";
-
+        statusFilter.addEventListener("change", function () {
+            activeStatusFilter = statusFilter.value || "all";
+            updateSelectedStatusCount();
             applyFilters();
         });
-    });
+    }
 
     if (filterButton && filterMenu) {
         filterButton.addEventListener("click", function (event) {

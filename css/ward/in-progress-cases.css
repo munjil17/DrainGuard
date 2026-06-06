@@ -318,6 +318,28 @@
     color: #0F766E;
 }
 
+/* SUPPORT REPLY */
+
+.support-reply-form {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.support-reply-form textarea {
+    width: 100%;
+    min-height: 95px;
+    resize: vertical;
+}
+
+.support-reply-form button,
+.support-reply-form .send-reply-btn {
+    margin-top: 12px;
+    align-self: flex-start;
+    position: static !important;
+}
+
 /* EMPTY */
 
 .ipc-empty {

@@ -233,7 +233,8 @@ $listSql = "
         cn.notification_message,
         cn.is_read,
         cn.created_at,
-        c.complaint_code
+        c.complaint_code,
+        c.complaint_status
     FROM ward_notifications cn
     LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id
     {$whereSql}
@@ -376,9 +377,13 @@ function nt_build_query($overrides = [])
                                     $linkUrl .= "&redirect=discussion";
                                 } elseif ($notificationType === 'complaint_routed') {
                                     $linkUrl .= "&redirect=verification-queue";
-                                } elseif ($notificationType === 'maintenance_support_assigned_task') {
-                                    $linkUrl .= "&redirect=local-team-assignment";
-                                } elseif ($notificationType === 'maintenance_support_in_progress' || $notificationType === 'maintenance_start_work') {
+                                } elseif (in_array($notificationType, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'], true)) {
+                                    if (isset($notification["complaint_status"]) && $notification["complaint_status"] === 'in_progress') {
+                                        $linkUrl .= "&redirect=in-progress-cases";
+                                    } else {
+                                        $linkUrl .= "&redirect=local-team-assignment";
+                                    }
+                                } elseif ($notificationType === 'maintenance_start_work') {
                                     $linkUrl .= "&redirect=in-progress-cases";
                                 } elseif ($notificationType === 'inspector_false_completion_confirmed') {
                                     $linkUrl .= "&redirect=reopened-disputed";

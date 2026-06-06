@@ -405,6 +405,7 @@ foreach ($inProgressCases as $caseItem) {
     <link rel="stylesheet" href="../../css/ward/topbar.css">
     <link rel="stylesheet" href="../../css/ward/in-progress-cases.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/notification-target.css">
 </head>
 
 <body class="ward">
@@ -577,11 +578,11 @@ foreach ($inProgressCases as $caseItem) {
                                             <p style="margin: 0; font-size: 14px;"><strong>Status:</strong> <span style="text-transform: capitalize; font-weight:600;"><?= safeText($case["support_status"]); ?></span></p>
                                             
                                             <?php if ($case["support_status"] === 'pending' || $case["support_status"] === 'seen'): ?>
-                                                <form method="POST" action="reply_support.php" style="margin-top: 15px;">
+                                                <form method="POST" action="reply_support.php" class="support-reply-form">
                                                     <input type="hidden" name="support_request_id" value="<?= $case["support_request_id"]; ?>">
                                                     <input type="hidden" name="redirect_to" value="in-progress-cases.php">
                                                     <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team" style="width:100%; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
-                                                    <button type="submit" style="margin-top: 10px; background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
+                                                    <button type="submit" class="send-reply-btn" style="background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
                                                 </form>
                                             <?php else: ?>
                                                 <div style="margin-top: 15px; background: #e2e3e5; padding: 10px; border-radius: 4px;">
@@ -612,6 +613,7 @@ foreach ($inProgressCases as $caseItem) {
 
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/in-progress-cases.js"></script>
+<script src="../../js/global/notification-target.js"></script>
 
 </body>
 </html>

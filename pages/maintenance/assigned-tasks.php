@@ -537,6 +537,7 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/assigned-tasks.css">
+    <link rel="stylesheet" href="../../css/global/notification-target.css">
     <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
@@ -955,6 +956,7 @@ $availabilityLabel = ucfirst($teamInfo['availability_status']);
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/assigned-tasks.js"></script>
+<script src="../../js/global/notification-target.js"></script>
 <script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>

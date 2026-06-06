@@ -526,6 +526,7 @@ foreach ($verifiedComplaints as $ci) {
     <link rel="stylesheet" href="../../css/ward/topbar.css">
     <link rel="stylesheet" href="../../css/ward/local-team-assignment.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
+    <link rel="stylesheet" href="../../css/global/notification-target.css">
     <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
@@ -705,13 +706,11 @@ foreach ($verifiedComplaints as $ci) {
                                         <p style="margin: 0; font-size: 14px;"><strong>Status:</strong> <span style="text-transform: capitalize; font-weight:600;"><?= safeText($complaint["support_status"]); ?></span></p>
                                         
                                         <?php if ($complaint["support_status"] === 'pending' || $complaint["support_status"] === 'seen'): ?>
-                                            <form method="POST" action="reply_support.php" style="margin-top: 15px;">
+                                            <form method="POST" action="reply_support.php" class="support-reply-form">
                                                 <input type="hidden" name="support_request_id" value="<?= $complaint["support_request_id"]; ?>">
                                                 <input type="hidden" name="redirect_to" value="local-team-assignment.php">
                                                 <textarea name="ward_reply" rows="3" required placeholder="Write your reply to the maintenance team" style="width:100%; box-sizing:border-box; resize:vertical; border:1px solid #ddd; padding:8px; border-radius:4px; font-family:inherit;"></textarea>
-                                                <div style="text-align: left; margin-top: 10px;">
-                                                    <button type="submit" style="background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
-                                                </div>
+                                                <button type="submit" class="send-reply-btn" style="background:#0d6efd; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;"><i class="bi bi-reply"></i> Send Reply</button>
                                             </form>
                                         <?php else: ?>
                                             <div style="margin-top: 15px; background: #e2e3e5; padding: 10px; border-radius: 4px;">
@@ -764,6 +763,7 @@ foreach ($verifiedComplaints as $ci) {
 
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/local-team-assignment.js"></script>
+<script src="../../js/global/notification-target.js"></script>
 
 <script src="../../js/global/confirm-modal.js"></script>
 </body>

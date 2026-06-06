@@ -53,6 +53,7 @@ try {
             ca.assignment_id,
             ca.complaint_id,
             ca.maintenance_team_id,
+            ca.assignment_status,
             c.complaint_code,
             c.complaint_status,
             l.ward_id,
@@ -84,6 +85,7 @@ try {
     $wardOfficerUserId = (int)$assignment['dynamic_ward_officer_user_id'];
     $complaintCode = $assignment['complaint_code'];
     $complaintStatus = $assignment['complaint_status'];
+    $assignmentStatus = $assignment['assignment_status'];
 
     if ($wardOfficerUserId <= 0) {
         throw new Exception("Related Ward officer not found for this location.");
@@ -131,9 +133,7 @@ try {
     mysqli_stmt_close($insertStmt);
 
     // 3. Send Notification to Ward Officer
-    $sourcePage = trim($_POST['source_page'] ?? 'assigned_tasks');
-
-    if ($sourcePage === 'in_progress_work') {
+    if ($complaintStatus === 'in_progress' || $assignmentStatus === 'in_progress') {
         $notifType = "maintenance_support_in_progress";
         $notifTitle = "Support Requested for In Progress Work";
         $notifMessage = "Maintenance Team requested support for in-progress complaint " . $complaintCode . ". Please check In Progress Cases.";

@@ -176,6 +176,7 @@ if ($teamId > 0) {
     <link rel="stylesheet" href="../../css/maintenance/sidebar.css">
     <link rel="stylesheet" href="../../css/maintenance/topbar.css">
     <link rel="stylesheet" href="../../css/maintenance/in-progress-work.css?v=1.1">
+    <link rel="stylesheet" href="../../css/global/notification-target.css">
     <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
@@ -538,6 +539,7 @@ if (!empty($task['ward_name'])) {
 
     <script src="../../js/maintenance/sidebar.js"></script>
     <script src="../../js/maintenance/in-progress-work.js"></script>
+<script src="../../js/global/notification-target.js"></script>
 <script src="../../js/global/confirm-modal.js"></script>
 </body>
 </html>
