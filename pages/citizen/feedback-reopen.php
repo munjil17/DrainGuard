@@ -454,7 +454,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 /* ===============================
-   FETCH CLOSED COMPLAINTS + ACTIVE OBJECTION INFO
+   FETCH CLOSED COMPLAINTS READY FOR FEEDBACK / OBJECTION
 ================================ */
 
 $complaints = [];
@@ -476,12 +476,7 @@ $sql = "
         w.ward_no,
         a.area_name,
 
-        d.drain_name,
-
-        rr.reopen_id AS active_reopen_id,
-        rr.request_status AS active_reopen_status,
-        rr.reason AS active_reopen_reason,
-        rr.created_at AS active_reopen_created_at
+        d.drain_name
 
     FROM complaints c
 
@@ -506,20 +501,21 @@ $sql = "
     INNER JOIN areas a
         ON l.area_id = a.area_id
 
-    LEFT JOIN reopen_requests rr
-        ON rr.complaint_id = c.complaint_id
-        AND rr.requested_by = c.user_id
-        AND rr.request_type = 'citizen_objection'
-        AND rr.request_status IN ('pending', 'sent_to_inspector')
-
     LEFT JOIN feedbacks f
         ON f.complaint_id = c.complaint_id 
         AND f.user_id = c.user_id 
         AND f.feedback_type = 'feedback'
 
     WHERE c.user_id = ?
-    AND c.complaint_status IN ('closed', 'disputed')
+    AND c.complaint_status = 'closed'
     AND f.feedback_id IS NULL
+    AND NOT EXISTS (
+        SELECT 1
+        FROM reopen_requests rr_submitted
+        WHERE rr_submitted.complaint_id = c.complaint_id
+        AND rr_submitted.requested_by = c.user_id
+        AND rr_submitted.request_type = 'citizen_objection'
+    )
 
     ORDER BY c.updated_at DESC
 ";
@@ -609,9 +605,7 @@ if ($stmt) {
                     <?php foreach ($complaints as $complaint): ?>
 
                         <?php
-                        $hasPendingObjection = !empty($complaint['active_reopen_id']);
                         $isClosed = ($complaint['complaint_status'] === 'closed');
-                        $isDisputed = ($complaint['complaint_status'] === 'disputed');
                         ?>
 
                         <div class="fr-card">
@@ -633,7 +627,7 @@ if ($stmt) {
                                     </p>
                                 </div>
 
-                                <span class="fr-status <?php echo $isDisputed ? 'fr-status-disputed' : ''; ?>">
+                                <span class="fr-status">
                                     <?php echo frText(frStatusLabel($complaint['complaint_status'])); ?>
                                 </span>
                             </div>
@@ -645,30 +639,7 @@ if ($stmt) {
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($hasPendingObjection): ?>
-
-                                <div class="fr-pending-objection">
-                                    <i class="bi bi-hourglass-split"></i>
-                                    <div>
-                                        <strong>
-                                            <?php echo frText(frReopenStatusLabel($complaint['active_reopen_status'])); ?>
-                                        </strong>
-
-                                        <p>
-                                            Submitted on:
-                                            <?php echo frText(frDate($complaint['active_reopen_created_at'])); ?>
-                                        </p>
-
-                                        <?php if (!empty($complaint['active_reopen_reason'])): ?>
-                                            <p>
-                                                Reason:
-                                                <?php echo frText($complaint['active_reopen_reason']); ?>
-                                            </p>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-
-                            <?php elseif ($isClosed): ?>
+                            <?php if ($isClosed): ?>
 
                                 <form class="fr-form" method="POST" action="feedback-reopen.php">
                                     <input type="hidden" name="complaint_id" value="<?php echo (int) $complaint['complaint_id']; ?>">
