@@ -1,5 +1,6 @@
 <?php
 require_once "../../config.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 
 $allowed_role = "central_officer";
 require_once "../../auth/session_check.php";
@@ -292,6 +293,8 @@ function cm_insert_citizen_notification($conn, $recipientUserId, $senderUserId, 
         return true;
     }
 
+    dg_cleanup_workflow_notifications($conn, "citizen_notifications", $recipientUserId, $complaintId, $type);
+
     $sql = "
         INSERT INTO citizen_notifications (
             recipient_user_id,
@@ -339,7 +342,8 @@ function cm_mailer_files_ready()
 
 function cm_send_citizen_mail($toEmail, $toName, $subject, $htmlBody, $plainBody)
 {
-    if (!cm_mailer_files_ready()) {
+    if (!cm_mailer_files_ready() || !function_exists("dg_smtp_is_configured") || !dg_smtp_is_configured()) {
+        error_log("[DrainGuard central complaints] SMTP configuration is missing.");
         return false;
     }
 
@@ -351,21 +355,15 @@ function cm_send_citizen_mail($toEmail, $toName, $subject, $htmlBody, $plainBody
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
 
         $mail->isSMTP();
-        $mail->Host       = "smtp.gmail.com";
+        $mail->Host       = DG_SMTP_HOST;
         $mail->SMTPAuth   = true;
-
-     
-        $mail->Username   = "munjilislambd17@gmail.com";
-        $mail->Password   = "PASTE_YOUR_GMAIL_APP_PASSWORD_HERE";
-
-        if ($mail->Password === "PASTE_YOUR_GMAIL_APP_PASSWORD_HERE") {
-            return false;
-        }
-
+        $mail->Username   = DG_SMTP_USERNAME;
+        $mail->Password   = DG_SMTP_PASSWORD;
         $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+        $mail->Port       = DG_SMTP_PORT;
+        $mail->SMTPDebug  = 0;
 
-        $mail->setFrom($mail->Username, "DrainGuard Support");
+        $mail->setFrom(DG_SMTP_FROM_EMAIL, DG_SMTP_FROM_NAME);
         $mail->addAddress($toEmail, $toName ?: "Citizen");
 
         $mail->isHTML(true);
@@ -617,6 +615,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 */
 
 $complaints = [];
+$cityCorporationOptions = [];
+$wardOptions = [];
 
 /*
 |--------------------------------------------------------------------------
@@ -734,8 +734,10 @@ $sql = "
         u.user_mail,
 
         city.city_name,
+        cc.city_cor_id,
         cc.city_cor_name,
         t.thana_name,
+        w.ward_id,
         w.ward_no,
         w.ward_name,
         a.area_name,
@@ -772,6 +774,8 @@ $sql = "
 
     LEFT JOIN drains d
         ON c.drain_id = d.drain_id
+
+    WHERE c.complaint_status = 'submitted'
 
     ORDER BY c.submitted_at DESC
 ";
@@ -866,6 +870,30 @@ if (count($complaints) > 0) {
 }
 
 $complaints = array_values($complaints);
+
+$cityCorporationResult = mysqli_query($conn, "
+    SELECT city_cor_id, city_cor_name
+    FROM city_corporations
+    ORDER BY city_cor_name ASC
+");
+
+if ($cityCorporationResult) {
+    while ($cityRow = mysqli_fetch_assoc($cityCorporationResult)) {
+        $cityCorporationOptions[] = $cityRow;
+    }
+}
+
+$wardResult = mysqli_query($conn, "
+    SELECT ward_id, city_cor_id, ward_no, ward_name
+    FROM wards
+    ORDER BY city_cor_id ASC, ward_no ASC, ward_name ASC
+");
+
+if ($wardResult) {
+    while ($wardRow = mysqli_fetch_assoc($wardResult)) {
+        $wardOptions[] = $wardRow;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -903,7 +931,7 @@ $complaints = array_values($complaints);
             <div class="cm-header">
                 <div>
                     <h1>Complaints Management</h1>
-                    <p>Review newly submitted complaints and mark accepted cases as received.</p>
+                    <p>Review newly submitted citizen complaints and mark accepted cases as received.</p>
                 </div>
 
                 <div class="cm-count-card">
@@ -944,36 +972,40 @@ $complaints = array_values($complaints);
 
             <div class="cm-filter-panel" id="filterPanel">
                 <div class="cm-filter-group">
-                    <label>Status</label>
-                    <select id="statusFilter">
-                        <option value="all">All Status</option>
-                        <option value="submitted">Submitted</option>
-                        <option value="received">Received</option>
-                        <option value="pending_verification">Pending Verification</option>
-                        <option value="verified_by_ward">Verified by Ward Officer</option>
-                        <option value="team_assigned">Assigned to Team</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="solved_by_team">Solved by Team</option>
-                        <option value="inspector_verification">Inspector Verification</option>
-                        <option value="closed">Closed</option>
-                        <option value="rejected_by_central">Rejected by Central Officer</option>
-                        <option value="rejected_by_ward">Rejected by Ward Officer</option>
-                        <option value="duplicate">Duplicate</option>
-                        <option value="reopened">Reopened</option>
-                        <option value="disputed">Disputed</option>
-                        <option value="final_rejected">Final Rejected</option>
+                    <label>City Corporation</label>
+                    <select id="cityCorporationFilter">
+                        <option value="all">All City Corporations</option>
+                        <?php foreach ($cityCorporationOptions as $cityCorporation): ?>
+                            <option value="<?php echo (int)$cityCorporation["city_cor_id"]; ?>">
+                                <?php echo safeText($cityCorporation["city_cor_name"]); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
                 <div class="cm-filter-group">
-                    <label>Priority</label>
-                    <select id="priorityFilter">
-                        <option value="all">All Priority</option>
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
+                    <label>Ward</label>
+                    <select id="wardFilter">
+                        <option value="all">All Wards</option>
+                        <?php foreach ($wardOptions as $wardOption): ?>
+                            <?php
+                                $wardLabel = trim((string)($wardOption["ward_name"] ?? ""));
+                                if ($wardLabel === "") {
+                                    $wardLabel = "Ward " . ($wardOption["ward_no"] ?? "");
+                                }
+                            ?>
+                            <option
+                                value="<?php echo (int)$wardOption["ward_id"]; ?>"
+                                data-city-cor-id="<?php echo (int)$wardOption["city_cor_id"]; ?>"
+                            >
+                                <?php echo safeText($wardLabel); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
+
+                <input type="hidden" id="statusFilter" value="all">
+                <input type="hidden" id="priorityFilter" value="all">
 
                 <button type="button" class="cm-clear-btn" id="clearFilterBtn">
                     Clear
@@ -981,11 +1013,9 @@ $complaints = array_values($complaints);
             </div>
 
             <div class="cm-tabs">
-                <button type="button" class="cm-tab active" data-filter="all">All</button>
-                <button type="button" class="cm-tab" data-filter="submitted">Submitted</button>
-                <button type="button" class="cm-tab" data-filter="received">Received</button>
-                <button type="button" class="cm-tab" data-priority="High">Emergency</button>
-                <button type="button" class="cm-tab" data-filter="rejected_by_central">Rejected</button>
+                <button type="button" class="cm-tab active" data-filter="all" data-priority="all">All</button>
+                <button type="button" class="cm-tab" data-filter="submitted" data-priority="all">Submitted</button>
+                <button type="button" class="cm-tab" data-filter="all" data-priority="High">Emergency</button>
             </div>
 
             <div class="cm-table-card">
@@ -998,14 +1028,10 @@ $complaints = array_values($complaints);
                                 <tr>
                                     <th>ID</th>
                                     <th>Title</th>
-                                    <th>Ward</th>
-                                    <th>Area</th>
-                                    <th>Type</th>
-                                    <th>Affected Area</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
+                                    <th>Ward / City Corporation</th>
+                                    <th>Type / Affected Area</th>
+                                    <th>Priority / Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
 
@@ -1019,9 +1045,9 @@ $complaints = array_values($complaints);
 
                                         $rawProblemDescription = (string)$complaint["problem_description"];
 
-                                        $shortTitleRaw = mb_strlen($rawProblemDescription) > 60
-                                            ? mb_substr($rawProblemDescription, 0, 60) . "..."
-                                            : $rawProblemDescription;
+                                        $shortTitleRaw = trim($rawProblemDescription) !== ""
+                                            ? trim($rawProblemDescription)
+                                            : (string)$complaint["issue_type"];
 
                                         $shortTitle = safeText($shortTitleRaw);
 
@@ -1030,6 +1056,7 @@ $complaints = array_values($complaints);
                                             : safeText("Ward " . $complaint["ward_no"]);
 
                                         $area = safeText($complaint["area_name"]);
+                                        $cityCorporation = safeText($complaint["city_cor_name"]);
                                         $rawPriority = urgencyLabel($complaint["urgency_level"] ?? "Low");
                                         $priority = safeText($rawPriority);
 
@@ -1067,6 +1094,8 @@ $complaints = array_values($complaints);
                                         data-type="<?php echo strtolower($issueType); ?>"
                                         data-status="<?php echo $status; ?>"
                                         data-priority="<?php echo $priority; ?>"
+                                        data-city-cor-id="<?php echo (int)$complaint["city_cor_id"]; ?>"
+                                        data-ward-id="<?php echo (int)$complaint["ward_id"]; ?>"
                                     >
                                         <td>
                                             <span class="cm-code"><?php echo $complaintCode; ?></span>
@@ -1079,62 +1108,33 @@ $complaints = array_values($complaints);
                                             </div>
                                         </td>
 
-                                        <td><?php echo $ward; ?></td>
-
-                                        <td><?php echo $area; ?></td>
-
                                         <td>
-                                            <span class="cm-type-badge">
-                                                <?php echo $issueType; ?>
-                                            </span>
+                                            <div class="cm-stacked-cell">
+                                                <strong><?php echo $ward; ?></strong>
+                                                <small><?php echo $cityCorporation; ?></small>
+                                            </div>
                                         </td>
 
                                         <td>
-                                            <span class="cm-type-badge">
-                                                <?php echo $affectedAreaName; ?>
-                                            </span>
+                                            <div class="cm-stacked-cell">
+                                                <strong><?php echo $issueType; ?></strong>
+                                                <small><?php echo $affectedAreaName; ?></small>
+                                            </div>
                                         </td>
 
                                         <td>
-                                            <span class="cm-priority <?php echo urgencyClass($rawPriority); ?>">
-                                                <?php echo $priority; ?>
-                                            </span>
+                                            <div class="cm-badge-stack">
+                                                <span class="cm-priority <?php echo urgencyClass($rawPriority); ?>">
+                                                    <?php echo $priority; ?>
+                                                </span>
+                                                <span class="cm-status <?php echo statusClass($rawStatus); ?>">
+                                                    <?php echo $statusText; ?>
+                                                </span>
+                                            </div>
                                         </td>
-
-                                        <td>
-                                            <span class="cm-status <?php echo statusClass($rawStatus); ?>">
-                                                <?php echo $statusText; ?>
-                                            </span>
-                                        </td>
-
-                                        <td><?php echo safeText($date); ?></td>
 
                                         <td>
                                             <div class="cm-actions">
-
-                                                <?php if ($canCentralAct): ?>
-
-                                                    <form method="POST" action="complaints.php" class="cm-action-form cm-accept-form">
-                                                        <input type="hidden" name="complaint_id" value="<?php echo $complaintId; ?>">
-                                                        <input type="hidden" name="action" value="accept">
-
-                                                        <button type="submit" class="cm-icon-btn accept" title="Accept Complaint">
-                                                            <i class="bi bi-check-circle"></i>
-                                                        </button>
-                                                    </form>
-
-                                                    <button
-                                                        type="button"
-                                                        class="cm-icon-btn reject cm-reject-open-btn"
-                                                        title="Reject"
-                                                        data-complaint-id="<?php echo $complaintId; ?>"
-                                                        data-complaint-code="<?php echo $complaintCode; ?>"
-                                                    >
-                                                        <i class="bi bi-x-lg"></i>
-                                                    </button>
-
-                                                <?php endif; ?>
-
                                                 <button
                                                     type="button"
                                                     class="cm-details-btn"
@@ -1161,18 +1161,27 @@ $complaints = array_values($complaints);
                                                     <i class="bi bi-arrow-right"></i>
                                                 </button>
 
-                                                <?php 
-                                                    $context = cs_get_discussion_context($conn, $complaintId);
-                                                    $hasDiscussionAccess = cs_has_discussion_access($context, $userId, 'central_officer');
-                                                ?>
-                                                <?php if ($hasDiscussionAccess): ?>
-                                                    <a
-                                                        href="discussion.php?id=<?php echo $complaintId; ?>"
-                                                        class="cm-discussion-btn"
-                                                        title="Open Discussion"
+                                                <?php if ($canCentralAct): ?>
+
+                                                    <form method="POST" action="complaints.php" class="cm-action-form cm-accept-form">
+                                                        <input type="hidden" name="complaint_id" value="<?php echo $complaintId; ?>">
+                                                        <input type="hidden" name="action" value="accept">
+
+                                                        <button type="submit" class="cm-icon-btn accept" title="Accept Complaint">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                    </form>
+
+                                                    <button
+                                                        type="button"
+                                                        class="cm-icon-btn reject cm-reject-open-btn"
+                                                        title="Reject"
+                                                        data-complaint-id="<?php echo $complaintId; ?>"
+                                                        data-complaint-code="<?php echo $complaintCode; ?>"
                                                     >
-                                                        <i class="bi bi-chat-dots"></i> Discussion <?php echo ($complaint["comment_count"] > 0) ? "(" . $complaint["comment_count"] . ")" : ""; ?>
-                                                    </a>
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+
                                                 <?php endif; ?>
 
                                             </div>

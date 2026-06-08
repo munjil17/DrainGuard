@@ -1,5 +1,6 @@
 <?php
 require_once "../../config.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 
 $allowed_role = "central_officer";
 require_once "../../auth/session_check.php";
@@ -192,6 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ";
                 $notifStmt = mysqli_prepare($conn, $notifSql);
                 if ($notifStmt) {
+                    dg_cleanup_workflow_notifications($conn, "citizen_notifications", $citizenUserId, $complaintId, "status_update");
                     mysqli_stmt_bind_param($notifStmt, "iii", $citizenUserId, $centralUserId, $complaintId);
                     mysqli_stmt_execute($notifStmt);
                     mysqli_stmt_close($notifStmt);
@@ -230,6 +232,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $wardNotifStmt = mysqli_prepare($conn, $wardNotifSql);
                 if ($wardNotifStmt) {
                     $wardMessage = "Central Control has routed complaint #$complaintCode to your ward for verification.";
+                    dg_cleanup_workflow_notifications($conn, "ward_notifications", $wardOfficerUserId, $complaintId, "complaint_routed");
                     mysqli_stmt_bind_param($wardNotifStmt, "iiis", $wardOfficerUserId, $centralUserId, $complaintId, $wardMessage);
                     mysqli_stmt_execute($wardNotifStmt);
                     mysqli_stmt_close($wardNotifStmt);

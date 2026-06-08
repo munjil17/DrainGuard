@@ -3,11 +3,13 @@ $activePage = "notifications";
 $pageTitle = "Notifications";
 
 require_once "../../config.php";
+$allowed_roles = ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"];
 require_once "../../auth/session_check.php";
+require_once "../../includes/maintenance/access_control.php";
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
 
-if (!isset($_SESSION["user_role"]) || !in_array($_SESSION["user_role"], ["team_leader", "assistant_team_leader"], true)) {
+if (!isset($_SESSION["user_role"]) || !in_array($_SESSION["user_role"], $allowed_roles, true)) {
     header("Location: /DrainGuard/auth/login.php");
     exit();
 }
@@ -33,7 +35,7 @@ function nt_time_ago($datetime)
 function nt_icon($type)
 {
     $type = strtolower(trim((string)$type));
-    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
+    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer'])) return 'bi-file-earmark-text';
     if (in_array($type, ['system', 'alert', 'task_delayed', 'task_deadline_warning'])) return 'bi-exclamation-triangle';
     if ($type === 'ward_reply_support_request') return 'bi-reply-all';
     if ($type === 'comment_reply') return 'bi-chat-dots';
@@ -43,7 +45,7 @@ function nt_icon($type)
 function nt_type_class($type)
 {
     $type = strtolower(trim((string)$type));
-    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'type-track';
+    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer'])) return 'type-track';
     if (in_array($type, ['system', 'alert', 'task_delayed', 'task_deadline_warning'])) return 'type-objection';
     if ($type === 'ward_reply_support_request') return 'type-alert';
     if ($type === 'comment_reply') return 'type-reply';
@@ -61,6 +63,11 @@ function nt_type_label($type)
         "inspector_work_approved" => "Work Approved by Inspector",
         "system" => "System",
         "task_assigned" => "Task Assigned",
+        "ward_team_instruction" => "Ward Officer Instruction",
+        "ward_team_reassigned" => "Task Reassigned to Team",
+        "ward_team_reassign_removed" => "Task Reassigned Away",
+        "ward_in_progress_team_transfer" => "In-Progress Task Transferred",
+        "ward_team_transfer_removed" => "Task Transferred Away",
         "ward_confirm_inspector_claim" => "Inspector Claim Confirmed by Ward Officer",
         "ward_reject_inspector_claim" => "Inspector Claim Rejected by Ward Officer",
         "ward_reply_support_request" => "Ward Officer Replied to Support Request"
@@ -114,6 +121,11 @@ if (isset($_GET["read_id"])) {
                 if ($redirectType === "task-history") {
                     $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: task-history.php" . $complaintIdParam);
+                    exit;
+                }
+
+                if ($redirectType === "dashboard") {
+                    header("Location: dashboard.php");
                     exit;
                 }
 
@@ -375,6 +387,10 @@ function nt_build_query($overrides = [])
                                     } else {
                                         $linkUrl .= "&redirect=assigned-tasks";
                                     }
+                                } elseif (in_array($notificationType, ['ward_team_reassign_removed', 'ward_team_transfer_removed'], true)) {
+                                    $linkUrl .= "&redirect=dashboard";
+                                } elseif (in_array($notificationType, ['ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer'], true)) {
+                                    $linkUrl .= "&redirect=assigned-tasks";
                                 } elseif (in_array($notificationType, ['inspector_review_started', 'inspector_work_approved', 'inspector_false_completion_confirmed', 'ward_confirm_inspector_claim', 'ward_reject_inspector_claim'])) {
                                     $linkUrl .= "&redirect=task-history";
                                 } elseif (in_array($notificationType, ['citizen_feedback_satisfied', 'citizen_objection_submitted'])) {

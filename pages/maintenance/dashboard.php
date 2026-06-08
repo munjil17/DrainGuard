@@ -3,7 +3,9 @@ $pageTitle = "Maintenance Dashboard";
 $activePage = "dashboard";
 
 require_once "../../config.php";
+$allowed_roles = ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"];
 require_once "../../auth/session_check.php";
+require_once "../../includes/maintenance/access_control.php";
 
 $userId = $_SESSION['user_id'] ?? 0;
 
@@ -115,6 +117,11 @@ if ($teamId > 0) {
         INNER JOIN complaints c
             ON c.complaint_id = ca.complaint_id
         WHERE ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
     ";
 
     $statsStmt = mysqli_prepare($conn, $statsSql);
@@ -140,7 +147,14 @@ if ($teamId > 0) {
         SELECT ca.assignment_id, ca.assignment_priority, ca.deadline_at, c.complaint_code, c.address_description
         FROM complaint_assignments ca
         INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
-        WHERE ca.maintenance_team_id = ? AND ca.assignment_status = 'team_assigned'
+        WHERE ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
+        AND ca.assignment_status = 'team_assigned'
+        AND c.complaint_status = 'team_assigned'
         ORDER BY ca.assigned_at DESC LIMIT 3
     ";
     $assignedStmt = mysqli_prepare($conn, $assignedSql);
@@ -159,7 +173,14 @@ if ($teamId > 0) {
         SELECT ca.assignment_id, ca.assignment_priority, c.complaint_code, c.address_description, c.work_started_at
         FROM complaint_assignments ca
         INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
-        WHERE ca.maintenance_team_id = ? AND ca.assignment_status = 'in_progress'
+        WHERE ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
+        AND ca.assignment_status = 'in_progress'
+        AND c.complaint_status = 'in_progress'
         ORDER BY c.work_started_at DESC, ca.assigned_at DESC LIMIT 3
     ";
     $inProgressStmt = mysqli_prepare($conn, $inProgressSql);
@@ -178,7 +199,14 @@ if ($teamId > 0) {
         SELECT ca.assignment_id, c.complaint_code, c.address_description, c.work_started_at
         FROM complaint_assignments ca
         INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
-        WHERE ca.maintenance_team_id = ? AND ca.assignment_status = 'in_progress' AND c.complaint_status = 'in_progress'
+        WHERE ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
+        AND ca.assignment_status = 'in_progress'
+        AND c.complaint_status = 'in_progress'
         ORDER BY c.work_started_at DESC LIMIT 3
     ";
     $uploadStmt = mysqli_prepare($conn, $uploadSql);

@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("complaintSearch");
     const statusFilter = document.getElementById("statusFilter");
     const priorityFilter = document.getElementById("priorityFilter");
+    const cityCorporationFilter = document.getElementById("cityCorporationFilter");
+    const wardFilter = document.getElementById("wardFilter");
     const rows = document.querySelectorAll(".cm-row");
     const visibleComplaintCount = document.getElementById("visibleComplaintCount");
     const filterEmptyState = document.getElementById("filterEmptyState");
@@ -31,6 +33,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const searchValue = (searchInput?.value || "").toLowerCase().trim();
         const statusValue = statusFilter?.value || "all";
         const priorityValue = priorityFilter?.value || "all";
+        const cityCorporationValue = cityCorporationFilter?.value || "all";
+        const wardValue = wardFilter?.value || "all";
 
         let visibleCount = 0;
 
@@ -46,12 +50,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const rowStatus = row.dataset.status || "";
             const rowPriority = row.dataset.priority || "";
+            const rowCityCorporation = row.dataset.cityCorId || "";
+            const rowWard = row.dataset.wardId || "";
 
             const matchesSearch = searchableText.includes(searchValue);
-            const matchesStatus = statusValue === "all" || rowStatus === statusValue;
+            const allowedStatuses = statusValue === "all"
+                ? []
+                : statusValue.split(",").map(function (status) {
+                    return status.trim();
+                }).filter(Boolean);
+            const matchesStatus = statusValue === "all" || allowedStatuses.includes(rowStatus);
             const matchesPriority = priorityValue === "all" || rowPriority === priorityValue;
+            const matchesCityCorporation = cityCorporationValue === "all" || rowCityCorporation === cityCorporationValue;
+            const matchesWard = wardValue === "all" || rowWard === wardValue;
 
-            const isVisible = matchesSearch && matchesStatus && matchesPriority;
+            const isVisible = matchesSearch && matchesStatus && matchesPriority && matchesCityCorporation && matchesWard;
 
             row.style.display = isVisible ? "" : "none";
 
@@ -69,6 +82,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function syncWardOptions() {
+        if (!cityCorporationFilter || !wardFilter) return;
+
+        const selectedCityCorporation = cityCorporationFilter.value || "all";
+
+        Array.from(wardFilter.options).forEach(function (option) {
+            if (option.value === "all") {
+                option.hidden = false;
+                return;
+            }
+
+            const optionCityCorporation = option.dataset.cityCorId || "";
+            option.hidden = selectedCityCorporation !== "all" && optionCityCorporation !== selectedCityCorporation;
+        });
+
+        const selectedWardOption = wardFilter.options[wardFilter.selectedIndex];
+        if (selectedWardOption && selectedWardOption.hidden) {
+            wardFilter.value = "all";
+        }
+    }
+
     if (searchInput) {
         searchInput.addEventListener("input", filterRows);
     }
@@ -79,6 +113,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (priorityFilter) {
         priorityFilter.addEventListener("change", filterRows);
+    }
+
+    if (cityCorporationFilter) {
+        cityCorporationFilter.addEventListener("change", function () {
+            syncWardOptions();
+            filterRows();
+        });
+    }
+
+    if (wardFilter) {
+        wardFilter.addEventListener("change", filterRows);
     }
 
     if (filterToggleBtn && filterPanel) {
@@ -92,6 +137,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (searchInput) searchInput.value = "";
             if (statusFilter) statusFilter.value = "all";
             if (priorityFilter) priorityFilter.value = "all";
+            if (cityCorporationFilter) cityCorporationFilter.value = "all";
+            if (wardFilter) wardFilter.value = "all";
+            syncWardOptions();
 
             tabs.forEach(function (tab) {
                 tab.classList.remove("active");
@@ -402,7 +450,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    filterRows();
-
+    syncWardOptions();
     filterRows();
 });

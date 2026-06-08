@@ -3,6 +3,7 @@ $activePage = "in-progress-cases";
 $pageTitle = "In Progress Cases";
 
 require_once "../../config.php";
+require_once "../../includes/ward/team_workflow_helpers.php";
 require_once "../../auth/session_check.php";
 
 if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer") {
@@ -15,6 +16,7 @@ if (!isset($conn) || !$conn) {
 }
 
 $currentUserId = (int)($_SESSION["user_id"] ?? 0);
+$successMessage = "";
 $errorMessage = "";
 
 function safeText($value)
@@ -237,7 +239,9 @@ try {
             wo.full_name,
             w.ward_id,
             w.ward_no,
-            w.ward_name
+            w.ward_name,
+            w.city_cor_id,
+            w.anchal_id
         FROM ward_officers wo
         INNER JOIN wards w
             ON wo.assigned_ward_id = w.ward_id
@@ -254,12 +258,53 @@ try {
     $wardId = (int)$wardOfficer["assigned_ward_id"];
     $wardNo = $wardOfficer["ward_no"] ?? "";
     $wardName = $wardOfficer["ward_name"] ?? "";
+    $cityCorId = (int)($wardOfficer["city_cor_id"] ?? 0);
+    $anchalId = (int)($wardOfficer["anchal_id"] ?? 0);
     $userName = $wardOfficer["full_name"] ?? ($_SESSION["user_name"] ?? "Ward Officer");
 
     $_SESSION["user_name"] = $userName;
     $_SESSION["user_role_label"] = "Ward Operations";
 } catch (Exception $e) {
     die($e->getMessage());
+}
+
+try {
+    $maintenanceTeams = wtw_anchal_teams($conn, $cityCorId, $anchalId);
+} catch (Exception $e) {
+    $maintenanceTeams = [];
+    $errorMessage = $e->getMessage();
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && trim($_POST["action"] ?? "") === "change_in_progress_team") {
+    $changeComplaintId = (int)($_POST["change_complaint_id"] ?? 0);
+    $changeAssignmentId = (int)($_POST["change_assignment_id"] ?? 0);
+    $newTeamId = (int)($_POST["new_maintenance_team_id"] ?? 0);
+    $reason = trim($_POST["change_reason"] ?? "");
+    $instruction = trim($_POST["change_instruction"] ?? "");
+
+    mysqli_begin_transaction($conn);
+    try {
+        $newTeamName = wtw_change_team(
+            $conn,
+            [
+                "ward_id" => $wardId,
+                "city_cor_id" => $cityCorId,
+                "anchal_id" => $anchalId,
+            ],
+            $currentUserId,
+            $changeComplaintId,
+            $changeAssignmentId,
+            $newTeamId,
+            $reason,
+            $instruction,
+            "in_progress"
+        );
+        mysqli_commit($conn);
+        $successMessage = "Team changed successfully.";
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
+        $errorMessage = $e->getMessage();
+    }
 }
 
 /*
@@ -354,11 +399,13 @@ try {
 
         WHERE l.ward_id = ?
         AND ca.maintenance_team_id IS NOT NULL
-        AND (
-            c.complaint_status = 'in_progress'
-            OR ca.assignment_status = 'in_progress'
-            OR mu.work_status IN ('started', 'in_progress')
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
         )
+        AND c.complaint_status = 'in_progress'
+        AND ca.assignment_status = 'in_progress'
         AND c.complaint_status NOT IN ('solved_by_team', 'inspector_verification', 'closed', 'rejected_by_central', 'rejected_by_ward', 'final_rejected', 'duplicate')
 
         ORDER BY
@@ -406,6 +453,7 @@ foreach ($inProgressCases as $caseItem) {
     <link rel="stylesheet" href="../../css/ward/in-progress-cases.css">
     <link rel="stylesheet" href="../../css/ward/wardTextFix.css">
     <link rel="stylesheet" href="../../css/global/notification-target.css">
+    <link rel="stylesheet" href="../../css/global/confirm-modal.css">
 </head>
 
 <body class="ward">
@@ -431,6 +479,13 @@ foreach ($inProgressCases as $caseItem) {
             <div class="ipc-alert ipc-error">
                 <i class="bi bi-exclamation-circle"></i>
                 <?= safeText($errorMessage); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($successMessage !== ""): ?>
+            <div class="ipc-alert ipc-success">
+                <i class="bi bi-check-circle"></i>
+                <?= safeText($successMessage); ?>
             </div>
         <?php endif; ?>
 
@@ -492,6 +547,7 @@ foreach ($inProgressCases as $caseItem) {
                             <th>Progress</th>
                             <th>Expected Completion</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -566,11 +622,25 @@ foreach ($inProgressCases as $caseItem) {
                                         </span>
                                     </td>
 
+                                    <td>
+                                        <button
+                                            type="button"
+                                            class="ipc-change-team-btn"
+                                            data-complaint-id="<?= (int)$case["complaint_id"]; ?>"
+                                            data-assignment-id="<?= (int)$case["assignment_id"]; ?>"
+                                            data-current-team="<?= safeText($teamName); ?>"
+                                            data-current-team-id="<?= (int)$case["maintenance_team_id"]; ?>"
+                                        >
+                                            <i class="bi bi-arrow-left-right"></i>
+                                            Change Team
+                                        </button>
+                                    </td>
+
                                 </tr>
                                 
                                 <?php if ($case["support_request_id"]): ?>
                                 <tr class="ipc-support-row" style="background: #fff3cd;">
-                                    <td colspan="7" style="padding: 15px; border-top: none; border-bottom: 2px solid #ffe69c;">
+                                    <td colspan="8" style="padding: 15px; border-top: none; border-bottom: 2px solid #ffe69c;">
                                         <div class="lta-support-block" style="border: 1px solid #ffe69c; padding: 15px; border-radius: 6px; background: #fff;">
                                             <h3 style="color: #664d03; font-size: 14px; margin-bottom: 10px; font-weight: 600;"><i class="bi bi-info-circle-fill"></i> Maintenance Team Support Request</h3>
                                             <p style="margin-bottom: 5px; font-size: 14px;"><strong>Reason:</strong> <?= safeText($case["support_reason"] === 'others' ? $case["other_reason"] : str_replace('_', ' ', $case["support_reason"])); ?></p>
@@ -611,9 +681,63 @@ foreach ($inProgressCases as $caseItem) {
 
 </main>
 
+<div class="ipc-modal-overlay" id="ipcChangeTeamModal" aria-hidden="true">
+    <div class="ipc-workflow-modal">
+        <div class="ipc-workflow-head">
+            <div>
+                <span>In Progress Transfer</span>
+                <h3>Change Team</h3>
+            </div>
+            <button type="button" class="ipc-modal-close" data-close-ipc-change-team>
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="in-progress-cases.php" id="ipcChangeTeamForm">
+            <input type="hidden" name="action" value="change_in_progress_team">
+            <input type="hidden" name="change_complaint_id" id="ipcChangeComplaintId">
+            <input type="hidden" name="change_assignment_id" id="ipcChangeAssignmentId">
+
+            <div class="ipc-current-team-box">
+                <span>Current Team</span>
+                <strong id="ipcChangeCurrentTeam">N/A</strong>
+            </div>
+
+            <div class="ipc-form-group">
+                <label>New Maintenance Team</label>
+                <select name="new_maintenance_team_id" id="ipcChangeNewTeam" required>
+                    <option value="">Select new team</option>
+                    <?php foreach ($maintenanceTeams as $team): ?>
+                        <option value="<?= (int)$team["maintenance_team_id"]; ?>">
+                            <?= safeText($team["team_name"]); ?>
+                            <?= !empty($team["availability_status"]) ? " (" . safeText($team["availability_status"]) . ")" : ""; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="ipc-form-group">
+                <label>Reason</label>
+                <textarea name="change_reason" rows="4" required placeholder="Explain why this in-progress task is being transferred"></textarea>
+            </div>
+
+            <div class="ipc-form-group">
+                <label>Instruction Message</label>
+                <textarea name="change_instruction" rows="3" placeholder="Optional instruction for the new team"></textarea>
+            </div>
+
+            <div class="ipc-workflow-actions">
+                <button type="button" class="ipc-modal-btn ipc-modal-cancel" data-close-ipc-change-team>Cancel</button>
+                <button type="submit" class="ipc-modal-btn ipc-modal-confirm">Confirm Team Change</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="../../js/ward/sidebar.js"></script>
 <script src="../../js/ward/in-progress-cases.js"></script>
 <script src="../../js/global/notification-target.js"></script>
+<script src="../../js/global/confirm-modal.js"></script>
 
 </body>
 </html>

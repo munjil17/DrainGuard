@@ -1,0 +1,419 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 6969 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.05 0.24 0.28 rg
+BT /F2 16 Tf 199.74 780 Td (Issue Type Analysis Report) Tj ET
+0.02 0.46 0.42 RG
+34 762 m 561 762 l S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 738 Td (Filter Summary) Tj ET
+0.90 0.96 0.97 rg
+34 708 527 20 re f
+0.72 0.80 0.84 RG
+34 708 527 20 re S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 715 Td (Filter) Tj ET
+BT /F2 8 Tf 212 715 Td (Selected Value) Tj ET
+1 1 1 rg
+34 686 527 22 re f
+0.78 0.85 0.88 RG
+34 686 527 22 re S
+34 686 m 34 708 l S
+204 686 m 204 708 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 695 Td (Report Type) Tj ET
+BT /F1 8 Tf 212 695 Td (Issue Type Analysis Report) Tj ET
+1 1 1 rg
+34 664 527 22 re f
+0.78 0.85 0.88 RG
+34 664 527 22 re S
+34 664 m 34 686 l S
+204 664 m 204 686 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 673 Td (Time Period) Tj ET
+BT /F1 8 Tf 212 673 Td (Last 30 Days) Tj ET
+1 1 1 rg
+34 642 527 22 re f
+0.78 0.85 0.88 RG
+34 642 527 22 re S
+34 642 m 34 664 l S
+204 642 m 204 664 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 651 Td (Date Range) Tj ET
+BT /F1 8 Tf 212 651 Td (May 09, 2026 - Jun 07, 2026) Tj ET
+1 1 1 rg
+34 620 527 22 re f
+0.78 0.85 0.88 RG
+34 620 527 22 re S
+34 620 m 34 642 l S
+204 620 m 204 642 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 629 Td (City Corporation) Tj ET
+BT /F1 8 Tf 212 629 Td (Dhaka North City Corporation) Tj ET
+1 1 1 rg
+34 598 527 22 re f
+0.78 0.85 0.88 RG
+34 598 527 22 re S
+34 598 m 34 620 l S
+204 598 m 204 620 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 607 Td (Thana) Tj ET
+BT /F1 8 Tf 212 607 Td (All Thanas) Tj ET
+1 1 1 rg
+34 576 527 22 re f
+0.78 0.85 0.88 RG
+34 576 527 22 re S
+34 576 m 34 598 l S
+204 576 m 204 598 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 585 Td (Ward) Tj ET
+BT /F1 8 Tf 212 585 Td (All Wards) Tj ET
+1 1 1 rg
+34 554 527 22 re f
+0.78 0.85 0.88 RG
+34 554 527 22 re S
+34 554 m 34 576 l S
+204 554 m 204 576 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 563 Td (Area) Tj ET
+BT /F1 8 Tf 212 563 Td (All Areas) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 535 Td (KPI Summary) Tj ET
+0.97 0.99 1 rg
+34 471 125.75 54 re f
+0.76 0.84 0.88 RG
+34 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 510 Td (Total Issue Types) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 481 Td (16) Tj ET
+0.97 0.99 1 rg
+167.75 471 125.75 54 re f
+0.76 0.84 0.88 RG
+167.75 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 174.75 510 Td (Most Reported Issue) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 174.75 481 Td (Open Manhole) Tj ET
+0.97 0.99 1 rg
+301.5 471 125.75 54 re f
+0.76 0.84 0.88 RG
+301.5 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 308.5 510 Td (High Priority Issues) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 308.5 481 Td (16) Tj ET
+0.97 0.99 1 rg
+435.25 471 125.75 54 re f
+0.76 0.84 0.88 RG
+435.25 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 442.25 510 Td (Medium Priority) Tj ET
+BT /F2 7 Tf 442.25 502 Td (Issues) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 442.25 481 Td (18) Tj ET
+0.97 0.99 1 rg
+34 409 125.75 54 re f
+0.76 0.84 0.88 RG
+34 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 448 Td (Low Priority Issues) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 419 Td (7) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 386 Td (Data Snapshot) Tj ET
+0.98 0.99 1 rg
+34 324 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+34 324 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 359 Td (Total Issue Types) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 41 340 Td (16) Tj ET
+0.98 0.99 1 rg
+212.33333333333 324 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+212.33333333333 324 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 219.33333333333 359 Td (Most Reported Issue) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 219.33333333333 340 Td (Open Manhole) Tj ET
+0.98 0.99 1 rg
+390.66666666667 324 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+390.66666666667 324 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 397.66666666667 359 Td (High Priority Issues) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 397.66666666667 340 Td (16) Tj ET
+0.98 0.99 1 rg
+34 266 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+34 266 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 301 Td (Medium Priority Issues) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 41 282 Td (18) Tj ET
+0.98 0.99 1 rg
+212.33333333333 266 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+212.33333333333 266 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 219.33333333333 301 Td (Low Priority Issues) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 219.33333333333 282 Td (7) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 245 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 203 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 221 Td (Issue Type) Tj ET
+BT /F2 6 Tf 125.83333333333 221 Td (Priority) Tj ET
+BT /F2 6 Tf 213.66666666667 221 Td (Total Complaints) Tj ET
+BT /F2 6 Tf 301.5 221 Td (Affected Wards) Tj ET
+BT /F2 6 Tf 389.33333333333 221 Td (Affected Areas) Tj ET
+BT /F2 6 Tf 477.16666666667 221 Td (Last Reported Date) Tj ET
+0.99 1 1 rg
+34 179 527 24 re f
+0.80 0.86 0.89 RG
+34 179 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 190 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 125.83333333333 190 Td (High) Tj ET
+BT /F1 6 Tf 213.66666666667 190 Td (4) Tj ET
+BT /F1 6 Tf 301.5 190 Td (3) Tj ET
+BT /F1 6 Tf 389.33333333333 190 Td (4) Tj ET
+BT /F1 6 Tf 477.16666666667 190 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 155 527 24 re f
+0.80 0.86 0.89 RG
+34 155 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 166 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 125.83333333333 166 Td (High) Tj ET
+BT /F1 6 Tf 213.66666666667 166 Td (4) Tj ET
+BT /F1 6 Tf 301.5 166 Td (4) Tj ET
+BT /F1 6 Tf 389.33333333333 166 Td (4) Tj ET
+BT /F1 6 Tf 477.16666666667 166 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 131 527 24 re f
+0.80 0.86 0.89 RG
+34 131 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 142 Td (Broken Drain Cover) Tj ET
+BT /F1 6 Tf 125.83333333333 142 Td (Medium) Tj ET
+BT /F1 6 Tf 213.66666666667 142 Td (4) Tj ET
+BT /F1 6 Tf 301.5 142 Td (4) Tj ET
+BT /F1 6 Tf 389.33333333333 142 Td (4) Tj ET
+BT /F1 6 Tf 477.16666666667 142 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 107 527 24 re f
+0.80 0.86 0.89 RG
+34 107 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 118 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 125.83333333333 118 Td (Medium) Tj ET
+BT /F1 6 Tf 213.66666666667 118 Td (4) Tj ET
+BT /F1 6 Tf 301.5 118 Td (3) Tj ET
+BT /F1 6 Tf 389.33333333333 118 Td (4) Tj ET
+BT /F1 6 Tf 477.16666666667 118 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 83 527 24 re f
+0.80 0.86 0.89 RG
+34 83 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 94 Td (Bad Odor) Tj ET
+BT /F1 6 Tf 125.83333333333 94 Td (Low) Tj ET
+BT /F1 6 Tf 213.66666666667 94 Td (4) Tj ET
+BT /F1 6 Tf 301.5 94 Td (4) Tj ET
+BT /F1 6 Tf 389.33333333333 94 Td (4) Tj ET
+BT /F1 6 Tf 477.16666666667 94 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 59 527 24 re f
+0.80 0.86 0.89 RG
+34 59 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 70 Td (Water Contamination) Tj ET
+BT /F1 6 Tf 125.83333333333 70 Td (High) Tj ET
+BT /F1 6 Tf 213.66666666667 70 Td (3) Tj ET
+BT /F1 6 Tf 301.5 70 Td (3) Tj ET
+BT /F1 6 Tf 389.33333333333 70 Td (3) Tj ET
+BT /F1 6 Tf 477.16666666667 70 Td (Jun 05, 2026) Tj ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 4188 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 780 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 738 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 756 Td (Issue Type) Tj ET
+BT /F2 6 Tf 125.83333333333 756 Td (Priority) Tj ET
+BT /F2 6 Tf 213.66666666667 756 Td (Total Complaints) Tj ET
+BT /F2 6 Tf 301.5 756 Td (Affected Wards) Tj ET
+BT /F2 6 Tf 389.33333333333 756 Td (Affected Areas) Tj ET
+BT /F2 6 Tf 477.16666666667 756 Td (Last Reported Date) Tj ET
+0.99 1 1 rg
+34 714 527 24 re f
+0.80 0.86 0.89 RG
+34 714 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 725 Td (Overflowing Drain) Tj ET
+BT /F1 6 Tf 125.83333333333 725 Td (Medium) Tj ET
+BT /F1 6 Tf 213.66666666667 725 Td (3) Tj ET
+BT /F1 6 Tf 301.5 725 Td (3) Tj ET
+BT /F1 6 Tf 389.33333333333 725 Td (3) Tj ET
+BT /F1 6 Tf 477.16666666667 725 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 690 527 24 re f
+0.80 0.86 0.89 RG
+34 690 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 701 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 125.83333333333 701 Td (Medium) Tj ET
+BT /F1 6 Tf 213.66666666667 701 Td (3) Tj ET
+BT /F1 6 Tf 301.5 701 Td (3) Tj ET
+BT /F1 6 Tf 389.33333333333 701 Td (3) Tj ET
+BT /F1 6 Tf 477.16666666667 701 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 666 527 24 re f
+0.80 0.86 0.89 RG
+34 666 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 677 Td (Missing Drain Cover) Tj ET
+BT /F1 6 Tf 125.83333333333 677 Td (High) Tj ET
+BT /F1 6 Tf 213.66666666667 677 Td (2) Tj ET
+BT /F1 6 Tf 301.5 677 Td (2) Tj ET
+BT /F1 6 Tf 389.33333333333 677 Td (2) Tj ET
+BT /F1 6 Tf 477.16666666667 677 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 642 527 24 re f
+0.80 0.86 0.89 RG
+34 642 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 653 Td (Severe Road Flooding) Tj ET
+BT /F1 6 Tf 125.83333333333 653 Td (High) Tj ET
+BT /F1 6 Tf 213.66666666667 653 Td (2) Tj ET
+BT /F1 6 Tf 301.5 653 Td (2) Tj ET
+BT /F1 6 Tf 389.33333333333 653 Td (2) Tj ET
+BT /F1 6 Tf 477.16666666667 653 Td (Jun 04, 2026) Tj ET
+0.99 1 1 rg
+34 618 527 24 re f
+0.80 0.86 0.89 RG
+34 618 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 629 Td (Waterlogging) Tj ET
+BT /F1 6 Tf 125.83333333333 629 Td (Medium) Tj ET
+BT /F1 6 Tf 213.66666666667 629 Td (2) Tj ET
+BT /F1 6 Tf 301.5 629 Td (2) Tj ET
+BT /F1 6 Tf 389.33333333333 629 Td (2) Tj ET
+BT /F1 6 Tf 477.16666666667 629 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 594 527 24 re f
+0.80 0.86 0.89 RG
+34 594 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 605 Td (Garbage Accumulation) Tj ET
+BT /F1 6 Tf 125.83333333333 605 Td (Low) Tj ET
+BT /F1 6 Tf 213.66666666667 605 Td (2) Tj ET
+BT /F1 6 Tf 301.5 605 Td (2) Tj ET
+BT /F1 6 Tf 389.33333333333 605 Td (2) Tj ET
+BT /F1 6 Tf 477.16666666667 605 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 566 527 28 re f
+0.80 0.86 0.89 RG
+34 566 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 581 Td (Collapsed Drain) Tj ET
+BT /F1 6 Tf 38 573 Td (Structure) Tj ET
+BT /F1 6 Tf 125.83333333333 581 Td (High) Tj ET
+BT /F1 6 Tf 213.66666666667 581 Td (1) Tj ET
+BT /F1 6 Tf 301.5 581 Td (1) Tj ET
+BT /F1 6 Tf 389.33333333333 581 Td (1) Tj ET
+BT /F1 6 Tf 477.16666666667 581 Td (Jun 04, 2026) Tj ET
+1 1 1 rg
+34 542 527 24 re f
+0.80 0.86 0.89 RG
+34 542 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 553 Td (Drain Backflow) Tj ET
+BT /F1 6 Tf 125.83333333333 553 Td (Medium) Tj ET
+BT /F1 6 Tf 213.66666666667 553 Td (1) Tj ET
+BT /F1 6 Tf 301.5 553 Td (1) Tj ET
+BT /F1 6 Tf 389.33333333333 553 Td (1) Tj ET
+BT /F1 6 Tf 477.16666666667 553 Td (Jun 04, 2026) Tj ET
+0.99 1 1 rg
+34 518 527 24 re f
+0.80 0.86 0.89 RG
+34 518 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 529 Td (Illegal Waste Dumping) Tj ET
+BT /F1 6 Tf 125.83333333333 529 Td (Medium) Tj ET
+BT /F1 6 Tf 213.66666666667 529 Td (1) Tj ET
+BT /F1 6 Tf 301.5 529 Td (1) Tj ET
+BT /F1 6 Tf 389.33333333333 529 Td (1) Tj ET
+BT /F1 6 Tf 477.16666666667 529 Td (Jun 04, 2026) Tj ET
+1 1 1 rg
+34 494 527 24 re f
+0.80 0.86 0.89 RG
+34 494 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 505 Td (Slow Drainage) Tj ET
+BT /F1 6 Tf 125.83333333333 505 Td (Low) Tj ET
+BT /F1 6 Tf 213.66666666667 505 Td (1) Tj ET
+BT /F1 6 Tf 301.5 505 Td (1) Tj ET
+BT /F1 6 Tf 389.33333333333 505 Td (1) Tj ET
+BT /F1 6 Tf 477.16666666667 505 Td (Jun 06, 2026) Tj ET
+
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000257 00000 n 
+0000007278 00000 n 
+0000007414 00000 n 
+0000011654 00000 n 
+0000011724 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+11799
+%%EOF

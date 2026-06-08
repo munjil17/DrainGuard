@@ -132,8 +132,8 @@ if (mysqli_stmt_affected_rows($stmt) <= 0) {
 $replyId = mysqli_insert_id($conn);
 mysqli_stmt_close($stmt);
 
-// Notifications for reply
-cs_dispatch_notifications($conn, $context, $userId, $currentUserRole, $complaintId, true);
+// Reply notification goes only to the parent comment author.
+cs_dispatch_reply_notification($conn, $parentRow, $userId, $complaintId);
 
 cs_reply_json_response(true, "Reply added successfully.", [
     "reply_id" => $replyId

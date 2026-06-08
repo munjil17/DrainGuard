@@ -87,22 +87,26 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
             <span>Dashboard</span>
         </a>
 
-        <a href="assigned-tasks.php" class="menu-link">
+        <a href="assigned-tasks.php"
+           class="menu-link <?php echo ($activePage === 'assigned-tasks') ? 'active' : ''; ?>">
             <i class="bi bi-list-check"></i>
             <span>Assigned Tasks</span>
         </a>
 
-        <a href="in-progress-work.php" class="menu-link">
+        <a href="in-progress-work.php"
+           class="menu-link <?php echo ($activePage === 'in-progress-work') ? 'active' : ''; ?>">
             <i class="bi bi-tools"></i>
             <span>In Progress Work</span>
         </a>
 
-        <a href="upload-completion-proof.php" class="menu-link">
+        <a href="upload-completion-proof.php"
+           class="menu-link <?php echo ($activePage === 'upload-completion-proof') ? 'active' : ''; ?>">
             <i class="bi bi-upload"></i>
             <span>Upload Completion Proof</span>
         </a>
 
-        <a href="task-history.php" class="menu-link">
+        <a href="task-history.php"
+           class="menu-link <?php echo ($activePage === 'task-history') ? 'active' : ''; ?>">
             <i class="bi bi-clock-history"></i>
             <span>Task History</span>
         </a>
@@ -112,17 +116,20 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
             <span>Feedback</span>
         </a>
 
-        <a href="delayed-tasks.php" class="menu-link">
+        <a href="delayed-tasks.php"
+           class="menu-link <?php echo ($activePage === 'delayed-tasks') ? 'active' : ''; ?>">
             <i class="bi bi-exclamation-circle"></i>
             <span>Delayed Tasks</span>
         </a>
 
-        <a href="drain-area-reference.php" class="menu-link">
+        <a href="drain-area-reference.php"
+           class="menu-link <?php echo ($activePage === 'drain-area-reference') ? 'active' : ''; ?>">
             <i class="bi bi-geo-alt"></i>
             <span>Drain / Area Reference</span>
         </a>
 
-        <a href="settings.php" class="menu-link">
+        <a href="settings.php"
+           class="menu-link <?php echo ($activePage === 'settings') ? 'active' : ''; ?>">
             <i class="bi bi-person-vcard"></i>
             <span>Team Profile</span>
         </a>
@@ -150,7 +157,7 @@ if (isset($conn) && isset($_SESSION['user_id'])) {
 
         <div class="user-actions">
 
-            <a href="profile.php" class="profile-btn">
+            <a href="profile.php" class="profile-btn <?php echo ($activePage === 'profile') ? 'active' : ''; ?>">
                 <i class="bi bi-person"></i>
                 Profile
             </a>

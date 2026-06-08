@@ -3,7 +3,9 @@ $pageTitle = "In Progress Work";
 $activePage = "in-progress-work";
 
 require_once "../../config.php";
+$allowed_roles = ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"];
 require_once "../../auth/session_check.php";
+require_once "../../includes/maintenance/access_control.php";
 
 $userId = $_SESSION['user_id'] ?? 0;
 
@@ -142,6 +144,11 @@ if ($teamId > 0) {
         ) msr
             ON msr.assignment_id = ca.assignment_id
         WHERE ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
         AND ca.assignment_status = 'in_progress'
         AND c.complaint_status = 'in_progress'
         ORDER BY c.work_started_at DESC, ca.assigned_at DESC

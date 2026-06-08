@@ -3,13 +3,10 @@ $activePage = "notifications";
 $pageTitle = "Notifications";
 
 require_once "../../config.php";
+$allowed_role = "inspector";
 require_once "../../auth/session_check.php";
 
 $userId = (int)($_SESSION["user_id"] ?? 0);
-
-if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "inspector") {
-    // strict check if necessary
-}
 
 function nt_safe($value)
 {

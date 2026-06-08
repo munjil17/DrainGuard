@@ -161,6 +161,10 @@
     background: #FFFFFF;
     border: 1px solid #DDE6F0;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
 }
 
 .lta-search-box {
@@ -193,6 +197,41 @@
 .lta-search-box input:focus {
     border-color: #6FA79B;
     box-shadow: 0 0 0 4px rgba(111, 167, 155, 0.14);
+}
+
+.lta-toolbar-btn,
+.lta-change-team-btn {
+    min-height: 46px;
+    border: none;
+    border-radius: 12px;
+    background: #0F172A;
+    color: #FFFFFF;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    white-space: nowrap;
+}
+
+.lta-toolbar-btn:hover,
+.lta-change-team-btn:hover {
+    background: #1E293B;
+    transform: translateY(-1px);
+}
+
+.lta-change-team-btn {
+    margin-top: 14px;
+    min-height: 40px;
+    background: #6FA79B;
+}
+
+.lta-change-team-btn:hover {
+    background: #5A9186;
 }
 
 /* ==================================================
@@ -508,6 +547,14 @@
     .lta-form-grid {
         grid-template-columns: 1fr;
     }
+
+    .lta-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .lta-toolbar-btn {
+        width: 100%;
+    }
 }
 
 /* ==================================================
@@ -565,6 +612,10 @@
     .lta-search-box input {
         height: 48px;
         font-size: 14px;
+    }
+
+    .lta-workflow-actions {
+        flex-direction: column;
     }
 }
 
@@ -669,4 +720,96 @@
 
 .lta-modal-confirm:hover {
     background: #2563EB;
+}
+
+.lta-workflow-modal {
+    width: min(92vw, 560px);
+    max-height: 92vh;
+    overflow-y: auto;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.lta-workflow-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.lta-workflow-head span {
+    display: block;
+    margin-bottom: 4px;
+    color: #6FA79B;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.lta-workflow-head h3 {
+    margin: 0;
+    color: #0F172A;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.lta-modal-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #F1F5F9;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.lta-modal-close:hover {
+    background: #E2E8F0;
+}
+
+.lta-workflow-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.lta-current-team-box,
+.lta-warning-text {
+    margin-bottom: 16px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #F8FAFC;
+    border: 1px solid #E2ECF4;
+}
+
+.lta-current-team-box span {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.lta-current-team-box strong {
+    color: #0F172A;
+    font-size: 16px;
+}
+
+.lta-warning-text {
+    color: #92400E;
+    background: #FEF3C7;
+    border-color: #FDE68A;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
 }

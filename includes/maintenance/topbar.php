@@ -234,6 +234,10 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
                                         } else {
                                             $notificationLink .= '&redirect=assigned-tasks';
                                         }
+                                    } elseif (in_array($notificationType, ['ward_team_reassign_removed', 'ward_team_transfer_removed'], true)) {
+                                        $notificationLink .= '&redirect=dashboard';
+                                    } elseif (in_array($notificationType, ['ward_team_reassigned', 'ward_in_progress_team_transfer'], true)) {
+                                        $notificationLink .= '&redirect=assigned-tasks';
                                     } elseif (in_array($notificationType, ['inspector_review_started', 'inspector_work_approved', 'inspector_false_completion_confirmed', 'ward_confirm_inspector_claim', 'ward_reject_inspector_claim'])) {
                                         $notificationLink .= '&redirect=task-history';
                                     } elseif (in_array($notificationType, ['citizen_feedback_satisfied', 'citizen_objection_submitted'])) {

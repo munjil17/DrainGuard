@@ -147,6 +147,11 @@ $sidebarInitial = strtoupper(substr($userName, 0, 1));
             <span>Complaints</span>
         </a>
 
+        <a href="<?php echo $baseUrl; ?>/processed-complaints.php" class="dg-central-menu-link <?php echo ($activePage === 'processed-complaints') ? 'active' : ''; ?>">
+            <i class="bi bi-folder-check"></i>
+            <span>Processed Complaints</span>
+        </a>
+
         <a href="<?php echo $baseUrl; ?>/routing-assignment.php" class="dg-central-menu-link <?php echo ($activePage === 'routing-assignment') ? 'active' : ''; ?>">
             <i class="bi bi-arrow-up-circle"></i>
             <span>Ward Verification</span>

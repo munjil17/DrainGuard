@@ -32,7 +32,7 @@ function nt_time_ago($datetime)
 function nt_icon($type)
 {
     $type = strtolower(trim((string)$type));
-    if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'bi-file-earmark-text';
+    if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected', 'ward_team_reassigned'])) return 'bi-file-earmark-text';
     if (in_array($type, ['inspector_report', 'team_update'])) return 'bi-clipboard-check';
     if ($type === 'comment_reply') return 'bi-chat-dots';
     return "bi-bell";
@@ -41,7 +41,7 @@ function nt_icon($type)
 function nt_type_class($type)
 {
     $type = strtolower(trim((string)$type));
-    if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'type-track';
+    if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected', 'ward_team_reassigned'])) return 'type-track';
     if (in_array($type, ['inspector_report', 'team_update'])) return 'type-objection';
     if ($type === 'comment_reply') return 'type-reply';
     return "type-system";
@@ -66,7 +66,8 @@ function nt_type_label($type)
         "ward_citizen_claim_true" => "Citizen Claim Marked True",
         "ward_confirm_inspector_claim" => "Inspector Claim Confirmed by Ward Officer",
         "ward_reject_inspector_claim" => "Inspector Claim Rejected by Ward Officer",
-        "ward_reopen_assign_team" => "Reopened Complaint Assigned"
+        "ward_reopen_assign_team" => "Reopened Complaint Assigned",
+        "ward_team_reassigned" => "Maintenance Team Reassigned"
     ];
 
     return $labels[$type] ?? ucwords(str_replace("_", " ", $type));
@@ -77,7 +78,7 @@ if (isset($_GET["read_id"])) {
     $redirectType = trim($_GET["redirect"] ?? "");
 
     if ($readId > 0 && $userId > 0 && isset($conn) && $conn instanceof mysqli) {
-        $readSql = "SELECT cn.is_read, cn.related_complaint_id, c.complaint_code FROM central_notifications cn LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id WHERE cn.notification_id = ? AND cn.recipient_user_id = ?";
+        $readSql = "SELECT cn.is_read, cn.related_complaint_id, c.complaint_code, c.complaint_status FROM central_notifications cn LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id WHERE cn.notification_id = ? AND cn.recipient_user_id = ?";
         $readStmt = mysqli_prepare($conn, $readSql);
         
         if ($readStmt) {
@@ -100,6 +101,9 @@ if (isset($_GET["read_id"])) {
                 if ($redirectType === "complaints") {
                     $focusParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : ($readRow["complaint_code"] ? "?complaint_code=" . urlencode($readRow["complaint_code"]) . "&focus=1" : "");
                     $url = "complaints.php" . $focusParam;
+                } else if ($redirectType === "processed-complaints") {
+                    $focusParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : ($readRow["complaint_code"] ? "?complaint_code=" . urlencode($readRow["complaint_code"]) . "&focus=1" : "");
+                    $url = "processed-complaints.php" . $focusParam;
                 } else if ($redirectType === "discussion") {
                     $complaintIdParam = $readRow["related_complaint_id"] ? "?id=" . urlencode($readRow["related_complaint_id"]) : "";
                     $url = "discussion.php" . $complaintIdParam;
@@ -204,7 +208,8 @@ $listSql = "
         cn.notification_message,
         cn.is_read,
         cn.created_at,
-        c.complaint_code
+        c.complaint_code,
+        c.complaint_status
     FROM central_notifications cn
     LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id
     {$whereSql}
@@ -344,7 +349,13 @@ function nt_build_query($overrides = [])
 
                             $linkUrl = "notifications.php?read_id=" . (int)$notification["notification_id"];
                             if (!empty($notification["complaint_code"])) {
-                                $linkUrl .= "&redirect=complaints";
+                                if ($notificationType === "comment_reply") {
+                                    $linkUrl .= "&redirect=discussion";
+                                } elseif (($notification["complaint_status"] ?? "") === "submitted") {
+                                    $linkUrl .= "&redirect=complaints";
+                                } else {
+                                    $linkUrl .= "&redirect=processed-complaints";
+                                }
                             }
                         ?>
 

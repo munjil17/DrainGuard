@@ -237,13 +237,16 @@
 
 .cm-table-wrap {
     width: 100%;
-    overflow-x: auto;
+    max-height: calc(100vh - 360px);
+    min-height: 260px;
+    overflow: auto;
 }
 
 .cm-table {
     width: 100%;
-    min-width: 1320px;
+    min-width: 980px;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .cm-table thead {
@@ -257,7 +260,9 @@
     font-size: 14px;
     font-weight: 800;
     border-bottom: 1px solid #E2E8F0;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
 }
 
 .cm-table td {
@@ -267,63 +272,85 @@
     border-bottom: 1px solid #E2E8F0;
     vertical-align: middle;
     background: #FFFFFF;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
 }
 
 .cm-table tbody tr:hover td {
     background: #F8FBFF;
 }
 
-/* STICKY COLUMNS: ID (1), Title (2), and Action (last) */
 .cm-table th:nth-child(1),
 .cm-table td:nth-child(1) {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    min-width: 180px;
-    max-width: 180px;
-    width: 180px;
-    box-sizing: border-box;
+    width: 13%;
 }
 
 .cm-table th:nth-child(2),
 .cm-table td:nth-child(2) {
-    position: sticky;
-    left: 180px;
-    z-index: 2;
-    box-shadow: 4px 0 8px -4px rgba(0,0,0,0.05);
+    width: 27%;
 }
 
-.cm-table th:last-child,
-.cm-table td:last-child {
-    position: sticky;
-    right: 0;
-    z-index: 2;
-    box-shadow: -4px 0 8px -4px rgba(0,0,0,0.05);
+.cm-table th:nth-child(3),
+.cm-table td:nth-child(3),
+.cm-table th:nth-child(4),
+.cm-table td:nth-child(4),
+.cm-table th:nth-child(5),
+.cm-table td:nth-child(5) {
+    width: 15%;
 }
 
-.cm-table th:nth-child(1),
-.cm-table th:nth-child(2),
-.cm-table th:last-child {
-    background: #F8FAFC;
-    z-index: 3;
+.cm-table th:nth-child(6),
+.cm-table td:nth-child(6) {
+    width: 15%;
 }
 
 .cm-code {
     color: #0891B2;
     font-weight: 800;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
 }
 
 .cm-title strong {
     display: block;
     color: #020617;
     font-weight: 700;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
 }
 
 .cm-title small {
     display: block;
     margin-top: 4px;
     color: #64748B;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+}
+
+.cm-stacked-cell strong,
+.cm-stacked-cell small {
+    display: block;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+}
+
+.cm-stacked-cell strong {
+    color: #0F172A;
+    font-weight: 800;
+}
+
+.cm-stacked-cell small {
+    margin-top: 6px;
+    color: #64748B;
+    font-size: 13px;
 }
 
 .cm-type-badge,
@@ -337,7 +364,18 @@
     border-radius: 999px;
     font-size: 13px;
     font-weight: 800;
-    white-space: nowrap;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+}
+
+.cm-badge-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 100%;
 }
 
 .cm-type-badge {
@@ -427,7 +465,7 @@
     display: flex;
     gap: 12px;
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .cm-action-form {
@@ -466,7 +504,9 @@
     display: inline-flex;
     gap: 6px;
     align-items: center;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
 }
 
 .cm-discussion-btn {
@@ -479,7 +519,9 @@
     display: inline-flex;
     gap: 6px;
     align-items: center;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
     padding: 6px 12px;
     border-radius: 8px;
     transition: 0.2s ease;

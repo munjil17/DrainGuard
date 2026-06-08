@@ -4,6 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/notification_workflow_cleanup.php';
+$allowed_role = "inspector";
+require_once __DIR__ . '/../../auth/session_check.php';
 
 if (!isset($conn) && isset($connection)) {
     $conn = $connection;
@@ -568,6 +571,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($citizenUserId > 0) {
                 $ins = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
+                    dg_cleanup_workflow_notifications($conn, "citizen_notifications", $citizenUserId, $complaintId, $notifTypeApprove);
                     mysqli_stmt_bind_param($ins, "iiissss", $citizenUserId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
@@ -578,6 +582,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($centralOfficerUserId > 0) {
                 $ins = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
+                    dg_cleanup_workflow_notifications($conn, "central_notifications", $centralOfficerUserId, $complaintId, $notifTypeApprove);
                     mysqli_stmt_bind_param($ins, "iiissss", $centralOfficerUserId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
@@ -588,6 +593,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($wardOfficerUserId > 0) {
                 $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
+                    dg_cleanup_workflow_notifications($conn, "ward_notifications", $wardOfficerUserId, $complaintId, $notifTypeApprove);
                     mysqli_stmt_bind_param($ins, "iiissss", $wardOfficerUserId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
@@ -598,6 +604,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($maintenanceTeamMembers as $memberId) {
                 $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
+                    dg_cleanup_workflow_notifications($conn, "maintenance_notifications", $memberId, $complaintId, $notifTypeApprove);
                     mysqli_stmt_bind_param($ins, "iiissss", $memberId, $userId, $complaintId, $notifTypeApprove, $notifTitleApprove, $baseMsgApprove, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
@@ -707,6 +714,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($wardOfficerUserId > 0) {
                 $ins = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
+                    dg_cleanup_workflow_notifications($conn, "ward_notifications", $wardOfficerUserId, $complaintId, $notifTypeFalse);
                     mysqli_stmt_bind_param($ins, "iiissss", $wardOfficerUserId, $userId, $complaintId, $notifTypeFalse, $notifTitleFalse, $baseMsgFalse, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);
@@ -716,6 +724,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($maintenanceTeamMembers as $memberId) {
                 $ins = mysqli_prepare($conn, "INSERT INTO maintenance_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
                 if ($ins) {
+                    dg_cleanup_workflow_notifications($conn, "maintenance_notifications", $memberId, $complaintId, $notifTypeFalse);
                     mysqli_stmt_bind_param($ins, "iiissss", $memberId, $userId, $complaintId, $notifTypeFalse, $notifTitleFalse, $baseMsgFalse, $notifTime);
                     mysqli_stmt_execute($ins);
                     mysqli_stmt_close($ins);

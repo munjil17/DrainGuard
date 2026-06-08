@@ -3,7 +3,10 @@ $pageTitle = "Upload Completion Proof";
 $activePage = "upload-completion-proof";
 
 require_once "../../config.php";
+$allowed_roles = ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"];
 require_once "../../auth/session_check.php";
+require_once "../../includes/maintenance/access_control.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 
 $userId = $_SESSION['user_id'] ?? 0;
 
@@ -122,6 +125,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
             ON c.complaint_id = ca.complaint_id
         WHERE ca.assignment_id = ?
         AND ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
         LIMIT 1
     ";
 
@@ -430,6 +438,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
 
         if ($citizenUserId > 0) {
             $insC = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            dg_cleanup_workflow_notifications($conn, "citizen_notifications", $citizenUserId, $complaintId, $notifType);
             mysqli_stmt_bind_param($insC, "iiissss", $citizenUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insC);
             mysqli_stmt_close($insC);
@@ -437,6 +446,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
 
         if ($centralOfficerUserId > 0) {
             $insCent = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            dg_cleanup_workflow_notifications($conn, "central_notifications", $centralOfficerUserId, $complaintId, $notifType);
             mysqli_stmt_bind_param($insCent, "iiissss", $centralOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insCent);
             mysqli_stmt_close($insCent);
@@ -444,6 +454,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
 
         if ($wardOfficerUserId > 0) {
             $insWard = mysqli_prepare($conn, "INSERT INTO ward_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            dg_cleanup_workflow_notifications($conn, "ward_notifications", $wardOfficerUserId, $complaintId, $notifType);
             mysqli_stmt_bind_param($insWard, "iiissss", $wardOfficerUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insWard);
             mysqli_stmt_close($insWard);
@@ -451,6 +462,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
 
         if ($inspectorUserId > 0) {
             $insInsp = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)");
+            dg_cleanup_workflow_notifications($conn, "inspector_notifications", $inspectorUserId, $complaintId, $notifType);
             mysqli_stmt_bind_param($insInsp, "iiissss", $inspectorUserId, $userId, $complaintId, $notifType, $notifTitle, $baseMsg, $notifTime);
             mysqli_stmt_execute($insInsp);
             mysqli_stmt_close($insInsp);
@@ -536,6 +548,11 @@ if ($teamId > 0) {
         LEFT JOIN complaint_media cm
             ON cm.media_id = first_media.first_media_id
         WHERE ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
         AND ca.assignment_status = 'in_progress'
         AND c.complaint_status = 'in_progress'
         $filterAssignmentSql

@@ -1,6 +1,7 @@
 <?php
 require_once "../../config.php";
-require_login(["team_leader", "assistant_team_leader", "worker"]);
+require_login(["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"]);
+require_once "../../includes/maintenance/access_control.php";
 
 $activePage = 'feedback';
 $pageTitle = 'Citizen Feedback';

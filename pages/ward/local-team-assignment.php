@@ -3,6 +3,8 @@ $activePage = "local-team-assignment";
 $pageTitle = "Local Team Assignment";
 
 require_once "../../config.php";
+require_once "../../includes/ward/team_workflow_helpers.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 require_once "../../auth/session_check.php";
 
 if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer") {
@@ -98,6 +100,22 @@ function lta_formatDate($date)
     return $t ? date("M d, Y", $t) : "N/A";
 }
 
+function lta_isAjaxRequest()
+{
+    return strtolower($_SERVER["HTTP_X_REQUESTED_WITH"] ?? "") === "xmlhttprequest"
+        || str_contains($_SERVER["HTTP_ACCEPT"] ?? "", "application/json");
+}
+
+function lta_jsonResponse($success, $message)
+{
+    header("Content-Type: application/json; charset=UTF-8");
+    echo json_encode([
+        "success" => (bool)$success,
+        "message" => $message,
+    ]);
+    exit();
+}
+
 /*
 |--------------------------------------------------------------------------
 | Detect maintenance_teams columns
@@ -177,6 +195,8 @@ function lta_insertNotification($conn, $table, $recipientUserId, $senderUserId, 
         return; // skip invalid recipients silently
     }
 
+    dg_cleanup_workflow_notifications($conn, $table, $recipientUserId, $complaintId, $type);
+
     $sql = "INSERT INTO `$table`
             (recipient_user_id, sender_user_id, related_complaint_id,
              notification_type, notification_title, notification_message,
@@ -206,6 +226,70 @@ function lta_insertNotification($conn, $table, $recipientUserId, $senderUserId, 
 |--------------------------------------------------------------------------
 */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $action = trim($_POST["action"] ?? "assign_team");
+
+    if ($action === "send_instruction") {
+        $instructionTeamId = (int)($_POST["instruction_team_id"] ?? 0);
+        $instructionType = trim($_POST["instruction_type"] ?? "");
+        $instructionMessage = trim($_POST["instruction_message"] ?? "");
+
+        mysqli_begin_transaction($conn);
+        try {
+            wtw_send_instruction(
+                $conn,
+                [
+                    "ward_id" => $wardId,
+                    "city_cor_id" => $cityCorId,
+                    "anchal_id" => $anchalId,
+                ],
+                $currentUserId,
+                $instructionTeamId,
+                $instructionType,
+                $instructionMessage
+            );
+            mysqli_commit($conn);
+            $successMessage = "Instruction sent to the selected maintenance team.";
+            if (lta_isAjaxRequest()) {
+                lta_jsonResponse(true, $successMessage);
+            }
+        } catch (Exception $e) {
+            mysqli_rollback($conn);
+            $errorMessage = $e->getMessage();
+            if (lta_isAjaxRequest()) {
+                lta_jsonResponse(false, $errorMessage);
+            }
+        }
+    } elseif ($action === "change_assigned_team") {
+        $changeComplaintId = (int)($_POST["change_complaint_id"] ?? 0);
+        $changeAssignmentId = (int)($_POST["change_assignment_id"] ?? 0);
+        $newTeamId = (int)($_POST["new_maintenance_team_id"] ?? 0);
+        $reason = trim($_POST["change_reason"] ?? "");
+        $instruction = trim($_POST["change_instruction"] ?? "");
+
+        mysqli_begin_transaction($conn);
+        try {
+            $newTeamName = wtw_change_team(
+                $conn,
+                [
+                    "ward_id" => $wardId,
+                    "city_cor_id" => $cityCorId,
+                    "anchal_id" => $anchalId,
+                ],
+                $currentUserId,
+                $changeComplaintId,
+                $changeAssignmentId,
+                $newTeamId,
+                $reason,
+                $instruction,
+                "assigned"
+            );
+            mysqli_commit($conn);
+            $successMessage = "Team changed successfully.";
+        } catch (Exception $e) {
+            mysqli_rollback($conn);
+            $errorMessage = $e->getMessage();
+        }
+    } else {
     $complaintId       = (int)($_POST["complaint_id"]        ?? 0);
     $maintenanceTeamId = (int)($_POST["maintenance_team_id"] ?? 0);
     $deadlineAt        = trim($_POST["deadline_at"]          ?? "");
@@ -401,6 +485,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $errorMessage = $e->getMessage();
         }
     }
+    }
 }
 
 /*
@@ -574,6 +659,11 @@ foreach ($verifiedComplaints as $ci) {
                 <i class="bi bi-search"></i>
                 <input type="text" id="ltaSearch" placeholder="Search by complaint ID, issue, or area">
             </div>
+
+            <button type="button" class="lta-toolbar-btn" id="openInstructionModal">
+                <i class="bi bi-send"></i>
+                Send Instruction
+            </button>
         </div>
 
         <div class="lta-list" id="ltaComplaintList">
@@ -696,6 +786,17 @@ foreach ($verifiedComplaints as $ci) {
                                     <p style="margin-bottom: 5px; font-size: 14px;"><strong>Assigned Team:</strong> <?= safeText($complaint["team_name"]); ?></p>
                                     <p style="margin-bottom: 5px; font-size: 14px;"><strong>Expected Completion:</strong> <?= safeText(date("M d, Y", strtotime($complaint["deadline_at"]))); ?></p>
                                     <p style="margin: 0; font-size: 14px;"><strong>Task Note:</strong> <?= safeText($complaint["task_note"] ?: "None"); ?></p>
+                                    <button
+                                        type="button"
+                                        class="lta-change-team-btn"
+                                        data-complaint-id="<?= $cId; ?>"
+                                        data-assignment-id="<?= (int)$complaint["assignment_id"]; ?>"
+                                        data-current-team="<?= safeText($complaint["team_name"] ?: "Current Team"); ?>"
+                                        data-current-team-id="<?= (int)$complaint["assigned_team_id"]; ?>"
+                                    >
+                                        <i class="bi bi-arrow-left-right"></i>
+                                        Change Assigned Team
+                                    </button>
                                 </div>
                                 
                                 <?php if ($complaint["support_request_id"]): ?>
@@ -747,6 +848,115 @@ foreach ($verifiedComplaints as $ci) {
 </main>
 
 <!-- Custom Confirm Modal -->
+<div class="lta-modal-overlay" id="ltaInstructionModal" aria-hidden="true">
+    <div class="lta-workflow-modal">
+        <div class="lta-workflow-head">
+            <div>
+                <span>Ward Team Instruction</span>
+                <h3>Send Instruction</h3>
+            </div>
+            <button type="button" class="lta-modal-close" data-close-instruction>
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="local-team-assignment.php" id="instructionForm">
+            <input type="hidden" name="action" value="send_instruction">
+
+            <div class="lta-form-group">
+                <label>Maintenance Team</label>
+                <select name="instruction_team_id" required>
+                    <option value="">Select team</option>
+                    <?php foreach ($maintenanceTeams as $team): ?>
+                        <option value="<?= (int)$team["maintenance_team_id"]; ?>">
+                            <?= safeText($team["team_name"]); ?>
+                            <?= !empty($team["team_status"]) ? " (" . safeText($team["team_status"]) . ")" : ""; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="lta-form-group">
+                <label>Instruction Type</label>
+                <select name="instruction_type" id="instructionType" required>
+                    <option value="">Select instruction type</option>
+                    <option value="verify_new_complaint">Verify New Complaint</option>
+                    <option value="visit_complaint_location">Visit Complaint Location</option>
+                    <option value="assign_maintenance_team">Assign Maintenance Team</option>
+                    <option value="follow_up_pending_complaint">Follow Up Pending Complaint</option>
+                    <option value="review_reopened_complaint">Review Reopened Complaint</option>
+                    <option value="monitor_high_risk_area">Monitor High Risk Area</option>
+                    <option value="submit_ward_status_report">Submit Ward Status Report</option>
+                    <option value="custom_instruction">Custom Instruction</option>
+                </select>
+            </div>
+
+            <div class="lta-form-group">
+                <label>Instruction Message</label>
+                <textarea name="instruction_message" id="instructionMessage" rows="5" required placeholder="Write instruction for selected team"></textarea>
+            </div>
+
+            <div class="lta-workflow-actions">
+                <button type="button" class="lta-modal-btn lta-modal-cancel" data-close-instruction>Cancel</button>
+                <button type="submit" class="lta-modal-btn lta-modal-confirm">Send Selected Instruction</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="lta-modal-overlay" id="ltaChangeTeamModal" aria-hidden="true">
+    <div class="lta-workflow-modal">
+        <div class="lta-workflow-head">
+            <div>
+                <span>Before Start Work</span>
+                <h3>Change Assigned Team</h3>
+            </div>
+            <button type="button" class="lta-modal-close" data-close-change-team>
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="local-team-assignment.php" id="changeAssignedTeamForm">
+            <input type="hidden" name="action" value="change_assigned_team">
+            <input type="hidden" name="change_complaint_id" id="changeComplaintId">
+            <input type="hidden" name="change_assignment_id" id="changeAssignmentId">
+
+            <div class="lta-current-team-box">
+                <span>Current Team</span>
+                <strong id="changeCurrentTeam">N/A</strong>
+            </div>
+
+            <div class="lta-form-group">
+                <label>New Maintenance Team</label>
+                <select name="new_maintenance_team_id" id="changeNewTeam" required>
+                    <option value="">Select new team</option>
+                    <?php foreach ($maintenanceTeams as $team): ?>
+                        <option value="<?= (int)$team["maintenance_team_id"]; ?>">
+                            <?= safeText($team["team_name"]); ?>
+                            <?= !empty($team["team_status"]) ? " (" . safeText($team["team_status"]) . ")" : ""; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="lta-form-group">
+                <label>Reason</label>
+                <textarea name="change_reason" rows="4" required placeholder="Explain why this task is being reassigned"></textarea>
+            </div>
+
+            <div class="lta-form-group">
+                <label>Instruction Message</label>
+                <textarea name="change_instruction" rows="3" placeholder="Optional instruction for the new team"></textarea>
+            </div>
+
+            <div class="lta-workflow-actions">
+                <button type="button" class="lta-modal-btn lta-modal-cancel" data-close-change-team>Cancel</button>
+                <button type="submit" class="lta-modal-btn lta-modal-confirm">Confirm Team Change</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="lta-modal-overlay" id="ltaConfirmModal">
     <div class="lta-modal-box">
         <div class="lta-modal-icon">
@@ -762,6 +972,18 @@ foreach ($verifiedComplaints as $ci) {
 </div>
 
 <script src="../../js/ward/sidebar.js"></script>
+<script>
+    window.ltaInstructionDefaults = {
+        verify_new_complaint: <?= json_encode(wtw_instruction_default_message("verify_new_complaint")); ?>,
+        visit_complaint_location: <?= json_encode(wtw_instruction_default_message("visit_complaint_location")); ?>,
+        assign_maintenance_team: <?= json_encode(wtw_instruction_default_message("assign_maintenance_team")); ?>,
+        follow_up_pending_complaint: <?= json_encode(wtw_instruction_default_message("follow_up_pending_complaint")); ?>,
+        review_reopened_complaint: <?= json_encode(wtw_instruction_default_message("review_reopened_complaint")); ?>,
+        monitor_high_risk_area: <?= json_encode(wtw_instruction_default_message("monitor_high_risk_area")); ?>,
+        submit_ward_status_report: <?= json_encode(wtw_instruction_default_message("submit_ward_status_report")); ?>,
+        custom_instruction: ""
+    };
+</script>
 <script src="../../js/ward/local-team-assignment.js"></script>
 <script src="../../js/global/notification-target.js"></script>
 

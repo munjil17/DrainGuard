@@ -4,6 +4,7 @@ $pageTitle = "Reopened Cases";
 
 require_once "../../config.php";
 require_once "../../auth/session_check.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 
 if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer") {
     header("Location: ../../index.php");
@@ -85,6 +86,8 @@ function insertNotification($conn, $tableName, $recipientUserId, $senderUserId, 
     if (!in_array($tableName, $allowedTables, true) || $recipientUserId <= 0) {
         return;
     }
+
+    dg_cleanup_workflow_notifications($conn, $tableName, $recipientUserId, $complaintId, $type);
 
     $sql = "INSERT INTO `$tableName` (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)";
     $stmt = mysqli_prepare($conn, $sql);
@@ -525,14 +528,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if ($rCitizenId > 0) {
                 $stmtCit = mysqli_prepare($conn, "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reopen_assign_team', 'Reopened Complaint Assigned', ?, 0, ?)");
-                if ($stmtCit) { mysqli_stmt_bind_param($stmtCit, "iiiss", $rCitizenId, $currentUserId, $complaintId, $rNotifMsg, $rNotifTime); mysqli_stmt_execute($stmtCit); mysqli_stmt_close($stmtCit); }
+                if ($stmtCit) { dg_cleanup_workflow_notifications($conn, "citizen_notifications", $rCitizenId, $complaintId, "ward_reopen_assign_team"); mysqli_stmt_bind_param($stmtCit, "iiiss", $rCitizenId, $currentUserId, $complaintId, $rNotifMsg, $rNotifTime); mysqli_stmt_execute($stmtCit); mysqli_stmt_close($stmtCit); }
             }
 
             $cenRow = fetchOne($conn, "SELECT ca.assigned_by FROM complaint_assignments ca JOIN users u ON u.user_id = ca.assigned_by WHERE ca.complaint_id = ? AND u.user_role = 'central_officer' LIMIT 1", "i", [$complaintId]);
             if ($cenRow) {
                 $cenUserId = (int)$cenRow['assigned_by'];
                 $stmtCen = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_reopen_assign_team', 'Reopened Complaint Assigned', ?, 0, ?)");
-                if ($stmtCen) { mysqli_stmt_bind_param($stmtCen, "iiiss", $cenUserId, $currentUserId, $complaintId, $rNotifMsg, $rNotifTime); mysqli_stmt_execute($stmtCen); mysqli_stmt_close($stmtCen); }
+                if ($stmtCen) { dg_cleanup_workflow_notifications($conn, "central_notifications", $cenUserId, $complaintId, "ward_reopen_assign_team"); mysqli_stmt_bind_param($stmtCen, "iiiss", $cenUserId, $currentUserId, $complaintId, $rNotifMsg, $rNotifTime); mysqli_stmt_execute($stmtCen); mysqli_stmt_close($stmtCen); }
             }
 
             } // Close else block

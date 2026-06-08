@@ -3,6 +3,7 @@ $activePage = "verification-queue";
 $pageTitle = "Verification Queue";
 
 require_once "../../config.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 require_once "../../auth/session_check.php";
 
 if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer") {
@@ -299,6 +300,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
                 $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
                 $citNotifStmt = mysqli_prepare($conn, $citNotifSql);
                 if ($citNotifStmt) {
+                    dg_cleanup_workflow_notifications($conn, "citizen_notifications", $citizenUserId, $complaintId, $citNotifType);
                     mysqli_stmt_bind_param($citNotifStmt, "iiisss", $citizenUserId, $wardOfficerUserId, $complaintId, $citNotifType, $citTitle, $citMsg);
                     mysqli_stmt_execute($citNotifStmt);
                     mysqli_stmt_close($citNotifStmt);
@@ -309,6 +311,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $assignedWardId > 0) {
                 $cenNotifSql = "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
                 $cenNotifStmt = mysqli_prepare($conn, $cenNotifSql);
                 if ($cenNotifStmt) {
+                    dg_cleanup_workflow_notifications($conn, "central_notifications", $centralUserId, $complaintId, $cenNotifType);
                     mysqli_stmt_bind_param($cenNotifStmt, "iiisss", $centralUserId, $wardOfficerUserId, $complaintId, $cenNotifType, $cenTitle, $cenMsg);
                     mysqli_stmt_execute($cenNotifStmt);
                     mysqli_stmt_close($cenNotifStmt);

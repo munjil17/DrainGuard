@@ -45,42 +45,49 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_bind_param($updateStmt, "sss", $token, $expiryTime, $email);
                 
                 if (mysqli_stmt_execute($updateStmt)) {
-                    
-                    $mail = new PHPMailer(true);
-                    try {
-                        $mail->isSMTP();
-                        $mail->Host       = DG_SMTP_HOST;
-                        $mail->SMTPAuth   = true;
-                        $mail->Username   = DG_SMTP_USERNAME;
-                        $mail->Password   = DG_SMTP_PASSWORD;
-                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                        $mail->Port       = DG_SMTP_PORT;
-
-                        $mail->setFrom(DG_SMTP_FROM_EMAIL, DG_SMTP_FROM_NAME);
-                        $mail->addAddress($email, $userName);
-
-                        $resetLink = "http://localhost/DrainGuard/auth/reset_password.php?token=" . $token;
-                        
-                        $mail->isHTML(true);
-                        $mail->Subject = 'Password Reset Request - DrainGuard';
-                        $mail->Body    = "
-                            <div style='font-family: Arial, sans-serif; background-color: #050816; color: #F8FAFC; padding: 40px; border-radius: 10px; text-align: center;'>
-                                <h2 style='color: #31F6E6;'>Password Reset Request</h2>
-                                <p style='color: #A7B4D6;'>Hello <strong>{$userName}</strong>,</p>
-                                <p style='color: #A7B4D6;'>We received a request to reset your password for your DrainGuard account.</p>
-                                <p style='color: #A7B4D6;'>Click the button below to reset your password. This link is valid for 1 hour.</p>
-                                <a href='{$resetLink}' style='display: inline-block; margin-top: 20px; padding: 14px 30px; background-color: #31F6E6; color: #050816; text-decoration: none; border-radius: 50px; font-weight: bold;'>Reset Password</a>
-                                <p style='margin-top: 30px; color: #6B7AA6; font-size: 13px;'>If you did not request this, please ignore this email.</p>
-                            </div>
-                        ";
-
-                        $mail->send();
-                        $message = "If this email is registered, a reset link will be sent shortly.";
-                        $messageType = "success";
-                    } catch (Exception $e) {
-                        error_log("[DrainGuard forgot_password] Mailer Error: " . $mail->ErrorInfo);
-                        $message = "Unable to send the reset link right now. Please try again later.";
+                    if (!function_exists("dg_smtp_is_configured") || !dg_smtp_is_configured()) {
+                        error_log("[DrainGuard forgot_password] SMTP configuration is missing.");
+                        $message = "Email service is currently unavailable. Please contact the administrator.";
                         $messageType = "error";
+                    } else {
+                    
+                        $mail = new PHPMailer(true);
+                        try {
+                            $mail->isSMTP();
+                            $mail->Host       = DG_SMTP_HOST;
+                            $mail->SMTPAuth   = true;
+                            $mail->Username   = DG_SMTP_USERNAME;
+                            $mail->Password   = DG_SMTP_PASSWORD;
+                            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                            $mail->Port       = DG_SMTP_PORT;
+                            $mail->SMTPDebug  = 0;
+
+                            $mail->setFrom(DG_SMTP_FROM_EMAIL, DG_SMTP_FROM_NAME);
+                            $mail->addAddress($email, $userName);
+
+                            $resetLink = "http://localhost/DrainGuard/auth/reset_password.php?token=" . $token;
+                            
+                            $mail->isHTML(true);
+                            $mail->Subject = 'Password Reset Request - DrainGuard';
+                            $mail->Body    = "
+                                <div style='font-family: Arial, sans-serif; background-color: #050816; color: #F8FAFC; padding: 40px; border-radius: 10px; text-align: center;'>
+                                    <h2 style='color: #31F6E6;'>Password Reset Request</h2>
+                                    <p style='color: #A7B4D6;'>Hello <strong>{$userName}</strong>,</p>
+                                    <p style='color: #A7B4D6;'>We received a request to reset your password for your DrainGuard account.</p>
+                                    <p style='color: #A7B4D6;'>Click the button below to reset your password. This link is valid for 1 hour.</p>
+                                    <a href='{$resetLink}' style='display: inline-block; margin-top: 20px; padding: 14px 30px; background-color: #31F6E6; color: #050816; text-decoration: none; border-radius: 50px; font-weight: bold;'>Reset Password</a>
+                                    <p style='margin-top: 30px; color: #6B7AA6; font-size: 13px;'>If you did not request this, please ignore this email.</p>
+                                </div>
+                            ";
+
+                            $mail->send();
+                            $message = "If this email is registered, a reset link will be sent shortly.";
+                            $messageType = "success";
+                        } catch (Exception $e) {
+                            error_log("[DrainGuard forgot_password] Mailer Error: " . $mail->ErrorInfo);
+                            $message = "Email service is currently unavailable. Please contact the administrator.";
+                            $messageType = "error";
+                        }
                     }
                 } else {
                     $message = "Something went wrong. Please try again.";

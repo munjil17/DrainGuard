@@ -112,7 +112,7 @@ if (!function_exists('central_topbar_time_ago')) {
 if (!function_exists('central_notification_icon')) {
     function central_notification_icon($type) {
         $type = strtolower(trim((string)$type));
-        if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'bi-file-earmark-text';
+        if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected', 'ward_team_reassigned'])) return 'bi-file-earmark-text';
         if (in_array($type, ['inspector_report', 'team_update'])) return 'bi-clipboard-check';
         if ($type === 'comment_reply') return 'bi-chat-dots';
         return 'bi-bell';
@@ -122,7 +122,7 @@ if (!function_exists('central_notification_icon')) {
 if (!function_exists('central_notification_type_class')) {
     function central_notification_type_class($type) {
         $type = strtolower(trim((string)$type));
-        if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'type-track';
+        if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected', 'ward_team_reassigned'])) return 'type-track';
         if (in_array($type, ['inspector_report', 'team_update'])) return 'type-objection';
         if ($type === 'comment_reply') return 'type-reply';
         return 'type-system';
@@ -149,7 +149,8 @@ if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
             cn.notification_message,
             cn.is_read,
             cn.created_at,
-            c.complaint_code
+            c.complaint_code,
+            c.complaint_status
         FROM central_notifications cn
         LEFT JOIN complaints c ON cn.related_complaint_id = c.complaint_id
         WHERE cn.recipient_user_id = $loggedUserId
@@ -214,8 +215,10 @@ if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
                                 if (!empty($notification['complaint_code'])) {
                                     if ($notificationType === 'comment_reply') {
                                         $notificationLink .= '&redirect=discussion';
-                                    } else {
+                                    } elseif (($notification['complaint_status'] ?? '') === 'submitted') {
                                         $notificationLink .= '&redirect=complaints';
+                                    } else {
+                                        $notificationLink .= '&redirect=processed-complaints';
                                     }
                                 }
                             ?>

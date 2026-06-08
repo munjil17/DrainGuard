@@ -169,6 +169,58 @@ if (isset($user["login_access"]) && (int)$user["login_access"] !== 1) {
     redirect_to("auth/login.php");
 }
 
+if (in_array($user["user_role"], ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"], true)) {
+    $maintenanceAccessSql = "
+        SELECT
+            mtm.role AS member_role,
+            mtm.status AS member_status,
+            mt.assistant_login_access
+        FROM maintenance_team_members mtm
+        INNER JOIN maintenance_teams mt
+            ON mt.maintenance_team_id = mtm.maintenance_team_id
+        WHERE mtm.user_id = ?
+        LIMIT 1
+    ";
+
+    $maintenanceAccessStmt = mysqli_prepare($conn, $maintenanceAccessSql);
+
+    if (!$maintenanceAccessStmt) {
+        $_SESSION["email_error"] = "Unable to sign in right now. Please try again.";
+        redirect_to("auth/login.php");
+    }
+
+    mysqli_stmt_bind_param($maintenanceAccessStmt, "i", $user["user_id"]);
+    mysqli_stmt_execute($maintenanceAccessStmt);
+    $maintenanceAccessResult = mysqli_stmt_get_result($maintenanceAccessStmt);
+    $maintenanceAccess = $maintenanceAccessResult ? mysqli_fetch_assoc($maintenanceAccessResult) : null;
+    mysqli_stmt_close($maintenanceAccessStmt);
+
+    if (!$maintenanceAccess) {
+        $_SESSION["email_error"] = "No active maintenance team access is assigned to this account.";
+        redirect_to("auth/login.php");
+    }
+
+    $memberRole = strtolower(trim((string)$maintenanceAccess["member_role"]));
+    $memberStatus = strtolower(trim((string)$maintenanceAccess["member_status"]));
+    $assistantLoginAccess = strtolower(trim((string)($maintenanceAccess["assistant_login_access"] ?? "no")));
+
+    $isTeamLeader = (
+        $memberRole === "team_leader"
+        && in_array($user["user_role"], ["maintenance_team", "maintenance_member", "team_leader"], true)
+    );
+
+    $isActingAssistant = (
+        $memberRole === "assistant_team_leader"
+        && in_array($user["user_role"], ["maintenance_member", "assistant_team_leader"], true)
+        && $assistantLoginAccess === "yes"
+    );
+
+    if ($memberStatus !== "active" || (!$isTeamLeader && !$isActingAssistant)) {
+        $_SESSION["email_error"] = "Your maintenance sign-in access is not available.";
+        redirect_to("auth/login.php");
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Password Check (Secure password_verify)

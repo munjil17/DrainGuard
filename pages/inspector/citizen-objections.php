@@ -4,6 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config.php';
+$allowed_role = "inspector";
+require_once __DIR__ . '/../../auth/session_check.php';
 
 if (!isset($conn) && isset($connection)) {
     $conn = $connection;

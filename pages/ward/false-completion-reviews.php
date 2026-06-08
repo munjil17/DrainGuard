@@ -4,6 +4,7 @@ $pageTitle = "False Completion Reviews";
 
 require_once "../../config.php";
 require_once "../../auth/session_check.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 
 if (!isset($_SESSION["user_role"]) || $_SESSION["user_role"] !== "ward_officer") {
     header("Location: ../../index.php");
@@ -69,6 +70,8 @@ function insertNotification($conn, $tableName, $recipientUserId, $senderUserId, 
     if (!in_array($tableName, $allowedTables, true) || $recipientUserId <= 0) {
         return;
     }
+
+    dg_cleanup_workflow_notifications($conn, $tableName, $recipientUserId, $complaintId, $type);
 
     $sql = "INSERT INTO `$tableName` (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)";
     $stmt = mysqli_prepare($conn, $sql);

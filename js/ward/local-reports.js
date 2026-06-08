@@ -1,99 +1,111 @@
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("localReportForm");
-    const reportPeriod = document.getElementById("reportPeriod");
-    const customRangeBox = document.getElementById("customRangeBox");
-    const startDate = document.getElementById("startDate");
-    const endDate = document.getElementById("endDate");
-    const autoDownloadReport = document.getElementById("autoDownloadReport");
+    const reportType = document.getElementById("report_type");
+    const reportPeriod = document.getElementById("report_period");
+    const startDate = document.getElementById("start_date");
+    const endDate = document.getElementById("end_date");
+    const exportFormat = document.getElementById("export_format");
+    const customDateFields = document.querySelectorAll(".custom-date-field");
+    const previewCard = document.querySelector(".lr-preview-card");
+    const downloadForm = document.querySelector(".lr-preview-download-form");
+    const downloadFrame = document.getElementById("wardReportDownloadFrame");
+    let downloadPending = false;
+    let collapseTimer = null;
 
-    function toggleCustomRange() {
-        if (!reportPeriod || !customRangeBox) return;
-
-        if (reportPeriod.value === "custom_range") {
-            customRangeBox.classList.remove("d-none");
-
-            if (startDate) {
-                startDate.setAttribute("required", "required");
-            }
-
-            if (endDate) {
-                endDate.setAttribute("required", "required");
-            }
-        } else {
-            customRangeBox.classList.add("d-none");
-
-            if (startDate) {
-                startDate.removeAttribute("required");
-                startDate.value = "";
-            }
-
-            if (endDate) {
-                endDate.removeAttribute("required");
-                endDate.value = "";
-            }
+    function warn(message) {
+        if (typeof showWarningModal === "function") {
+            showWarningModal(message);
+            return;
         }
+
+        window.alert(message);
+    }
+
+    function toggleCustomDates() {
+        const isCustom = reportPeriod && reportPeriod.value === "custom_range";
+
+        customDateFields.forEach(function (field) {
+            field.hidden = !isCustom;
+        });
+
+        if (startDate) startDate.required = isCustom;
+        if (endDate) endDate.required = isCustom;
     }
 
     if (reportPeriod) {
-        reportPeriod.addEventListener("change", toggleCustomRange);
+        reportPeriod.addEventListener("change", toggleCustomDates);
+        toggleCustomDates();
     }
 
     if (form) {
         form.addEventListener("submit", function (event) {
-            const reportType = form.querySelector('select[name="report_type"]');
-            const period = form.querySelector('select[name="report_period"]');
-            const exportFormat = form.querySelector('select[name="export_format"]');
-
             if (!reportType || reportType.value === "") {
                 event.preventDefault();
-                showWarningModal("Please select a report type.");
+                warn("Please select a report type.");
                 reportType?.focus();
                 return;
             }
 
-            if (!period || period.value === "") {
+            if (!reportPeriod || reportPeriod.value === "") {
                 event.preventDefault();
-                showWarningModal("Please select a time period.");
-                period?.focus();
+                warn("Please select a time period.");
+                reportPeriod?.focus();
                 return;
             }
 
-            if (period.value === "custom_range") {
-                if (!startDate || startDate.value === "") {
+            if (reportPeriod.value === "custom_range") {
+                if (!startDate || startDate.value === "" || !endDate || endDate.value === "") {
                     event.preventDefault();
-                    showWarningModal("Please select a start date.");
-                    startDate?.focus();
-                    return;
-                }
-
-                if (!endDate || endDate.value === "") {
-                    event.preventDefault();
-                    showWarningModal("Please select an end date.");
-                    endDate?.focus();
+                    warn("Please select start date and end date.");
                     return;
                 }
 
                 if (startDate.value > endDate.value) {
                     event.preventDefault();
-                    showWarningModal("Start date cannot be after the end date.");
-                    startDate.focus();
-                    return;
+                    warn("Start date cannot be after the end date.");
                 }
-            }
-
-            if (!exportFormat || exportFormat.value === "") {
-                event.preventDefault();
-                showWarningModal("Please select an export format.");
-                exportFormat?.focus();
             }
         });
     }
 
-    if (autoDownloadReport) {
-        setTimeout(function () {
-            autoDownloadReport.click();
-        }, 600);
+    if (downloadForm && previewCard) {
+        downloadForm.addEventListener("submit", function () {
+            const hiddenFormat = downloadForm.querySelector('input[name="export_format"]');
+            if (hiddenFormat && exportFormat) {
+                hiddenFormat.value = exportFormat.value;
+            }
+
+            downloadPending = true;
+
+            if (collapseTimer) {
+                window.clearTimeout(collapseTimer);
+            }
+
+            collapseTimer = window.setTimeout(function () {
+                if (downloadPending) {
+                    previewCard.classList.add("is-collapsed");
+                }
+            }, 700);
+        });
     }
 
-    toggleCustomRange();
+    if (downloadFrame && previewCard) {
+        downloadFrame.addEventListener("load", function () {
+            if (!downloadPending) return;
+
+            try {
+                const frameDoc = downloadFrame.contentDocument || downloadFrame.contentWindow.document;
+                const bodyText = frameDoc && frameDoc.body ? frameDoc.body.textContent.trim() : "";
+
+                if (bodyText !== "") {
+                    downloadPending = false;
+                    if (collapseTimer) window.clearTimeout(collapseTimer);
+                    previewCard.classList.remove("is-collapsed");
+                    warn("Download failed. Please try again.");
+                }
+            } catch (error) {
+                // Successful file downloads normally do not expose iframe contents.
+            }
+        });
+    }
 });

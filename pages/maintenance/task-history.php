@@ -3,7 +3,9 @@ $pageTitle = "Task History";
 $activePage = "task-history";
 
 require_once "../../config.php";
+$allowed_roles = ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"];
 require_once "../../auth/session_check.php";
+require_once "../../includes/maintenance/access_control.php";
 
 $userId = $_SESSION['user_id'] ?? 0;
 

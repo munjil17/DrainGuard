@@ -16,6 +16,7 @@ $searchCode = trim($_GET["code"] ?? "");
 $complaint = null;
 $mediaFiles = [];
 $statusLogs = [];
+$reopenHistory = null;
 $decision = null;
 $errorMessage = "";
 
@@ -220,6 +221,91 @@ function makeMediaPath($path)
     return "../../" . ltrim($path, "/");
 }
 
+function tcTableExists($conn, $tableName)
+{
+    $safeTable = mysqli_real_escape_string($conn, $tableName);
+    $result = mysqli_query($conn, "SHOW TABLES LIKE '{$safeTable}'");
+    return $result && mysqli_num_rows($result) > 0;
+}
+
+function tcFetchReopenHistory($conn, $complaintId, $complaint)
+{
+    $complaintId = (int)$complaintId;
+
+    if ($complaintId <= 0) {
+        return null;
+    }
+
+    $currentStatus = normalizeComplaintStatus($complaint["complaint_status"] ?? "");
+    if ($currentStatus === "reopened") {
+        return [
+            "remarks" => timelineDescription("reopened"),
+            "created_at" => $complaint["updated_at"] ?? ""
+        ];
+    }
+
+    if ((int)($complaint["parent_complaint_id"] ?? 0) > 0 || (int)($complaint["is_repeat_complaint"] ?? 0) === 1) {
+        return [
+            "remarks" => timelineDescription("reopened"),
+            "created_at" => $complaint["updated_at"] ?? ""
+        ];
+    }
+
+    if (tcTableExists($conn, "reopen_requests")) {
+        $sql = "
+            SELECT reason, created_at
+            FROM reopen_requests
+            WHERE complaint_id = ?
+            ORDER BY created_at ASC, reopen_id ASC
+            LIMIT 1
+        ";
+        $stmt = mysqli_prepare($conn, $sql);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "i", $complaintId);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $row = $result ? mysqli_fetch_assoc($result) : null;
+            mysqli_stmt_close($stmt);
+
+            if ($row) {
+                $reason = trim((string)($row["reason"] ?? ""));
+                return [
+                    "remarks" => $reason !== "" ? $reason : timelineDescription("reopened"),
+                    "created_at" => $row["created_at"] ?? ""
+                ];
+            }
+        }
+    }
+
+    if (tcTableExists($conn, "false_completion_reviews")) {
+        $sql = "
+            SELECT inspector_claim_note, created_at
+            FROM false_completion_reviews
+            WHERE complaint_id = ?
+            ORDER BY created_at ASC, review_id ASC
+            LIMIT 1
+        ";
+        $stmt = mysqli_prepare($conn, $sql);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "i", $complaintId);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $row = $result ? mysqli_fetch_assoc($result) : null;
+            mysqli_stmt_close($stmt);
+
+            if ($row) {
+                $note = trim((string)($row["inspector_claim_note"] ?? ""));
+                return [
+                    "remarks" => $note !== "" ? $note : timelineDescription("reopened"),
+                    "created_at" => $row["created_at"] ?? ""
+                ];
+            }
+        }
+    }
+
+    return null;
+}
+
 /*
 |--------------------------------------------------------------------------
 | Final Timeline Path Logic
@@ -336,6 +422,8 @@ if ($searchCode !== "") {
             c.address_description,
             c.problem_description,
             c.complaint_status,
+            c.parent_complaint_id,
+            c.is_repeat_complaint,
             c.work_started_at,
             c.submitted_at,
             c.updated_at,
@@ -523,6 +611,8 @@ if ($searchCode !== "") {
 
                 mysqli_stmt_close($decisionStmt);
             }
+
+            $reopenHistory = tcFetchReopenHistory($conn, (int)$complaint["complaint_id"], $complaint);
         } else {
             $errorMessage = "No complaint found with this ID under your account.";
         }
@@ -538,9 +628,8 @@ if ($searchCode !== "") {
 | Timeline Construction
 |--------------------------------------------------------------------------
 | Fixed:
-| Logs are used only for timestamp/remarks.
-| Logs do not decide visible steps.
-| Visible steps always come from complaints.complaint_status path.
+| Reopen is a historical milestone. Logs and reopen tables are used to
+| preserve that milestone after later workflow statuses replace reopened.
 |--------------------------------------------------------------------------
 */
 $currentStatus = $complaint ? normalizeComplaintStatus($complaint["complaint_status"] ?? "submitted") : "";
@@ -560,8 +649,16 @@ if ($complaint) {
         }
     }
 
-    $wasReopened = isset($statusLogMap["reopened"]) || $currentStatus === "reopened";
+    $wasReopened = isset($statusLogMap["reopened"]) || $reopenHistory !== null;
     $timelineStatuses = buildFallbackTimeline($currentStatus, $wasReopened);
+
+    if ($wasReopened && !isset($statusLogMap["reopened"])) {
+        $statusLogMap["reopened"] = [
+            "new_status" => "reopened",
+            "remarks" => $reopenHistory["remarks"] ?? timelineDescription("reopened"),
+            "created_at" => $reopenHistory["created_at"] ?? ($complaint["updated_at"] ?? "")
+        ];
+    }
 
     if (!isset($statusLogMap["submitted"]) && !empty($complaint["submitted_at"])) {
         $statusLogMap["submitted"] = [

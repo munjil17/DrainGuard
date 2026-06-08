@@ -28,31 +28,104 @@ $baseUrl = "/DrainGuard/";
 
 /* =========================================================
    SMTP CONFIGURATION
-   Set these in your local environment before using forgot password:
-   DG_SMTP_USERNAME, DG_SMTP_PASSWORD, optional DG_SMTP_FROM_EMAIL.
+   Local credentials are loaded from .env in the project root.
+   Never commit real SMTP credentials to source control.
 ========================================================= */
+function dg_load_env_file($envPath)
+{
+    if (!is_readable($envPath)) {
+        return;
+    }
+
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines === false) {
+        return;
+    }
+
+    foreach ($lines as $line) {
+        $line = trim($line);
+
+        if ($line === "" || strpos($line, "#") === 0) {
+            continue;
+        }
+
+        $equalsPos = strpos($line, "=");
+        if ($equalsPos === false) {
+            continue;
+        }
+
+        $key = trim(substr($line, 0, $equalsPos));
+        $value = trim(substr($line, $equalsPos + 1));
+
+        if ($key === "") {
+            continue;
+        }
+
+        if (
+            (strlen($value) >= 2) &&
+            (($value[0] === '"' && substr($value, -1) === '"') ||
+             ($value[0] === "'" && substr($value, -1) === "'"))
+        ) {
+            $value = substr($value, 1, -1);
+        }
+
+        if (getenv($key) === false) {
+            putenv($key . "=" . $value);
+        }
+
+        if (!isset($_ENV[$key])) {
+            $_ENV[$key] = $value;
+        }
+
+        if (!isset($_SERVER[$key])) {
+            $_SERVER[$key] = $value;
+        }
+    }
+}
+
+dg_load_env_file(__DIR__ . DIRECTORY_SEPARATOR . ".env");
+
+function dg_env($key, $default = "")
+{
+    $value = getenv($key);
+    if ($value === false || $value === "") {
+        return $default;
+    }
+
+    return $value;
+}
+
 if (!defined("DG_SMTP_HOST")) {
-    define("DG_SMTP_HOST", getenv("DG_SMTP_HOST") ?: "smtp.gmail.com");
+    define("DG_SMTP_HOST", dg_env("SMTP_HOST", ""));
 }
 
 if (!defined("DG_SMTP_PORT")) {
-    define("DG_SMTP_PORT", (int)(getenv("DG_SMTP_PORT") ?: 587));
+    define("DG_SMTP_PORT", (int)dg_env("SMTP_PORT", 587));
 }
 
 if (!defined("DG_SMTP_USERNAME")) {
-    define("DG_SMTP_USERNAME", getenv("DG_SMTP_USERNAME") ?: "munjilislambd17@gmail.com");
+    define("DG_SMTP_USERNAME", dg_env("SMTP_USERNAME", ""));
 }
 
 if (!defined("DG_SMTP_PASSWORD")) {
-    define("DG_SMTP_PASSWORD", getenv("DG_SMTP_PASSWORD") ?: "jrmbycmwjbncojph");
+    define("DG_SMTP_PASSWORD", dg_env("SMTP_PASSWORD", ""));
 }
 
 if (!defined("DG_SMTP_FROM_EMAIL")) {
-    define("DG_SMTP_FROM_EMAIL", getenv("DG_SMTP_FROM_EMAIL") ?: DG_SMTP_USERNAME);
+    define("DG_SMTP_FROM_EMAIL", dg_env("SMTP_FROM_EMAIL", DG_SMTP_USERNAME));
 }
 
 if (!defined("DG_SMTP_FROM_NAME")) {
-    define("DG_SMTP_FROM_NAME", getenv("DG_SMTP_FROM_NAME") ?: "DrainGuard Support");
+    define("DG_SMTP_FROM_NAME", dg_env("SMTP_FROM_NAME", "DrainGuard"));
+}
+
+function dg_smtp_is_configured()
+{
+    return DG_SMTP_HOST !== ""
+        && DG_SMTP_PORT > 0
+        && DG_SMTP_USERNAME !== ""
+        && DG_SMTP_PASSWORD !== ""
+        && DG_SMTP_FROM_EMAIL !== "";
 }
 
 /* =========================================================

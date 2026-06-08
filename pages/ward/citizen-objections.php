@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/notification_workflow_cleanup.php';
 
 if (!isset($conn) && isset($connection)) {
     $conn = $connection;
@@ -434,6 +435,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_true', 'Citizen Claim Marked True', ?, 0, NOW())";
             $notifStmt = mysqli_prepare($conn, $citNotifSql);
             if ($notifStmt) {
+                dg_cleanup_workflow_notifications($conn, "citizen_notifications", (int)$allowedRequest['requested_by'], $complaintId, "ward_citizen_claim_true");
                 mysqli_stmt_bind_param($notifStmt, "iiis", $allowedRequest['requested_by'], $userId, $complaintId, $citNotifMsg);
                 mysqli_stmt_execute($notifStmt);
                 mysqli_stmt_close($notifStmt);
@@ -445,7 +447,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $cenUserIdCO = (int)$cenRowCO['assigned_by'];
                 $cenMsgCO = "Ward Officer marked the citizen claim as true for complaint. The objection has been accepted and case reopened.";
                 $cenNotifCO = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_true', 'Citizen Claim Marked True', ?, 0, NOW())");
-                if ($cenNotifCO) { mysqli_stmt_bind_param($cenNotifCO, "iiis", $cenUserIdCO, $userId, $complaintId, $cenMsgCO); mysqli_stmt_execute($cenNotifCO); mysqli_stmt_close($cenNotifCO); }
+                if ($cenNotifCO) { dg_cleanup_workflow_notifications($conn, "central_notifications", $cenUserIdCO, $complaintId, "ward_citizen_claim_true"); mysqli_stmt_bind_param($cenNotifCO, "iiis", $cenUserIdCO, $userId, $complaintId, $cenMsgCO); mysqli_stmt_execute($cenNotifCO); mysqli_stmt_close($cenNotifCO); }
             }
 
             // Inspector notification (Core Rule)
@@ -454,7 +456,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $insUserIdCO = (int)$insRowCO['inspector_user_id'];
                 $insMsgCO = "Ward Officer marked the citizen claim as true for this complaint. Please check the updated case status in Inspection Logs.";
                 $insNotifCO = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_true', 'Citizen Claim Marked True', ?, 0, NOW())");
-                if ($insNotifCO) { mysqli_stmt_bind_param($insNotifCO, "iiis", $insUserIdCO, $userId, $complaintId, $insMsgCO); mysqli_stmt_execute($insNotifCO); mysqli_stmt_close($insNotifCO); }
+                if ($insNotifCO) { dg_cleanup_workflow_notifications($conn, "inspector_notifications", $insUserIdCO, $complaintId, "ward_citizen_claim_true"); mysqli_stmt_bind_param($insNotifCO, "iiis", $insUserIdCO, $userId, $complaintId, $insMsgCO); mysqli_stmt_execute($insNotifCO); mysqli_stmt_close($insNotifCO); }
             }
 
         } else {
@@ -488,6 +490,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $citNotifSql = "INSERT INTO citizen_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_false', 'Citizen Claim Marked False', ?, 0, NOW())";
             $notifStmt = mysqli_prepare($conn, $citNotifSql);
             if ($notifStmt) {
+                dg_cleanup_workflow_notifications($conn, "citizen_notifications", $citizenUserId, $complaintId, "ward_citizen_claim_false");
                 mysqli_stmt_bind_param($notifStmt, "iiis", $citizenUserId, $userId, $complaintId, $citNotifMsg);
                 mysqli_stmt_execute($notifStmt);
                 mysqli_stmt_close($notifStmt);
@@ -499,7 +502,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $cenUserIdCF = (int)$cenRowCF['assigned_by'];
                 $cenMsgCF = "Ward Officer marked the citizen claim as false for this complaint. The objection was rejected.";
                 $cenNotifCF = mysqli_prepare($conn, "INSERT INTO central_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_false', 'Citizen Claim Marked False', ?, 0, NOW())");
-                if ($cenNotifCF) { mysqli_stmt_bind_param($cenNotifCF, "iiis", $cenUserIdCF, $userId, $complaintId, $cenMsgCF); mysqli_stmt_execute($cenNotifCF); mysqli_stmt_close($cenNotifCF); }
+                if ($cenNotifCF) { dg_cleanup_workflow_notifications($conn, "central_notifications", $cenUserIdCF, $complaintId, "ward_citizen_claim_false"); mysqli_stmt_bind_param($cenNotifCF, "iiis", $cenUserIdCF, $userId, $complaintId, $cenMsgCF); mysqli_stmt_execute($cenNotifCF); mysqli_stmt_close($cenNotifCF); }
             }
 
             // Inspector notification (Core Rule)
@@ -508,7 +511,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $insUserIdCF = (int)$insRowCF['inspector_user_id'];
                 $insMsgCF = "Ward Officer marked the citizen claim as false for this complaint. Please check the updated case in Inspection Logs.";
                 $insNotifCF = mysqli_prepare($conn, "INSERT INTO inspector_notifications (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, 'ward_citizen_claim_false', 'Citizen Claim Marked False', ?, 0, NOW())");
-                if ($insNotifCF) { mysqli_stmt_bind_param($insNotifCF, "iiis", $insUserIdCF, $userId, $complaintId, $insMsgCF); mysqli_stmt_execute($insNotifCF); mysqli_stmt_close($insNotifCF); }
+                if ($insNotifCF) { dg_cleanup_workflow_notifications($conn, "inspector_notifications", $insUserIdCF, $complaintId, "ward_citizen_claim_false"); mysqli_stmt_bind_param($insNotifCF, "iiis", $insUserIdCF, $userId, $complaintId, $insMsgCF); mysqli_stmt_execute($insNotifCF); mysqli_stmt_close($insNotifCF); }
             }
         }
 

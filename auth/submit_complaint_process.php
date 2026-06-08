@@ -1,6 +1,7 @@
 <?php
 
 require_once "../config.php";
+require_once "../includes/notification_workflow_cleanup.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     redirect_to("pages/citizen/submit-complaint.php");
@@ -1229,6 +1230,7 @@ try {
 
             while ($coRow = mysqli_fetch_assoc($centralNotifResult)) {
                 $recipientId = (int)$coRow['user_id'];
+                dg_cleanup_workflow_notifications($conn, "central_notifications", $recipientId, $complaintId, "complaint_submitted");
                 if (!mysqli_stmt_execute($insertCentralNotifStmt)) {
                     throw new Exception("Unable to complete this action. Please try again.");
                 }

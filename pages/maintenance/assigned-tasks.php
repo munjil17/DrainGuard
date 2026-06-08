@@ -3,7 +3,10 @@ $pageTitle = "Assigned Tasks";
 $activePage = "assigned-tasks";
 
 require_once "../../config.php";
+$allowed_roles = ["maintenance_team", "maintenance_member", "team_leader", "assistant_team_leader"];
 require_once "../../auth/session_check.php";
+require_once "../../includes/maintenance/access_control.php";
+require_once "../../includes/notification_workflow_cleanup.php";
 
 $userId = $_SESSION['user_id'] ?? 0;
 
@@ -13,6 +16,8 @@ $userId = $_SESSION['user_id'] ?? 0;
 if (!function_exists('insertNotification')) {
     function insertNotification($conn, $table, $recipientId, $senderId, $complaintId, $type, $title, $message) {
         if ($recipientId <= 0) return false;
+
+        dg_cleanup_workflow_notifications($conn, $table, $recipientId, $complaintId, $type);
         
         $sql = "INSERT INTO `$table` (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
         $stmt = mysqli_prepare($conn, $sql);
@@ -63,6 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
             ON mt.maintenance_team_id = ca.maintenance_team_id
         WHERE ca.assignment_id = ?
         AND mtm.user_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
         LIMIT 1
     ";
 
@@ -418,6 +428,11 @@ if ($teamId > 0) {
         ) msr
             ON msr.assignment_id = ca.assignment_id
         WHERE ca.maintenance_team_id = ?
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = ca.complaint_id
+        )
         AND ca.assignment_status = 'team_assigned'
         AND c.complaint_status = 'team_assigned'
         ORDER BY
