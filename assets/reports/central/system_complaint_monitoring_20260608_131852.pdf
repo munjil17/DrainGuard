@@ -1,0 +1,1372 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 7301 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.05 0.24 0.28 rg
+BT /F2 16 Tf 150.86 780 Td (System-wide Complaint Monitoring Report) Tj ET
+0.02 0.46 0.42 RG
+34 762 m 561 762 l S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 738 Td (Filter Summary) Tj ET
+0.90 0.96 0.97 rg
+34 708 527 20 re f
+0.72 0.80 0.84 RG
+34 708 527 20 re S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 715 Td (Filter) Tj ET
+BT /F2 8 Tf 212 715 Td (Selected Value) Tj ET
+1 1 1 rg
+34 686 527 22 re f
+0.78 0.85 0.88 RG
+34 686 527 22 re S
+34 686 m 34 708 l S
+204 686 m 204 708 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 695 Td (Report Type) Tj ET
+BT /F1 8 Tf 212 695 Td (System-wide Complaint Monitoring Report) Tj ET
+1 1 1 rg
+34 664 527 22 re f
+0.78 0.85 0.88 RG
+34 664 527 22 re S
+34 664 m 34 686 l S
+204 664 m 204 686 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 673 Td (Time Period) Tj ET
+BT /F1 8 Tf 212 673 Td (Last 30 Days) Tj ET
+1 1 1 rg
+34 642 527 22 re f
+0.78 0.85 0.88 RG
+34 642 527 22 re S
+34 642 m 34 664 l S
+204 642 m 204 664 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 651 Td (Date Range) Tj ET
+BT /F1 8 Tf 212 651 Td (May 10, 2026 - Jun 08, 2026) Tj ET
+1 1 1 rg
+34 620 527 22 re f
+0.78 0.85 0.88 RG
+34 620 527 22 re S
+34 620 m 34 642 l S
+204 620 m 204 642 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 629 Td (City Corporation) Tj ET
+BT /F1 8 Tf 212 629 Td (All City Corporations) Tj ET
+1 1 1 rg
+34 598 527 22 re f
+0.78 0.85 0.88 RG
+34 598 527 22 re S
+34 598 m 34 620 l S
+204 598 m 204 620 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 607 Td (Thana) Tj ET
+BT /F1 8 Tf 212 607 Td (All Thanas) Tj ET
+1 1 1 rg
+34 576 527 22 re f
+0.78 0.85 0.88 RG
+34 576 527 22 re S
+34 576 m 34 598 l S
+204 576 m 204 598 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 585 Td (Ward) Tj ET
+BT /F1 8 Tf 212 585 Td (All Wards) Tj ET
+1 1 1 rg
+34 554 527 22 re f
+0.78 0.85 0.88 RG
+34 554 527 22 re S
+34 554 m 34 576 l S
+204 554 m 204 576 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 563 Td (Area) Tj ET
+BT /F1 8 Tf 212 563 Td (All Areas) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 535 Td (KPI Summary) Tj ET
+0.97 0.99 1 rg
+34 471 125.75 54 re f
+0.76 0.84 0.88 RG
+34 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 510 Td (Total Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 481 Td (72) Tj ET
+0.97 0.99 1 rg
+167.75 471 125.75 54 re f
+0.76 0.84 0.88 RG
+167.75 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 174.75 510 Td (Submitted Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 174.75 481 Td (0) Tj ET
+0.97 0.99 1 rg
+301.5 471 125.75 54 re f
+0.76 0.84 0.88 RG
+301.5 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 308.5 510 Td (Received Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 308.5 481 Td (2) Tj ET
+0.97 0.99 1 rg
+435.25 471 125.75 54 re f
+0.76 0.84 0.88 RG
+435.25 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 442.25 510 Td (Pending Verification) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 442.25 481 Td (14) Tj ET
+0.97 0.99 1 rg
+34 409 125.75 54 re f
+0.76 0.84 0.88 RG
+34 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 448 Td (Verified Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 419 Td (3) Tj ET
+0.97 0.99 1 rg
+167.75 409 125.75 54 re f
+0.76 0.84 0.88 RG
+167.75 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 174.75 448 Td (Team Assigned) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 174.75 419 Td (2) Tj ET
+0.97 0.99 1 rg
+301.5 409 125.75 54 re f
+0.76 0.84 0.88 RG
+301.5 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 308.5 448 Td (In Progress) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 308.5 419 Td (3) Tj ET
+0.97 0.99 1 rg
+435.25 409 125.75 54 re f
+0.76 0.84 0.88 RG
+435.25 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 442.25 448 Td (Solved by Team) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 442.25 419 Td (3) Tj ET
+0.97 0.99 1 rg
+34 347 125.75 54 re f
+0.76 0.84 0.88 RG
+34 347 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 386 Td (Inspector) Tj ET
+BT /F2 7 Tf 41 378 Td (Verification) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 357 Td (0) Tj ET
+0.97 0.99 1 rg
+167.75 347 125.75 54 re f
+0.76 0.84 0.88 RG
+167.75 347 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 174.75 386 Td (Closed Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 174.75 357 Td (11) Tj ET
+0.97 0.99 1 rg
+301.5 347 125.75 54 re f
+0.76 0.84 0.88 RG
+301.5 347 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 308.5 386 Td (Reopened Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 308.5 357 Td (7) Tj ET
+0.97 0.99 1 rg
+435.25 347 125.75 54 re f
+0.76 0.84 0.88 RG
+435.25 347 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 442.25 386 Td (Rejected Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 442.25 357 Td (18) Tj ET
+0.97 0.99 1 rg
+34 285 125.75 54 re f
+0.76 0.84 0.88 RG
+34 285 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 324 Td (Duplicate Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 295 Td (6) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 262 Td (Data Snapshot) Tj ET
+0.98 0.99 1 rg
+34 200 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+34 200 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 235 Td (Total Complaints) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 41 216 Td (72) Tj ET
+0.98 0.99 1 rg
+212.33333333333 200 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+212.33333333333 200 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 219.33333333333 235 Td (Submitted Complaints) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 219.33333333333 216 Td (0) Tj ET
+0.98 0.99 1 rg
+390.66666666667 200 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+390.66666666667 200 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 397.66666666667 235 Td (Received Complaints) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 397.66666666667 216 Td (2) Tj ET
+0.98 0.99 1 rg
+34 142 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+34 142 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 177 Td (Pending Verification) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 41 158 Td (14) Tj ET
+0.98 0.99 1 rg
+212.33333333333 142 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+212.33333333333 142 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 219.33333333333 177 Td (Verified Complaints) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 219.33333333333 158 Td (3) Tj ET
+0.98 0.99 1 rg
+390.66666666667 142 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+390.66666666667 142 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 397.66666666667 177 Td (Team Assigned) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 397.66666666667 158 Td (2) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 121 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 79 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 97 Td (Complaint Code) Tj ET
+BT /F2 6 Tf 103.875 97 Td (Issue Type) Tj ET
+BT /F2 6 Tf 169.75 97 Td (Ward) Tj ET
+BT /F2 6 Tf 235.625 97 Td (Area) Tj ET
+BT /F2 6 Tf 301.5 97 Td (Current Status) Tj ET
+BT /F2 6 Tf 367.375 97 Td (Priority) Tj ET
+BT /F2 6 Tf 433.25 97 Td (Submitted Date) Tj ET
+BT /F2 6 Tf 499.125 97 Td (Last Updated) Tj ET
+BT /F2 6 Tf 499.125 89 Td (Date) Tj ET
+0.99 1 1 rg
+34 51 527 28 re f
+0.80 0.86 0.89 RG
+34 51 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 66 Td (DG-20260608-34710) Tj ET
+BT /F1 6 Tf 103.875 66 Td (Collapsed Drain) Tj ET
+BT /F1 6 Tf 103.875 58 Td (Structure) Tj ET
+BT /F1 6 Tf 169.75 66 Td (Ward 3) Tj ET
+BT /F1 6 Tf 235.625 66 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 66 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 58 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 66 Td (High) Tj ET
+BT /F1 6 Tf 433.25 66 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 66 Td (Jun 08, 2026) Tj ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 12783 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 780 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 738 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 756 Td (Complaint Code) Tj ET
+BT /F2 6 Tf 103.875 756 Td (Issue Type) Tj ET
+BT /F2 6 Tf 169.75 756 Td (Ward) Tj ET
+BT /F2 6 Tf 235.625 756 Td (Area) Tj ET
+BT /F2 6 Tf 301.5 756 Td (Current Status) Tj ET
+BT /F2 6 Tf 367.375 756 Td (Priority) Tj ET
+BT /F2 6 Tf 433.25 756 Td (Submitted Date) Tj ET
+BT /F2 6 Tf 499.125 756 Td (Last Updated) Tj ET
+BT /F2 6 Tf 499.125 748 Td (Date) Tj ET
+1 1 1 rg
+34 710 527 28 re f
+0.80 0.86 0.89 RG
+34 710 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 725 Td (DG-20260608-89932) Tj ET
+BT /F1 6 Tf 103.875 725 Td (Slow Drainage) Tj ET
+BT /F1 6 Tf 169.75 725 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 725 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 725 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 301.5 717 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 367.375 725 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 725 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 725 Td (Jun 08, 2026) Tj ET
+0.99 1 1 rg
+34 682 527 28 re f
+0.80 0.86 0.89 RG
+34 682 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 697 Td (DG-20260608-54305) Tj ET
+BT /F1 6 Tf 103.875 697 Td (Missing Drain) Tj ET
+BT /F1 6 Tf 103.875 689 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 697 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 697 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 697 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 697 Td (High) Tj ET
+BT /F1 6 Tf 433.25 697 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 697 Td (Jun 08, 2026) Tj ET
+1 1 1 rg
+34 658 527 24 re f
+0.80 0.86 0.89 RG
+34 658 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 669 Td (DG-20260608-95690) Tj ET
+BT /F1 6 Tf 103.875 669 Td (Drain Backflow) Tj ET
+BT /F1 6 Tf 169.75 669 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 669 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 669 Td (FINAL REJECTED) Tj ET
+BT /F1 6 Tf 367.375 669 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 669 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 669 Td (Jun 08, 2026) Tj ET
+0.99 1 1 rg
+34 634 527 24 re f
+0.80 0.86 0.89 RG
+34 634 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 645 Td (DG-20260608-63720) Tj ET
+BT /F1 6 Tf 103.875 645 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 169.75 645 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 645 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 645 Td (REOPENED) Tj ET
+BT /F1 6 Tf 367.375 645 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 645 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 645 Td (Jun 08, 2026) Tj ET
+1 1 1 rg
+34 610 527 24 re f
+0.80 0.86 0.89 RG
+34 610 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 621 Td (DG-20260608-17681) Tj ET
+BT /F1 6 Tf 103.875 621 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 169.75 621 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 621 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 621 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 621 Td (High) Tj ET
+BT /F1 6 Tf 433.25 621 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 621 Td (Jun 08, 2026) Tj ET
+0.99 1 1 rg
+34 582 527 28 re f
+0.80 0.86 0.89 RG
+34 582 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 597 Td (DG-20260608-93196) Tj ET
+BT /F1 6 Tf 103.875 597 Td (Water) Tj ET
+BT /F1 6 Tf 103.875 589 Td (Contamination) Tj ET
+BT /F1 6 Tf 169.75 597 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 597 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 597 Td (DUPLICATE) Tj ET
+BT /F1 6 Tf 367.375 597 Td (High) Tj ET
+BT /F1 6 Tf 433.25 597 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 597 Td (Jun 08, 2026) Tj ET
+1 1 1 rg
+34 558 527 24 re f
+0.80 0.86 0.89 RG
+34 558 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 569 Td (DG-20260608-30312) Tj ET
+BT /F1 6 Tf 103.875 569 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 569 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 569 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 569 Td (REOPENED) Tj ET
+BT /F1 6 Tf 367.375 569 Td (High) Tj ET
+BT /F1 6 Tf 433.25 569 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 569 Td (Jun 08, 2026) Tj ET
+0.99 1 1 rg
+34 530 527 28 re f
+0.80 0.86 0.89 RG
+34 530 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 545 Td (DG-20260608-53094) Tj ET
+BT /F1 6 Tf 103.875 545 Td (Garbage) Tj ET
+BT /F1 6 Tf 103.875 537 Td (Accumulation) Tj ET
+BT /F1 6 Tf 169.75 545 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 545 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 545 Td (VERIFIED by WARD) Tj ET
+BT /F1 6 Tf 367.375 545 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 545 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 545 Td (Jun 08, 2026) Tj ET
+1 1 1 rg
+34 502 527 28 re f
+0.80 0.86 0.89 RG
+34 502 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 517 Td (DG-20260608-34853) Tj ET
+BT /F1 6 Tf 103.875 517 Td (Broken Drain) Tj ET
+BT /F1 6 Tf 103.875 509 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 517 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 517 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 517 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 517 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 517 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 517 Td (Jun 08, 2026) Tj ET
+0.99 1 1 rg
+34 478 527 24 re f
+0.80 0.86 0.89 RG
+34 478 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 489 Td (DG-20260608-66757) Tj ET
+BT /F1 6 Tf 103.875 489 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 489 Td (Ward 75) Tj ET
+BT /F1 6 Tf 235.625 489 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 489 Td (VERIFIED by WARD) Tj ET
+BT /F1 6 Tf 367.375 489 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 489 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 489 Td (Jun 08, 2026) Tj ET
+1 1 1 rg
+34 454 527 24 re f
+0.80 0.86 0.89 RG
+34 454 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 465 Td (DG-20260608-52779) Tj ET
+BT /F1 6 Tf 103.875 465 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 465 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 465 Td (Jagannathpur) Tj ET
+BT /F1 6 Tf 301.5 465 Td (SOLVED by TEAM) Tj ET
+BT /F1 6 Tf 367.375 465 Td (High) Tj ET
+BT /F1 6 Tf 433.25 465 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 465 Td (Jun 08, 2026) Tj ET
+0.99 1 1 rg
+34 426 527 28 re f
+0.80 0.86 0.89 RG
+34 426 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 441 Td (DG-20260607-28326) Tj ET
+BT /F1 6 Tf 103.875 441 Td (Missing Drain) Tj ET
+BT /F1 6 Tf 103.875 433 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 441 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 441 Td (Khulna Sadar) Tj ET
+BT /F1 6 Tf 235.625 433 Td (Central Area) Tj ET
+BT /F1 6 Tf 301.5 441 Td (RECEIVED) Tj ET
+BT /F1 6 Tf 367.375 441 Td (High) Tj ET
+BT /F1 6 Tf 433.25 441 Td (Jun 07, 2026) Tj ET
+BT /F1 6 Tf 499.125 441 Td (Jun 07, 2026) Tj ET
+1 1 1 rg
+34 398 527 28 re f
+0.80 0.86 0.89 RG
+34 398 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 413 Td (DG-20260606-21770) Tj ET
+BT /F1 6 Tf 103.875 413 Td (Illegal Waste) Tj ET
+BT /F1 6 Tf 103.875 405 Td (Dumping) Tj ET
+BT /F1 6 Tf 169.75 413 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 413 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 413 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 413 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 413 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 413 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 374 527 24 re f
+0.80 0.86 0.89 RG
+34 374 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 385 Td (DG-20260606-59215) Tj ET
+BT /F1 6 Tf 103.875 385 Td (Slow Drainage) Tj ET
+BT /F1 6 Tf 169.75 385 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 385 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 385 Td (IN PROGRESS) Tj ET
+BT /F1 6 Tf 367.375 385 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 385 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 385 Td (Jun 07, 2026) Tj ET
+1 1 1 rg
+34 346 527 28 re f
+0.80 0.86 0.89 RG
+34 346 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 361 Td (DG-20260606-40572) Tj ET
+BT /F1 6 Tf 103.875 361 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 169.75 361 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 361 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 361 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 301.5 353 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 367.375 361 Td (High) Tj ET
+BT /F1 6 Tf 433.25 361 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 361 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 322 527 24 re f
+0.80 0.86 0.89 RG
+34 322 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 333 Td (DG-20260606-40540) Tj ET
+BT /F1 6 Tf 103.875 333 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 333 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 333 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 333 Td (DUPLICATE) Tj ET
+BT /F1 6 Tf 367.375 333 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 333 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 333 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 298 527 24 re f
+0.80 0.86 0.89 RG
+34 298 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 309 Td (DG-20260606-41105) Tj ET
+BT /F1 6 Tf 103.875 309 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 169.75 309 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 309 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 309 Td (IN PROGRESS) Tj ET
+BT /F1 6 Tf 367.375 309 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 309 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 309 Td (Jun 07, 2026) Tj ET
+0.99 1 1 rg
+34 270 527 28 re f
+0.80 0.86 0.89 RG
+34 270 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 285 Td (DG-20260606-38440) Tj ET
+BT /F1 6 Tf 103.875 285 Td (Garbage) Tj ET
+BT /F1 6 Tf 103.875 277 Td (Accumulation) Tj ET
+BT /F1 6 Tf 169.75 285 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 285 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 285 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 285 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 285 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 285 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 246 527 24 re f
+0.80 0.86 0.89 RG
+34 246 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 257 Td (DG-20260606-34119) Tj ET
+BT /F1 6 Tf 103.875 257 Td (Waterlogging) Tj ET
+BT /F1 6 Tf 169.75 257 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 257 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 257 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 257 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 257 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 257 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 222 527 24 re f
+0.80 0.86 0.89 RG
+34 222 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 233 Td (DG-20260606-56475) Tj ET
+BT /F1 6 Tf 103.875 233 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 233 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 233 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 233 Td (FINAL REJECTED) Tj ET
+BT /F1 6 Tf 367.375 233 Td (High) Tj ET
+BT /F1 6 Tf 433.25 233 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 233 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 198 527 24 re f
+0.80 0.86 0.89 RG
+34 198 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 209 Td (DG-20260606-21337) Tj ET
+BT /F1 6 Tf 103.875 209 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 209 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 209 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 209 Td (TEAM ASSIGNED) Tj ET
+BT /F1 6 Tf 367.375 209 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 209 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 209 Td (Jun 07, 2026) Tj ET
+0.99 1 1 rg
+34 170 527 28 re f
+0.80 0.86 0.89 RG
+34 170 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 185 Td (DG-20260606-57047) Tj ET
+BT /F1 6 Tf 103.875 185 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 185 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 185 Td (Narayanganj Sadar) Tj ET
+BT /F1 6 Tf 235.625 177 Td (Central Area) Tj ET
+BT /F1 6 Tf 301.5 185 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 177 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 185 Td (High) Tj ET
+BT /F1 6 Tf 433.25 185 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 185 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 146 527 24 re f
+0.80 0.86 0.89 RG
+34 146 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 157 Td (DG-20260606-41196) Tj ET
+BT /F1 6 Tf 103.875 157 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 157 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 157 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 157 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 157 Td (High) Tj ET
+BT /F1 6 Tf 433.25 157 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 157 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 118 527 28 re f
+0.80 0.86 0.89 RG
+34 118 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 133 Td (DG-20260606-12561) Tj ET
+BT /F1 6 Tf 103.875 133 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 169.75 133 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 133 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 133 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 301.5 125 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 367.375 133 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 133 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 133 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 90 527 28 re f
+0.80 0.86 0.89 RG
+34 90 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 105 Td (DG-20260606-88399) Tj ET
+BT /F1 6 Tf 103.875 105 Td (Slow Drainage) Tj ET
+BT /F1 6 Tf 169.75 105 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 105 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 105 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 97 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 105 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 105 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 105 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 62 527 28 re f
+0.80 0.86 0.89 RG
+34 62 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 77 Td (DG-20260606-15711) Tj ET
+BT /F1 6 Tf 103.875 77 Td (Garbage) Tj ET
+BT /F1 6 Tf 103.875 69 Td (Accumulation) Tj ET
+BT /F1 6 Tf 169.75 77 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 77 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 77 Td (TEAM ASSIGNED) Tj ET
+BT /F1 6 Tf 367.375 77 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 77 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 77 Td (Jun 06, 2026) Tj ET
+
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 13108 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 780 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 738 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 756 Td (Complaint Code) Tj ET
+BT /F2 6 Tf 103.875 756 Td (Issue Type) Tj ET
+BT /F2 6 Tf 169.75 756 Td (Ward) Tj ET
+BT /F2 6 Tf 235.625 756 Td (Area) Tj ET
+BT /F2 6 Tf 301.5 756 Td (Current Status) Tj ET
+BT /F2 6 Tf 367.375 756 Td (Priority) Tj ET
+BT /F2 6 Tf 433.25 756 Td (Submitted Date) Tj ET
+BT /F2 6 Tf 499.125 756 Td (Last Updated) Tj ET
+BT /F2 6 Tf 499.125 748 Td (Date) Tj ET
+1 1 1 rg
+34 710 527 28 re f
+0.80 0.86 0.89 RG
+34 710 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 725 Td (DG-20260606-66666) Tj ET
+BT /F1 6 Tf 103.875 725 Td (Broken Drain) Tj ET
+BT /F1 6 Tf 103.875 717 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 725 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 725 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 725 Td (DUPLICATE) Tj ET
+BT /F1 6 Tf 367.375 725 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 725 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 725 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 686 527 24 re f
+0.80 0.86 0.89 RG
+34 686 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 697 Td (DG-20260606-81123) Tj ET
+BT /F1 6 Tf 103.875 697 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 169.75 697 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 697 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 697 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 697 Td (High) Tj ET
+BT /F1 6 Tf 433.25 697 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 697 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 662 527 24 re f
+0.80 0.86 0.89 RG
+34 662 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 673 Td (DG-20260606-19649) Tj ET
+BT /F1 6 Tf 103.875 673 Td (Overflowing Drain) Tj ET
+BT /F1 6 Tf 169.75 673 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 673 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 673 Td (REOPENED) Tj ET
+BT /F1 6 Tf 367.375 673 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 673 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 673 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 634 527 28 re f
+0.80 0.86 0.89 RG
+34 634 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 649 Td (DG-20260606-18858) Tj ET
+BT /F1 6 Tf 103.875 649 Td (Bad Odor) Tj ET
+BT /F1 6 Tf 169.75 649 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 649 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 649 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 641 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 649 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 649 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 649 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 610 527 24 re f
+0.80 0.86 0.89 RG
+34 610 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 621 Td (DG-20260606-76261) Tj ET
+BT /F1 6 Tf 103.875 621 Td (Waterlogging) Tj ET
+BT /F1 6 Tf 169.75 621 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 621 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 621 Td (REOPENED) Tj ET
+BT /F1 6 Tf 367.375 621 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 621 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 621 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 586 527 24 re f
+0.80 0.86 0.89 RG
+34 586 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 597 Td (DG-20260606-63863) Tj ET
+BT /F1 6 Tf 103.875 597 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 597 Td (Ward 33) Tj ET
+BT /F1 6 Tf 235.625 597 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 597 Td (FINAL REJECTED) Tj ET
+BT /F1 6 Tf 367.375 597 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 597 Td (Jun 06, 2026) Tj ET
+BT /F1 6 Tf 499.125 597 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 558 527 28 re f
+0.80 0.86 0.89 RG
+34 558 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 573 Td (DG-20260605-65882) Tj ET
+BT /F1 6 Tf 103.875 573 Td (Water) Tj ET
+BT /F1 6 Tf 103.875 565 Td (Contamination) Tj ET
+BT /F1 6 Tf 169.75 573 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 573 Td (Uttara Model Town) Tj ET
+BT /F1 6 Tf 235.625 565 Td (Sector 7) Tj ET
+BT /F1 6 Tf 301.5 573 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 573 Td (High) Tj ET
+BT /F1 6 Tf 433.25 573 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 573 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 530 527 28 re f
+0.80 0.86 0.89 RG
+34 530 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 545 Td (DG-20260605-83131) Tj ET
+BT /F1 6 Tf 103.875 545 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 169.75 545 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 545 Td (Uttara Model Town) Tj ET
+BT /F1 6 Tf 235.625 537 Td (Sector 1) Tj ET
+BT /F1 6 Tf 301.5 545 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 301.5 537 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 367.375 545 Td (High) Tj ET
+BT /F1 6 Tf 433.25 545 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 545 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 506 527 24 re f
+0.80 0.86 0.89 RG
+34 506 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 517 Td (DG-20260605-37588) Tj ET
+BT /F1 6 Tf 103.875 517 Td (Overflowing Drain) Tj ET
+BT /F1 6 Tf 169.75 517 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 517 Td (Shailpur Partial) Tj ET
+BT /F1 6 Tf 301.5 517 Td (DUPLICATE) Tj ET
+BT /F1 6 Tf 367.375 517 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 517 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 517 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 482 527 24 re f
+0.80 0.86 0.89 RG
+34 482 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 493 Td (DG-20260605-61171) Tj ET
+BT /F1 6 Tf 103.875 493 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 493 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 493 Td (Ranavola Partial) Tj ET
+BT /F1 6 Tf 301.5 493 Td (REOPENED) Tj ET
+BT /F1 6 Tf 367.375 493 Td (High) Tj ET
+BT /F1 6 Tf 433.25 493 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 493 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 454 527 28 re f
+0.80 0.86 0.89 RG
+34 454 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 469 Td (DG-20260605-76234) Tj ET
+BT /F1 6 Tf 103.875 469 Td (Missing Drain) Tj ET
+BT /F1 6 Tf 103.875 461 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 469 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 469 Td (Faydabad Partial) Tj ET
+BT /F1 6 Tf 301.5 469 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 469 Td (High) Tj ET
+BT /F1 6 Tf 433.25 469 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 469 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 426 527 28 re f
+0.80 0.86 0.89 RG
+34 426 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 441 Td (DG-20260605-44561) Tj ET
+BT /F1 6 Tf 103.875 441 Td (Broken Drain) Tj ET
+BT /F1 6 Tf 103.875 433 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 441 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 441 Td (Dakshin Khan) Tj ET
+BT /F1 6 Tf 235.625 433 Td (Partial) Tj ET
+BT /F1 6 Tf 301.5 441 Td (REOPENED) Tj ET
+BT /F1 6 Tf 367.375 441 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 441 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 441 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 402 527 24 re f
+0.80 0.86 0.89 RG
+34 402 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 413 Td (DG-20260605-68188) Tj ET
+BT /F1 6 Tf 103.875 413 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 413 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 413 Td (Baunia Partial) Tj ET
+BT /F1 6 Tf 301.5 413 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 413 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 413 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 413 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 374 527 28 re f
+0.80 0.86 0.89 RG
+34 374 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 389 Td (DG-20260605-55724) Tj ET
+BT /F1 6 Tf 103.875 389 Td (Bad Odor) Tj ET
+BT /F1 6 Tf 169.75 389 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 389 Td (Abdullahpur) Tj ET
+BT /F1 6 Tf 235.625 381 Td (Partial) Tj ET
+BT /F1 6 Tf 301.5 389 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 389 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 389 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 389 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 346 527 28 re f
+0.80 0.86 0.89 RG
+34 346 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 361 Td (DG-20260605-51537) Tj ET
+BT /F1 6 Tf 103.875 361 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 361 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 361 Td (Mymensingh Sadar) Tj ET
+BT /F1 6 Tf 235.625 353 Td (Central Area) Tj ET
+BT /F1 6 Tf 301.5 361 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 353 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 361 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 361 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 361 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 318 527 28 re f
+0.80 0.86 0.89 RG
+34 318 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 333 Td (DG-20260605-64450) Tj ET
+BT /F1 6 Tf 103.875 333 Td (Broken Drain) Tj ET
+BT /F1 6 Tf 103.875 325 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 333 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 333 Td (Kuratoli) Tj ET
+BT /F1 6 Tf 301.5 333 Td (IN PROGRESS) Tj ET
+BT /F1 6 Tf 367.375 333 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 333 Td (Jun 05, 2026) Tj ET
+BT /F1 6 Tf 499.125 333 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 290 527 28 re f
+0.80 0.86 0.89 RG
+34 290 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 305 Td (DG-20260605-55393) Tj ET
+BT /F1 6 Tf 103.875 305 Td (Garbage) Tj ET
+BT /F1 6 Tf 103.875 297 Td (Accumulation) Tj ET
+BT /F1 6 Tf 169.75 305 Td (Ward 26) Tj ET
+BT /F1 6 Tf 235.625 305 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 305 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 297 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 305 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 305 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 305 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 266 527 24 re f
+0.80 0.86 0.89 RG
+34 266 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 277 Td (DG-20260605-60416) Tj ET
+BT /F1 6 Tf 103.875 277 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 277 Td (Ward 43) Tj ET
+BT /F1 6 Tf 235.625 277 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 277 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 277 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 277 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 277 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 242 527 24 re f
+0.80 0.86 0.89 RG
+34 242 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 253 Td (DG-20260605-63522) Tj ET
+BT /F1 6 Tf 103.875 253 Td (Overflowing Drain) Tj ET
+BT /F1 6 Tf 169.75 253 Td (Ward 48) Tj ET
+BT /F1 6 Tf 235.625 253 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 253 Td (DISPUTED) Tj ET
+BT /F1 6 Tf 367.375 253 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 253 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 253 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 218 527 24 re f
+0.80 0.86 0.89 RG
+34 218 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 229 Td (DG-20260605-10983) Tj ET
+BT /F1 6 Tf 103.875 229 Td (Waterlogging) Tj ET
+BT /F1 6 Tf 169.75 229 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 229 Td (Joar Sahara) Tj ET
+BT /F1 6 Tf 301.5 229 Td (VERIFIED by WARD) Tj ET
+BT /F1 6 Tf 367.375 229 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 229 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 229 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 194 527 24 re f
+0.80 0.86 0.89 RG
+34 194 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 205 Td (DG-20260605-70215) Tj ET
+BT /F1 6 Tf 103.875 205 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 169.75 205 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 205 Td (Jagannathpur) Tj ET
+BT /F1 6 Tf 301.5 205 Td (SOLVED by TEAM) Tj ET
+BT /F1 6 Tf 367.375 205 Td (High) Tj ET
+BT /F1 6 Tf 433.25 205 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 205 Td (Jun 08, 2026) Tj ET
+0.99 1 1 rg
+34 166 527 28 re f
+0.80 0.86 0.89 RG
+34 166 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 181 Td (DG-20260605-21701) Tj ET
+BT /F1 6 Tf 103.875 181 Td (Bad Odor) Tj ET
+BT /F1 6 Tf 169.75 181 Td (Ward 35) Tj ET
+BT /F1 6 Tf 235.625 181 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 181 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 173 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 181 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 181 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 181 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 138 527 28 re f
+0.80 0.86 0.89 RG
+34 138 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 153 Td (DG-20260605-39334) Tj ET
+BT /F1 6 Tf 103.875 153 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 169.75 153 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 153 Td (Nikunj 2) Tj ET
+BT /F1 6 Tf 301.5 153 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 145 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 153 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 153 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 153 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 110 527 28 re f
+0.80 0.86 0.89 RG
+34 110 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 125 Td (DG-20260605-76175) Tj ET
+BT /F1 6 Tf 103.875 125 Td (Collapsed Drain) Tj ET
+BT /F1 6 Tf 103.875 117 Td (Structure) Tj ET
+BT /F1 6 Tf 169.75 125 Td (Ward 36) Tj ET
+BT /F1 6 Tf 235.625 125 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 125 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 117 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 125 Td (High) Tj ET
+BT /F1 6 Tf 433.25 125 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 125 Td (Jun 06, 2026) Tj ET
+1 1 1 rg
+34 82 527 28 re f
+0.80 0.86 0.89 RG
+34 82 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 97 Td (DG-20260605-68273) Tj ET
+BT /F1 6 Tf 103.875 97 Td (Garbage) Tj ET
+BT /F1 6 Tf 103.875 89 Td (Accumulation) Tj ET
+BT /F1 6 Tf 169.75 97 Td (Ward 47) Tj ET
+BT /F1 6 Tf 235.625 97 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 97 Td (RECEIVED) Tj ET
+BT /F1 6 Tf 367.375 97 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 97 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 97 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 54 527 28 re f
+0.80 0.86 0.89 RG
+34 54 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 69 Td (DG-20260605-50954) Tj ET
+BT /F1 6 Tf 103.875 69 Td (Severe Road) Tj ET
+BT /F1 6 Tf 103.875 61 Td (Flooding) Tj ET
+BT /F1 6 Tf 169.75 69 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 69 Td (Kuril) Tj ET
+BT /F1 6 Tf 301.5 69 Td (DISPUTED) Tj ET
+BT /F1 6 Tf 367.375 69 Td (High) Tj ET
+BT /F1 6 Tf 433.25 69 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 69 Td (Jun 05, 2026) Tj ET
+
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 9732 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 780 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 738 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 756 Td (Complaint Code) Tj ET
+BT /F2 6 Tf 103.875 756 Td (Issue Type) Tj ET
+BT /F2 6 Tf 169.75 756 Td (Ward) Tj ET
+BT /F2 6 Tf 235.625 756 Td (Area) Tj ET
+BT /F2 6 Tf 301.5 756 Td (Current Status) Tj ET
+BT /F2 6 Tf 367.375 756 Td (Priority) Tj ET
+BT /F2 6 Tf 433.25 756 Td (Submitted Date) Tj ET
+BT /F2 6 Tf 499.125 756 Td (Last Updated) Tj ET
+BT /F2 6 Tf 499.125 748 Td (Date) Tj ET
+1 1 1 rg
+34 710 527 28 re f
+0.80 0.86 0.89 RG
+34 710 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 725 Td (DG-20260605-39582) Tj ET
+BT /F1 6 Tf 103.875 725 Td (Missing Drain) Tj ET
+BT /F1 6 Tf 103.875 717 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 725 Td (Ward 43) Tj ET
+BT /F1 6 Tf 235.625 725 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 725 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 717 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 725 Td (High) Tj ET
+BT /F1 6 Tf 433.25 725 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 725 Td (Jun 06, 2026) Tj ET
+0.99 1 1 rg
+34 682 527 28 re f
+0.80 0.86 0.89 RG
+34 682 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 697 Td (DG-20260605-60408) Tj ET
+BT /F1 6 Tf 103.875 697 Td (Slow Drainage) Tj ET
+BT /F1 6 Tf 169.75 697 Td (Ward 10) Tj ET
+BT /F1 6 Tf 235.625 697 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 697 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 301.5 689 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 367.375 697 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 697 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 697 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 654 527 28 re f
+0.80 0.86 0.89 RG
+34 654 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 669 Td (DG-20260605-69031) Tj ET
+BT /F1 6 Tf 103.875 669 Td (Drain Backflow) Tj ET
+BT /F1 6 Tf 169.75 669 Td (Ward 21) Tj ET
+BT /F1 6 Tf 235.625 669 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 669 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 301.5 661 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 367.375 669 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 669 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 669 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 626 527 28 re f
+0.80 0.86 0.89 RG
+34 626 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 641 Td (DG-20260605-77372) Tj ET
+BT /F1 6 Tf 103.875 641 Td (Severe Road) Tj ET
+BT /F1 6 Tf 103.875 633 Td (Flooding) Tj ET
+BT /F1 6 Tf 169.75 641 Td (Ward 48) Tj ET
+BT /F1 6 Tf 235.625 641 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 641 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 633 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 641 Td (High) Tj ET
+BT /F1 6 Tf 433.25 641 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 641 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 598 527 28 re f
+0.80 0.86 0.89 RG
+34 598 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 613 Td (DG-20260605-67901) Tj ET
+BT /F1 6 Tf 103.875 613 Td (Bad Odor) Tj ET
+BT /F1 6 Tf 169.75 613 Td (Ward 4) Tj ET
+BT /F1 6 Tf 235.625 613 Td (Section 14) Tj ET
+BT /F1 6 Tf 301.5 613 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 605 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 613 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 613 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 613 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 570 527 28 re f
+0.80 0.86 0.89 RG
+34 570 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 585 Td (DG-20260605-81889) Tj ET
+BT /F1 6 Tf 103.875 585 Td (Water) Tj ET
+BT /F1 6 Tf 103.875 577 Td (Contamination) Tj ET
+BT /F1 6 Tf 169.75 585 Td (Ward 48) Tj ET
+BT /F1 6 Tf 235.625 585 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 585 Td (SOLVED by TEAM) Tj ET
+BT /F1 6 Tf 367.375 585 Td (High) Tj ET
+BT /F1 6 Tf 433.25 585 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 585 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 542 527 28 re f
+0.80 0.86 0.89 RG
+34 542 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 557 Td (DG-20260605-22380) Tj ET
+BT /F1 6 Tf 103.875 557 Td (Illegal Waste) Tj ET
+BT /F1 6 Tf 103.875 549 Td (Dumping) Tj ET
+BT /F1 6 Tf 169.75 557 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 557 Td (Olipara) Tj ET
+BT /F1 6 Tf 301.5 557 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 557 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 557 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 557 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 518 527 24 re f
+0.80 0.86 0.89 RG
+34 518 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 529 Td (DG-20260605-40954) Tj ET
+BT /F1 6 Tf 103.875 529 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 529 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 529 Td (Olipara) Tj ET
+BT /F1 6 Tf 301.5 529 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 529 Td (High) Tj ET
+BT /F1 6 Tf 433.25 529 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 529 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 490 527 28 re f
+0.80 0.86 0.89 RG
+34 490 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 505 Td (DG-20260604-46464) Tj ET
+BT /F1 6 Tf 103.875 505 Td (Missing Drain) Tj ET
+BT /F1 6 Tf 103.875 497 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 505 Td (Ward 48) Tj ET
+BT /F1 6 Tf 235.625 505 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 505 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 505 Td (High) Tj ET
+BT /F1 6 Tf 433.25 505 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 505 Td (Jun 04, 2026) Tj ET
+0.99 1 1 rg
+34 462 527 28 re f
+0.80 0.86 0.89 RG
+34 462 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 477 Td (DG-20260604-11892) Tj ET
+BT /F1 6 Tf 103.875 477 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 169.75 477 Td (Ward 43) Tj ET
+BT /F1 6 Tf 235.625 477 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 477 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 469 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 477 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 477 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 477 Td (Jun 04, 2026) Tj ET
+1 1 1 rg
+34 434 527 28 re f
+0.80 0.86 0.89 RG
+34 434 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 449 Td (DG-20260604-63993) Tj ET
+BT /F1 6 Tf 103.875 449 Td (Collapsed Drain) Tj ET
+BT /F1 6 Tf 103.875 441 Td (Structure) Tj ET
+BT /F1 6 Tf 169.75 449 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 449 Td (Kuril) Tj ET
+BT /F1 6 Tf 301.5 449 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 449 Td (High) Tj ET
+BT /F1 6 Tf 433.25 449 Td (Jun 04, 2026) Tj ET
+BT /F1 6 Tf 499.125 449 Td (Jun 04, 2026) Tj ET
+0.99 1 1 rg
+34 406 527 28 re f
+0.80 0.86 0.89 RG
+34 406 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 421 Td (DG-20260601-12951) Tj ET
+BT /F1 6 Tf 103.875 421 Td (Water) Tj ET
+BT /F1 6 Tf 103.875 413 Td (Contamination) Tj ET
+BT /F1 6 Tf 169.75 421 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 421 Td (Tanpara) Tj ET
+BT /F1 6 Tf 301.5 421 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 367.375 421 Td (High) Tj ET
+BT /F1 6 Tf 433.25 421 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 421 Td (Jun 04, 2026) Tj ET
+1 1 1 rg
+34 382 527 24 re f
+0.80 0.86 0.89 RG
+34 382 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 393 Td (DG-20260601-42274) Tj ET
+BT /F1 6 Tf 103.875 393 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 169.75 393 Td (Ward 48) Tj ET
+BT /F1 6 Tf 235.625 393 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 393 Td (DISPUTED) Tj ET
+BT /F1 6 Tf 367.375 393 Td (High) Tj ET
+BT /F1 6 Tf 433.25 393 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 393 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 358 527 24 re f
+0.80 0.86 0.89 RG
+34 358 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 369 Td (DG-20260601-59321) Tj ET
+BT /F1 6 Tf 103.875 369 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 169.75 369 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 369 Td (Nikunj 1) Tj ET
+BT /F1 6 Tf 301.5 369 Td (DUPLICATE) Tj ET
+BT /F1 6 Tf 367.375 369 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 369 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 369 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 330 527 28 re f
+0.80 0.86 0.89 RG
+34 330 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 345 Td (DG-20260601-72428) Tj ET
+BT /F1 6 Tf 103.875 345 Td (Broken Drain) Tj ET
+BT /F1 6 Tf 103.875 337 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 345 Td (Ward 4) Tj ET
+BT /F1 6 Tf 235.625 345 Td (Section 13 A) Tj ET
+BT /F1 6 Tf 301.5 345 Td (PENDING) Tj ET
+BT /F1 6 Tf 301.5 337 Td (VERIFICATION) Tj ET
+BT /F1 6 Tf 367.375 345 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 345 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 345 Td (Jun 05, 2026) Tj ET
+0.99 1 1 rg
+34 302 527 28 re f
+0.80 0.86 0.89 RG
+34 302 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 317 Td (DG-20260601-66730) Tj ET
+BT /F1 6 Tf 103.875 317 Td (Bad Odor) Tj ET
+BT /F1 6 Tf 169.75 317 Td (Ward 1) Tj ET
+BT /F1 6 Tf 235.625 317 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 317 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 301.5 309 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 367.375 317 Td (Low) Tj ET
+BT /F1 6 Tf 433.25 317 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 317 Td (Jun 04, 2026) Tj ET
+1 1 1 rg
+34 278 527 24 re f
+0.80 0.86 0.89 RG
+34 278 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 289 Td (DG-20260601-35614) Tj ET
+BT /F1 6 Tf 103.875 289 Td (Waterlogging) Tj ET
+BT /F1 6 Tf 169.75 289 Td (Ward 43) Tj ET
+BT /F1 6 Tf 235.625 289 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 289 Td (DUPLICATE) Tj ET
+BT /F1 6 Tf 367.375 289 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 289 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 289 Td (Jun 04, 2026) Tj ET
+0.99 1 1 rg
+34 254 527 24 re f
+0.80 0.86 0.89 RG
+34 254 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 265 Td (DG-20260601-30688) Tj ET
+BT /F1 6 Tf 103.875 265 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 265 Td (Ward 48) Tj ET
+BT /F1 6 Tf 235.625 265 Td (N/A) Tj ET
+BT /F1 6 Tf 301.5 265 Td (REOPENED) Tj ET
+BT /F1 6 Tf 367.375 265 Td (Medium) Tj ET
+BT /F1 6 Tf 433.25 265 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 265 Td (Jun 05, 2026) Tj ET
+1 1 1 rg
+34 230 527 24 re f
+0.80 0.86 0.89 RG
+34 230 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 241 Td (DG-20260601-66917) Tj ET
+BT /F1 6 Tf 103.875 241 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 241 Td (Ward 17) Tj ET
+BT /F1 6 Tf 235.625 241 Td (Kuratoli) Tj ET
+BT /F1 6 Tf 301.5 241 Td (CLOSED) Tj ET
+BT /F1 6 Tf 367.375 241 Td (High) Tj ET
+BT /F1 6 Tf 433.25 241 Td (Jun 01, 2026) Tj ET
+BT /F1 6 Tf 499.125 241 Td (Jun 04, 2026) Tj ET
+
+endstream
+endobj
+11 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+12 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000133 00000 n 
+0000000271 00000 n 
+0000007624 00000 n 
+0000007762 00000 n 
+0000020598 00000 n 
+0000020736 00000 n 
+0000033897 00000 n 
+0000034036 00000 n 
+0000043821 00000 n 
+0000043892 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+43968
+%%EOF

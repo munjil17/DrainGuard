@@ -317,26 +317,26 @@ function cs_has_discussion_access($context, $userId, $userRole) {
 /**
  * Inserts a notification into the given table.
  */
-function cs_insert_notification($conn, $table, $recipientUserId, $senderUserId, $complaintId, $title, $message) {
+function cs_insert_notification($conn, $table, $recipientUserId, $senderUserId, $complaintId, $title, $message, $notificationType = "comment_reply") {
     if ($recipientUserId <= 0 || $recipientUserId === (int)$senderUserId) return;
     $sql = "INSERT INTO {$table} (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at)
-            VALUES (?, ?, ?, 'comment_reply', ?, ?, 0, NOW())";
+            VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
     $stmt = mysqli_prepare($conn, $sql);
     if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "iiiss", $recipientUserId, $senderUserId, $complaintId, $title, $message);
+        mysqli_stmt_bind_param($stmt, "iiisss", $recipientUserId, $senderUserId, $complaintId, $notificationType, $title, $message);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
     }
 }
 
-function cs_notify_unique($conn, $table, &$sent, $recipientUserId, $senderUserId, $complaintId, $title, $message)
+function cs_notify_unique($conn, $table, &$sent, $recipientUserId, $senderUserId, $complaintId, $title, $message, $notificationType = "comment_reply")
 {
     $recipientUserId = (int)$recipientUserId;
     if ($recipientUserId <= 0 || $recipientUserId === (int)$senderUserId) return;
     $key = $table . ":" . $recipientUserId;
     if (isset($sent[$key])) return;
     $sent[$key] = true;
-    cs_insert_notification($conn, $table, $recipientUserId, $senderUserId, $complaintId, $title, $message);
+    cs_insert_notification($conn, $table, $recipientUserId, $senderUserId, $complaintId, $title, $message, $notificationType);
 }
 
 function cs_citizen_participant_ids($conn, $context, $complaintId)
@@ -370,9 +370,10 @@ function cs_citizen_participant_ids($conn, $context, $complaintId)
 /**
  * Dispatches notifications based on the actor's role and the complaint context.
  */
-function cs_dispatch_notifications($conn, $context, $actorUserId, $actorRole, $complaintId, $isReply = false) {
+function cs_dispatch_notifications($conn, $context, $actorUserId, $actorRole, $complaintId, $isReply = false, $sent = []) {
     $status = $context["status"];
     $cCode = $context["complaint_code"] ?: ("#" . $complaintId);
+    $notificationType = ($actorRole === "citizen") ? "citizen_discussion_reply" : "comment_reply";
     
     $title = $isReply ? "New Reply to Your Comment" : "New Comment on Complaint";
     $message = $isReply 
@@ -383,28 +384,29 @@ function cs_dispatch_notifications($conn, $context, $actorUserId, $actorRole, $c
 
     if ($status === 'rejected_by_central') {
         if ($actorRole === 'citizen') {
-            cs_notify_unique($conn, "central_notifications", $sent, $context["central_officer_id"], $actorUserId, $complaintId, $title, $message);
+            cs_notify_unique($conn, "central_notifications", $sent, $context["central_officer_id"], $actorUserId, $complaintId, $title, $message, $notificationType);
         } elseif ($actorRole === 'central_officer') {
             foreach (cs_citizen_participant_ids($conn, $context, $complaintId) as $citizenId) {
-                cs_notify_unique($conn, "citizen_notifications", $sent, $citizenId, $actorUserId, $complaintId, $title, $message);
+                cs_notify_unique($conn, "citizen_notifications", $sent, $citizenId, $actorUserId, $complaintId, $title, $message, $notificationType);
             }
         }
     } elseif (in_array($status, ['rejected_by_ward', 'duplicate', 'final_rejected'], true)) {
         if ($actorRole === 'citizen') {
-            cs_notify_unique($conn, "central_notifications", $sent, $context["central_officer_id"], $actorUserId, $complaintId, $title, $message);
-            cs_notify_unique($conn, "ward_notifications", $sent, $context["ward_officer_id"], $actorUserId, $complaintId, $title, $message);
+            cs_notify_unique($conn, "ward_notifications", $sent, $context["ward_officer_id"], $actorUserId, $complaintId, $title, $message, $notificationType);
         } elseif ($actorRole === 'central_officer') {
             foreach (cs_citizen_participant_ids($conn, $context, $complaintId) as $citizenId) {
-                cs_notify_unique($conn, "citizen_notifications", $sent, $citizenId, $actorUserId, $complaintId, $title, $message);
+                cs_notify_unique($conn, "citizen_notifications", $sent, $citizenId, $actorUserId, $complaintId, $title, $message, $notificationType);
             }
-            cs_notify_unique($conn, "ward_notifications", $sent, $context["ward_officer_id"], $actorUserId, $complaintId, $title, $message);
+            cs_notify_unique($conn, "ward_notifications", $sent, $context["ward_officer_id"], $actorUserId, $complaintId, $title, $message, $notificationType);
         } elseif ($actorRole === 'ward_officer') {
             foreach (cs_citizen_participant_ids($conn, $context, $complaintId) as $citizenId) {
-                cs_notify_unique($conn, "citizen_notifications", $sent, $citizenId, $actorUserId, $complaintId, $title, $message);
+                cs_notify_unique($conn, "citizen_notifications", $sent, $citizenId, $actorUserId, $complaintId, $title, $message, $notificationType);
             }
-            cs_notify_unique($conn, "central_notifications", $sent, $context["central_officer_id"], $actorUserId, $complaintId, $title, $message);
+            cs_notify_unique($conn, "central_notifications", $sent, $context["central_officer_id"], $actorUserId, $complaintId, $title, $message, $notificationType);
         }
     }
+
+    return $sent;
 }
 
 function cs_notification_table_for_role($role)
@@ -418,14 +420,14 @@ function cs_notification_table_for_role($role)
     return "";
 }
 
-function cs_dispatch_reply_notification($conn, $parentRow, $actorUserId, $complaintId)
+function cs_dispatch_reply_notification($conn, $parentRow, $actorUserId, $complaintId, $notificationType = "comment_reply")
 {
     $recipientUserId = (int)($parentRow["parent_user_id"] ?? 0);
     $recipientRole = (string)($parentRow["parent_user_role"] ?? "");
-    if ($recipientUserId <= 0 || $recipientUserId === (int)$actorUserId) return;
+    if ($recipientUserId <= 0 || $recipientUserId === (int)$actorUserId) return [];
 
     $table = cs_notification_table_for_role($recipientRole);
-    if ($table === "") return;
+    if ($table === "") return [];
 
     $complaintCode = (string)($parentRow["complaint_code"] ?? "");
     $cCode = $complaintCode !== "" ? $complaintCode : ("#" . $complaintId);
@@ -436,6 +438,9 @@ function cs_dispatch_reply_notification($conn, $parentRow, $actorUserId, $compla
         $actorUserId,
         $complaintId,
         "New Reply to Your Comment",
-        "Someone replied to your comment on complaint {$cCode}."
+        "Someone replied to your comment on complaint {$cCode}.",
+        $notificationType
     );
+
+    return [$table . ":" . $recipientUserId => true];
 }

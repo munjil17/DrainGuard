@@ -111,7 +111,7 @@ if (!function_exists('maintenance_topbar_time_ago')) {
 if (!function_exists('maintenance_notification_icon')) {
     function maintenance_notification_icon($type) {
         $type = strtolower(trim((string)$type));
-        if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
+        if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_citizen_claim_true', 'ward_citizen_claim_false'], true)) return 'bi-file-earmark-text';
         if (in_array($type, ['system', 'alert'])) return 'bi-exclamation-triangle';
         if ($type === 'ward_reply_support_request') return 'bi-reply-all';
         if ($type === 'comment_reply') return 'bi-chat-dots';
@@ -122,7 +122,7 @@ if (!function_exists('maintenance_notification_icon')) {
 if (!function_exists('maintenance_notification_type_class')) {
     function maintenance_notification_type_class($type) {
         $type = strtolower(trim((string)$type));
-        if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected'])) return 'type-track';
+        if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_citizen_claim_true', 'ward_citizen_claim_false'], true)) return 'type-track';
         if (in_array($type, ['system', 'alert'])) return 'type-objection';
         if ($type === 'ward_reply_support_request') return 'type-alert';
         if ($type === 'comment_reply') return 'type-reply';
@@ -157,9 +157,17 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
             mn.is_read,
             mn.created_at,
             c.complaint_code,
-            c.complaint_status
+            c.complaint_status,
+            ca.assignment_status
         FROM maintenance_notifications mn
         LEFT JOIN complaints c ON mn.related_complaint_id = c.complaint_id
+        LEFT JOIN complaint_assignments ca
+            ON ca.complaint_id = mn.related_complaint_id
+            AND ca.assignment_id = (
+                SELECT MAX(ca2.assignment_id)
+                FROM complaint_assignments ca2
+                WHERE ca2.complaint_id = mn.related_complaint_id
+            )
         WHERE mn.recipient_user_id = ?
         ORDER BY mn.created_at DESC, mn.notification_id DESC
         LIMIT 10
@@ -230,6 +238,12 @@ if (isset($conn) && $conn instanceof mysqli && $userId) {
                                         $notificationLink .= '&redirect=discussion';
                                     } elseif ($notificationType === 'ward_reply_support_request') {
                                         if (isset($notification["complaint_status"]) && $notification["complaint_status"] === 'in_progress') {
+                                            $notificationLink .= '&redirect=in-progress-work';
+                                        } else {
+                                            $notificationLink .= '&redirect=assigned-tasks';
+                                        }
+                                    } elseif (in_array($notificationType, ['ward_citizen_claim_true', 'ward_citizen_claim_false'], true)) {
+                                        if (($notification["complaint_status"] ?? "") === 'in_progress' || ($notification["assignment_status"] ?? "") === 'in_progress') {
                                             $notificationLink .= '&redirect=in-progress-work';
                                         } else {
                                             $notificationLink .= '&redirect=assigned-tasks';

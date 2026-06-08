@@ -269,6 +269,70 @@ function woBuildPageUrl($page, $search, $areaId, $sort)
     return 'citizen-objections.php' . woBuildQuery($search, $areaId, $sort, (int) $page);
 }
 
+function woNotifyMaintenanceObjectionDecision($conn, $complaintId, $senderUserId, $decision, $wardNote)
+{
+    $assignment = woFetchOne(
+        $conn,
+        "SELECT
+            ca.maintenance_team_id,
+            c.complaint_code
+        FROM complaint_assignments ca
+        INNER JOIN complaints c ON c.complaint_id = ca.complaint_id
+        WHERE ca.complaint_id = ?
+        AND ca.maintenance_team_id IS NOT NULL
+        ORDER BY ca.assignment_id DESC
+        LIMIT 1",
+        "i",
+        [$complaintId]
+    );
+
+    $maintenanceTeamId = (int)($assignment['maintenance_team_id'] ?? 0);
+    if ($maintenanceTeamId <= 0) {
+        return;
+    }
+
+    $teamLeader = woFetchOne(
+        $conn,
+        "SELECT user_id
+        FROM maintenance_team_members
+        WHERE maintenance_team_id = ?
+        AND role = 'team_leader'
+        AND status = 'active'
+        LIMIT 1",
+        "i",
+        [$maintenanceTeamId]
+    );
+
+    $teamLeaderUserId = (int)($teamLeader['user_id'] ?? 0);
+    if ($teamLeaderUserId <= 0) {
+        return;
+    }
+
+    $complaintCode = (string)($assignment['complaint_code'] ?? ("#" . $complaintId));
+    $isAccepted = ($decision === 'accept');
+    $notificationType = $isAccepted ? 'ward_citizen_claim_true' : 'ward_citizen_claim_false';
+    $notificationTitle = $isAccepted ? 'Citizen Claim Marked True' : 'Citizen Claim Marked False';
+    $notificationMessage = $isAccepted
+        ? "Ward Officer accepted the citizen objection for complaint {$complaintCode}. Please review the reopened task."
+        : "Ward Officer rejected the citizen objection for complaint {$complaintCode}. No rework is required.";
+
+    if ($wardNote !== '') {
+        $notificationMessage .= " Note: " . $wardNote;
+    }
+
+    dg_cleanup_workflow_notifications($conn, "maintenance_notifications", $teamLeaderUserId, $complaintId, $notificationType);
+
+    $notifSql = "INSERT INTO maintenance_notifications
+        (recipient_user_id, sender_user_id, related_complaint_id, notification_type, notification_title, notification_message, is_read, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, 0, NOW())";
+    $notifStmt = mysqli_prepare($conn, $notifSql);
+    if ($notifStmt) {
+        mysqli_stmt_bind_param($notifStmt, "iiisss", $teamLeaderUserId, $senderUserId, $complaintId, $notificationType, $notificationTitle, $notificationMessage);
+        mysqli_stmt_execute($notifStmt);
+        mysqli_stmt_close($notifStmt);
+    }
+}
+
 /* =========================
    Ward Officer Info
 ========================= */
@@ -514,6 +578,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($insNotifCF) { dg_cleanup_workflow_notifications($conn, "inspector_notifications", $insUserIdCF, $complaintId, "ward_citizen_claim_false"); mysqli_stmt_bind_param($insNotifCF, "iiis", $insUserIdCF, $userId, $complaintId, $insMsgCF); mysqli_stmt_execute($insNotifCF); mysqli_stmt_close($insNotifCF); }
             }
         }
+
+        woNotifyMaintenanceObjectionDecision($conn, $complaintId, $userId, $decision, $wardNote);
 
         $updateComplaintSql = "UPDATE complaints
             SET complaint_status = ?,

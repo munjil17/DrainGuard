@@ -132,8 +132,17 @@ if (mysqli_stmt_affected_rows($stmt) <= 0) {
 $replyId = mysqli_insert_id($conn);
 mysqli_stmt_close($stmt);
 
-// Reply notification goes only to the parent comment author.
-cs_dispatch_reply_notification($conn, $parentRow, $userId, $complaintId);
+// Reply notification goes to the parent author, and citizen replies also notify the responsible officer.
+$parentNotificationType = (
+    $currentUserRole === "citizen"
+    && in_array((string)$parentRow["parent_user_role"], ["central_officer", "ward_officer"], true)
+) ? "citizen_discussion_reply" : "comment_reply";
+
+$sentNotifications = cs_dispatch_reply_notification($conn, $parentRow, $userId, $complaintId, $parentNotificationType);
+
+if ($currentUserRole === "citizen") {
+    cs_dispatch_notifications($conn, $context, $userId, $currentUserRole, $complaintId, true, $sentNotifications);
+}
 
 cs_reply_json_response(true, "Reply added successfully.", [
     "reply_id" => $replyId

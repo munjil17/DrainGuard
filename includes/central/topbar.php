@@ -114,7 +114,7 @@ if (!function_exists('central_notification_icon')) {
         $type = strtolower(trim((string)$type));
         if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected', 'ward_team_reassigned'])) return 'bi-file-earmark-text';
         if (in_array($type, ['inspector_report', 'team_update'])) return 'bi-clipboard-check';
-        if ($type === 'comment_reply') return 'bi-chat-dots';
+        if (in_array($type, ['comment_reply', 'citizen_discussion_reply'], true)) return 'bi-chat-dots';
         return 'bi-bell';
     }
 }
@@ -124,7 +124,7 @@ if (!function_exists('central_notification_type_class')) {
         $type = strtolower(trim((string)$type));
         if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected', 'ward_team_reassigned'])) return 'type-track';
         if (in_array($type, ['inspector_report', 'team_update'])) return 'type-objection';
-        if ($type === 'comment_reply') return 'type-reply';
+        if (in_array($type, ['comment_reply', 'citizen_discussion_reply'], true)) return 'type-reply';
         return 'type-system';
     }
 }
@@ -213,7 +213,9 @@ if ($loggedUserId > 0 && isset($conn) && $conn instanceof mysqli) {
 
                                 $notificationLink = 'notifications.php?read_id=' . (int)$notification['notification_id'];
                                 if (!empty($notification['complaint_code'])) {
-                                    if ($notificationType === 'comment_reply') {
+                                    if ($notificationType === 'citizen_discussion_reply') {
+                                        $notificationLink .= '&redirect=complaints';
+                                    } elseif ($notificationType === 'comment_reply') {
                                         $notificationLink .= '&redirect=discussion';
                                     } elseif (($notification['complaint_status'] ?? '') === 'submitted') {
                                         $notificationLink .= '&redirect=complaints';

@@ -34,7 +34,7 @@ function nt_icon($type)
     $type = strtolower(trim((string)$type));
     if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'bi-file-earmark-text';
     if (in_array($type, ['inspector_report', 'team_update'])) return 'bi-clipboard-check';
-    if ($type === 'comment_reply') return 'bi-chat-dots';
+    if (in_array($type, ['comment_reply', 'citizen_discussion_reply'], true)) return 'bi-chat-dots';
     if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'bi-tools';
     return "bi-bell";
 }
@@ -44,7 +44,7 @@ function nt_type_class($type)
     $type = strtolower(trim((string)$type));
     if (in_array($type, ['complaint_submitted', 'complaint_received', 'complaint_rejected'])) return 'type-track';
     if (in_array($type, ['inspector_report', 'team_update'])) return 'type-objection';
-    if ($type === 'comment_reply') return 'type-reply';
+    if (in_array($type, ['comment_reply', 'citizen_discussion_reply'], true)) return 'type-reply';
     if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'type-alert';
     return "type-system";
 }
@@ -55,6 +55,7 @@ function nt_type_label($type)
     $labels = [
         "central_instruction" => "Central Instruction",
         "citizen_objection_submitted" => "Citizen Submitted Objection",
+        "citizen_discussion_reply" => "Citizen Discussion Reply",
         "comment_reply" => "Comment Reply",
         "complaint_routed" => "Complaint Assigned",
         "inspector_false_completion_confirmed" => "False Completion Confirmed",
@@ -373,7 +374,9 @@ function nt_build_query($overrides = [])
 
                             $linkUrl = "notifications.php?read_id=" . (int)$notification["notification_id"];
                             if (!empty($notification["complaint_code"])) {
-                                if ($notificationType === 'comment_reply') {
+                                if ($notificationType === 'citizen_discussion_reply') {
+                                    $linkUrl .= "&redirect=ward-complaints";
+                                } elseif ($notificationType === 'comment_reply') {
                                     $linkUrl .= "&redirect=discussion";
                                 } elseif ($notificationType === 'complaint_routed') {
                                     $linkUrl .= "&redirect=verification-queue";

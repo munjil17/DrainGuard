@@ -35,7 +35,7 @@ function nt_time_ago($datetime)
 function nt_icon($type)
 {
     $type = strtolower(trim((string)$type));
-    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer'])) return 'bi-file-earmark-text';
+    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer', 'ward_citizen_claim_true', 'ward_citizen_claim_false'])) return 'bi-file-earmark-text';
     if (in_array($type, ['system', 'alert', 'task_delayed', 'task_deadline_warning'])) return 'bi-exclamation-triangle';
     if ($type === 'ward_reply_support_request') return 'bi-reply-all';
     if ($type === 'comment_reply') return 'bi-chat-dots';
@@ -45,7 +45,7 @@ function nt_icon($type)
 function nt_type_class($type)
 {
     $type = strtolower(trim((string)$type));
-    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer'])) return 'type-track';
+    if (in_array($type, ['task_assigned', 'status_update', 'verified', 'rejected', 'ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer', 'ward_citizen_claim_true', 'ward_citizen_claim_false'])) return 'type-track';
     if (in_array($type, ['system', 'alert', 'task_delayed', 'task_deadline_warning'])) return 'type-objection';
     if ($type === 'ward_reply_support_request') return 'type-alert';
     if ($type === 'comment_reply') return 'type-reply';
@@ -70,6 +70,8 @@ function nt_type_label($type)
         "ward_team_transfer_removed" => "Task Transferred Away",
         "ward_confirm_inspector_claim" => "Inspector Claim Confirmed by Ward Officer",
         "ward_reject_inspector_claim" => "Inspector Claim Rejected by Ward Officer",
+        "ward_citizen_claim_true" => "Citizen Claim Marked True",
+        "ward_citizen_claim_false" => "Citizen Claim Marked False",
         "ward_reply_support_request" => "Ward Officer Replied to Support Request"
     ];
 
@@ -81,7 +83,17 @@ if (isset($_GET["read_id"])) {
     $redirectType = trim($_GET["redirect"] ?? "");
 
     if ($readId > 0 && $userId > 0 && isset($conn) && $conn instanceof mysqli) {
-        $readSql = "SELECT mn.is_read, mn.related_complaint_id, c.complaint_code FROM maintenance_notifications mn LEFT JOIN complaints c ON mn.related_complaint_id = c.complaint_id WHERE mn.notification_id = ? AND mn.recipient_user_id = ?";
+        $readSql = "SELECT mn.is_read, mn.related_complaint_id, c.complaint_code, c.complaint_status, ca.assignment_status
+            FROM maintenance_notifications mn
+            LEFT JOIN complaints c ON mn.related_complaint_id = c.complaint_id
+            LEFT JOIN complaint_assignments ca
+                ON ca.complaint_id = mn.related_complaint_id
+                AND ca.assignment_id = (
+                    SELECT MAX(ca2.assignment_id)
+                    FROM complaint_assignments ca2
+                    WHERE ca2.complaint_id = mn.related_complaint_id
+                )
+            WHERE mn.notification_id = ? AND mn.recipient_user_id = ?";
         $readStmt = mysqli_prepare($conn, $readSql);
         
         if ($readStmt) {
@@ -115,6 +127,13 @@ if (isset($_GET["read_id"])) {
                 if ($redirectType === "in-progress-work") {
                     $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
                     header("Location: in-progress-work.php" . $complaintIdParam);
+                    exit;
+                }
+
+                if ($redirectType === "objection-decision") {
+                    $complaintIdParam = $readRow["related_complaint_id"] ? "?complaint_id=" . urlencode($readRow["related_complaint_id"]) . "&focus=1" : "";
+                    $isInProgress = (($readRow["complaint_status"] ?? "") === "in_progress" || ($readRow["assignment_status"] ?? "") === "in_progress");
+                    header("Location: " . ($isInProgress ? "in-progress-work.php" : "assigned-tasks.php") . $complaintIdParam);
                     exit;
                 }
 
@@ -234,9 +253,17 @@ $listSql = "
         mn.is_read,
         mn.created_at,
         c.complaint_code,
-        c.complaint_status
+        c.complaint_status,
+        ca.assignment_status
     FROM maintenance_notifications mn
     LEFT JOIN complaints c ON mn.related_complaint_id = c.complaint_id
+    LEFT JOIN complaint_assignments ca
+        ON ca.complaint_id = mn.related_complaint_id
+        AND ca.assignment_id = (
+            SELECT MAX(ca2.assignment_id)
+            FROM complaint_assignments ca2
+            WHERE ca2.complaint_id = mn.related_complaint_id
+        )
     {$whereSql}
     ORDER BY mn.created_at DESC, mn.notification_id DESC
     LIMIT ? OFFSET ?
@@ -387,6 +414,8 @@ function nt_build_query($overrides = [])
                                     } else {
                                         $linkUrl .= "&redirect=assigned-tasks";
                                     }
+                                } elseif (in_array($notificationType, ['ward_citizen_claim_true', 'ward_citizen_claim_false'], true)) {
+                                    $linkUrl .= "&redirect=objection-decision";
                                 } elseif (in_array($notificationType, ['ward_team_reassign_removed', 'ward_team_transfer_removed'], true)) {
                                     $linkUrl .= "&redirect=dashboard";
                                 } elseif (in_array($notificationType, ['ward_team_instruction', 'ward_team_reassigned', 'ward_in_progress_team_transfer'], true)) {

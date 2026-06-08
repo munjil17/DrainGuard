@@ -547,6 +547,7 @@ try {
         WHERE l.ward_id = ?
           AND c.complaint_status IN ('verified_by_ward', 'team_assigned', 'reopened')
         ORDER BY
+            CASE WHEN ca.maintenance_team_id IS NULL THEN 0 ELSE 1 END ASC,
             CASE WHEN i.priority = 'High'   THEN 1
                  WHEN i.priority = 'Medium' THEN 2
                  WHEN i.priority = 'Low'    THEN 3

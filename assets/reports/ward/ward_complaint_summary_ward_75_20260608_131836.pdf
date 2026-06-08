@@ -1,0 +1,434 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 7593 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.05 0.24 0.28 rg
+BT /F2 16 Tf 188.46 780 Td (Ward Complaint Summary Report) Tj ET
+0.02 0.46 0.42 RG
+34 762 m 561 762 l S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 738 Td (Filter Summary) Tj ET
+0.90 0.96 0.97 rg
+34 708 527 20 re f
+0.72 0.80 0.84 RG
+34 708 527 20 re S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 715 Td (Filter) Tj ET
+BT /F2 8 Tf 212 715 Td (Selected Value) Tj ET
+1 1 1 rg
+34 686 527 22 re f
+0.78 0.85 0.88 RG
+34 686 527 22 re S
+34 686 m 34 708 l S
+204 686 m 204 708 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 695 Td (Report Type) Tj ET
+BT /F1 8 Tf 212 695 Td (Ward Complaint Summary Report) Tj ET
+1 1 1 rg
+34 664 527 22 re f
+0.78 0.85 0.88 RG
+34 664 527 22 re S
+34 664 m 34 686 l S
+204 664 m 204 686 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 673 Td (Time Period) Tj ET
+BT /F1 8 Tf 212 673 Td (Last 30 Days) Tj ET
+1 1 1 rg
+34 642 527 22 re f
+0.78 0.85 0.88 RG
+34 642 527 22 re S
+34 642 m 34 664 l S
+204 642 m 204 664 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 651 Td (Date Range) Tj ET
+BT /F1 8 Tf 212 651 Td (May 10, 2026 - Jun 08, 2026) Tj ET
+1 1 1 rg
+34 620 527 22 re f
+0.78 0.85 0.88 RG
+34 620 527 22 re S
+34 620 m 34 642 l S
+204 620 m 204 642 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 629 Td (Ward) Tj ET
+BT /F1 8 Tf 212 629 Td (Ward 75 - Ward 75) Tj ET
+1 1 1 rg
+34 598 527 22 re f
+0.78 0.85 0.88 RG
+34 598 527 22 re S
+34 598 m 34 620 l S
+204 598 m 204 620 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 607 Td (Area) Tj ET
+BT /F1 8 Tf 212 607 Td (All Areas) Tj ET
+1 1 1 rg
+34 576 527 22 re f
+0.78 0.85 0.88 RG
+34 576 527 22 re S
+34 576 m 34 598 l S
+204 576 m 204 598 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 585 Td (Status) Tj ET
+BT /F1 8 Tf 212 585 Td (All Statuses) Tj ET
+1 1 1 rg
+34 554 527 22 re f
+0.78 0.85 0.88 RG
+34 554 527 22 re S
+34 554 m 34 576 l S
+204 554 m 204 576 l S
+0.05 0.14 0.18 rg
+BT /F2 8 Tf 42 563 Td (Priority / Risk Level) Tj ET
+BT /F1 8 Tf 212 563 Td (All Priorities) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 535 Td (KPI Summary) Tj ET
+0.97 0.99 1 rg
+34 471 125.75 54 re f
+0.76 0.84 0.88 RG
+34 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 510 Td (Total Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 481 Td (10) Tj ET
+0.97 0.99 1 rg
+167.75 471 125.75 54 re f
+0.76 0.84 0.88 RG
+167.75 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 174.75 510 Td (Pending Verification) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 174.75 481 Td (0) Tj ET
+0.97 0.99 1 rg
+301.5 471 125.75 54 re f
+0.76 0.84 0.88 RG
+301.5 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 308.5 510 Td (Verified Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 308.5 481 Td (2) Tj ET
+0.97 0.99 1 rg
+435.25 471 125.75 54 re f
+0.76 0.84 0.88 RG
+435.25 471 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 442.25 510 Td (Team Assigned) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 442.25 481 Td (0) Tj ET
+0.97 0.99 1 rg
+34 409 125.75 54 re f
+0.76 0.84 0.88 RG
+34 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 448 Td (In Progress) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 419 Td (0) Tj ET
+0.97 0.99 1 rg
+167.75 409 125.75 54 re f
+0.76 0.84 0.88 RG
+167.75 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 174.75 448 Td (Solved by Team) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 174.75 419 Td (0) Tj ET
+0.97 0.99 1 rg
+301.5 409 125.75 54 re f
+0.76 0.84 0.88 RG
+301.5 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 308.5 448 Td (Closed Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 308.5 419 Td (2) Tj ET
+0.97 0.99 1 rg
+435.25 409 125.75 54 re f
+0.76 0.84 0.88 RG
+435.25 409 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 442.25 448 Td (Reopened Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 442.25 419 Td (2) Tj ET
+0.97 0.99 1 rg
+34 347 125.75 54 re f
+0.76 0.84 0.88 RG
+34 347 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 386 Td (Rejected Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 41 357 Td (3) Tj ET
+0.97 0.99 1 rg
+167.75 347 125.75 54 re f
+0.76 0.84 0.88 RG
+167.75 347 125.75 54 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 174.75 386 Td (Duplicate Complaints) Tj ET
+0.02 0.46 0.42 rg
+BT /F2 13 Tf 174.75 357 Td (1) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 324 Td (Data Snapshot) Tj ET
+0.98 0.99 1 rg
+34 262 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+34 262 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 297 Td (Total Complaints) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 41 278 Td (10) Tj ET
+0.98 0.99 1 rg
+212.33333333333 262 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+212.33333333333 262 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 219.33333333333 297 Td (Pending Verification) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 219.33333333333 278 Td (0) Tj ET
+0.98 0.99 1 rg
+390.66666666667 262 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+390.66666666667 262 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 397.66666666667 297 Td (Verified Complaints) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 397.66666666667 278 Td (2) Tj ET
+0.98 0.99 1 rg
+34 204 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+34 204 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 41 239 Td (Team Assigned) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 41 220 Td (0) Tj ET
+0.98 0.99 1 rg
+212.33333333333 204 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+212.33333333333 204 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 219.33333333333 239 Td (In Progress) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 219.33333333333 220 Td (0) Tj ET
+0.98 0.99 1 rg
+390.66666666667 204 170.33333333333 52 re f
+0.78 0.85 0.88 RG
+390.66666666667 204 170.33333333333 52 re S
+0.34 0.42 0.50 rg
+BT /F2 7 Tf 397.66666666667 239 Td (Solved by Team) Tj ET
+0.05 0.14 0.18 rg
+BT /F2 11 Tf 397.66666666667 220 Td (0) Tj ET
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 183 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 141 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 159 Td (Complaint Code) Tj ET
+BT /F2 6 Tf 103.875 159 Td (Issue Type) Tj ET
+BT /F2 6 Tf 169.75 159 Td (Area) Tj ET
+BT /F2 6 Tf 235.625 159 Td (Status) Tj ET
+BT /F2 6 Tf 301.5 159 Td (Assigned Team) Tj ET
+BT /F2 6 Tf 367.375 159 Td (Deadline) Tj ET
+BT /F2 6 Tf 433.25 159 Td (Submitted Date) Tj ET
+BT /F2 6 Tf 499.125 159 Td (Priority) Tj ET
+0.99 1 1 rg
+34 113 527 28 re f
+0.80 0.86 0.89 RG
+34 113 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 128 Td (DG-20260608-89932) Tj ET
+BT /F1 6 Tf 103.875 128 Td (Slow Drainage) Tj ET
+BT /F1 6 Tf 169.75 128 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 128 Td (REJECTED by) Tj ET
+BT /F1 6 Tf 235.625 120 Td (CENTRAL) Tj ET
+BT /F1 6 Tf 301.5 128 Td (N/A) Tj ET
+BT /F1 6 Tf 367.375 128 Td (N/A) Tj ET
+BT /F1 6 Tf 433.25 128 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 128 Td (Low) Tj ET
+1 1 1 rg
+34 85 527 28 re f
+0.80 0.86 0.89 RG
+34 85 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 100 Td (DG-20260608-54305) Tj ET
+BT /F1 6 Tf 103.875 100 Td (Missing Drain) Tj ET
+BT /F1 6 Tf 103.875 92 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 100 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 100 Td (CLOSED) Tj ET
+BT /F1 6 Tf 301.5 100 Td (Drain Response) Tj ET
+BT /F1 6 Tf 301.5 92 Td (Team Bravo) Tj ET
+BT /F1 6 Tf 367.375 100 Td (Jun 09, 2026) Tj ET
+BT /F1 6 Tf 433.25 100 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 100 Td (High) Tj ET
+0.99 1 1 rg
+34 49 527 36 re f
+0.80 0.86 0.89 RG
+34 49 527 36 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 72 Td (DG-20260608-95690) Tj ET
+BT /F1 6 Tf 103.875 72 Td (Drain Backflow) Tj ET
+BT /F1 6 Tf 169.75 72 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 72 Td (FINAL REJECTED) Tj ET
+BT /F1 6 Tf 301.5 72 Td (Stormwater) Tj ET
+BT /F1 6 Tf 301.5 64 Td (Clearing Team) Tj ET
+BT /F1 6 Tf 301.5 56 Td (Delta) Tj ET
+BT /F1 6 Tf 367.375 72 Td (Jun 09, 2026) Tj ET
+BT /F1 6 Tf 433.25 72 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 72 Td (Medium) Tj ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 3880 >>
+stream
+1 1 1 rg
+0 0 595 842 re f
+0.96 0.98 0.99 rg
+34 36 527 770 re f
+0.78 0.85 0.88 RG
+34 36 527 770 re S
+0.02 0.36 0.34 rg
+BT /F2 10 Tf 46 780 Td (Report Details) Tj ET
+0.05 0.24 0.28 rg
+34 738 527 32 re f
+1 1 1 rg
+BT /F2 6 Tf 38 756 Td (Complaint Code) Tj ET
+BT /F2 6 Tf 103.875 756 Td (Issue Type) Tj ET
+BT /F2 6 Tf 169.75 756 Td (Area) Tj ET
+BT /F2 6 Tf 235.625 756 Td (Status) Tj ET
+BT /F2 6 Tf 301.5 756 Td (Assigned Team) Tj ET
+BT /F2 6 Tf 367.375 756 Td (Deadline) Tj ET
+BT /F2 6 Tf 433.25 756 Td (Submitted Date) Tj ET
+BT /F2 6 Tf 499.125 756 Td (Priority) Tj ET
+1 1 1 rg
+34 714 527 24 re f
+0.80 0.86 0.89 RG
+34 714 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 725 Td (DG-20260608-63720) Tj ET
+BT /F1 6 Tf 103.875 725 Td (Mosquito Breeding) Tj ET
+BT /F1 6 Tf 169.75 725 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 725 Td (REOPENED) Tj ET
+BT /F1 6 Tf 301.5 725 Td (N/A) Tj ET
+BT /F1 6 Tf 367.375 725 Td (Jun 09, 2026) Tj ET
+BT /F1 6 Tf 433.25 725 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 725 Td (Medium) Tj ET
+0.99 1 1 rg
+34 690 527 24 re f
+0.80 0.86 0.89 RG
+34 690 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 701 Td (DG-20260608-17681) Tj ET
+BT /F1 6 Tf 103.875 701 Td (Sewage Leakage) Tj ET
+BT /F1 6 Tf 169.75 701 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 701 Td (REJECTED by WARD) Tj ET
+BT /F1 6 Tf 301.5 701 Td (N/A) Tj ET
+BT /F1 6 Tf 367.375 701 Td (N/A) Tj ET
+BT /F1 6 Tf 433.25 701 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 701 Td (High) Tj ET
+1 1 1 rg
+34 662 527 28 re f
+0.80 0.86 0.89 RG
+34 662 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 677 Td (DG-20260608-93196) Tj ET
+BT /F1 6 Tf 103.875 677 Td (Water) Tj ET
+BT /F1 6 Tf 103.875 669 Td (Contamination) Tj ET
+BT /F1 6 Tf 169.75 677 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 677 Td (DUPLICATE) Tj ET
+BT /F1 6 Tf 301.5 677 Td (N/A) Tj ET
+BT /F1 6 Tf 367.375 677 Td (N/A) Tj ET
+BT /F1 6 Tf 433.25 677 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 677 Td (High) Tj ET
+0.99 1 1 rg
+34 634 527 28 re f
+0.80 0.86 0.89 RG
+34 634 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 649 Td (DG-20260608-30312) Tj ET
+BT /F1 6 Tf 103.875 649 Td (Open Manhole) Tj ET
+BT /F1 6 Tf 169.75 649 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 649 Td (REOPENED) Tj ET
+BT /F1 6 Tf 301.5 649 Td (Drain Response) Tj ET
+BT /F1 6 Tf 301.5 641 Td (Team Bravo) Tj ET
+BT /F1 6 Tf 367.375 649 Td (Jun 09, 2026) Tj ET
+BT /F1 6 Tf 433.25 649 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 649 Td (High) Tj ET
+1 1 1 rg
+34 606 527 28 re f
+0.80 0.86 0.89 RG
+34 606 527 28 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 621 Td (DG-20260608-53094) Tj ET
+BT /F1 6 Tf 103.875 621 Td (Garbage) Tj ET
+BT /F1 6 Tf 103.875 613 Td (Accumulation) Tj ET
+BT /F1 6 Tf 169.75 621 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 621 Td (VERIFIED by WARD) Tj ET
+BT /F1 6 Tf 301.5 621 Td (N/A) Tj ET
+BT /F1 6 Tf 367.375 621 Td (N/A) Tj ET
+BT /F1 6 Tf 433.25 621 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 621 Td (Low) Tj ET
+0.99 1 1 rg
+34 570 527 36 re f
+0.80 0.86 0.89 RG
+34 570 527 36 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 593 Td (DG-20260608-34853) Tj ET
+BT /F1 6 Tf 103.875 593 Td (Broken Drain) Tj ET
+BT /F1 6 Tf 103.875 585 Td (Cover) Tj ET
+BT /F1 6 Tf 169.75 593 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 593 Td (CLOSED) Tj ET
+BT /F1 6 Tf 301.5 593 Td (Stormwater) Tj ET
+BT /F1 6 Tf 301.5 585 Td (Clearing Team) Tj ET
+BT /F1 6 Tf 301.5 577 Td (Delta) Tj ET
+BT /F1 6 Tf 367.375 593 Td (Jun 09, 2026) Tj ET
+BT /F1 6 Tf 433.25 593 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 593 Td (Medium) Tj ET
+1 1 1 rg
+34 546 527 24 re f
+0.80 0.86 0.89 RG
+34 546 527 24 re S
+0.05 0.14 0.18 rg
+BT /F1 6 Tf 38 557 Td (DG-20260608-66757) Tj ET
+BT /F1 6 Tf 103.875 557 Td (Blocked Drain) Tj ET
+BT /F1 6 Tf 169.75 557 Td (N/A) Tj ET
+BT /F1 6 Tf 235.625 557 Td (VERIFIED by WARD) Tj ET
+BT /F1 6 Tf 301.5 557 Td (N/A) Tj ET
+BT /F1 6 Tf 367.375 557 Td (N/A) Tj ET
+BT /F1 6 Tf 433.25 557 Td (Jun 08, 2026) Tj ET
+BT /F1 6 Tf 499.125 557 Td (Medium) Tj ET
+
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000257 00000 n 
+0000007902 00000 n 
+0000008038 00000 n 
+0000011970 00000 n 
+0000012040 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+12115
+%%EOF

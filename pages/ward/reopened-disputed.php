@@ -489,7 +489,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_close($updateAssignmentStmt);
             } elseif ($action === "different_team") {
                 $requestStatus = "reassigned_different_team";
-                $complaintStatus = "team_assigned";
+                $complaintStatus = "reopened";
 
                 $updateAssignmentSql = "
                     UPDATE complaint_assignments
@@ -567,9 +567,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             mysqli_commit($conn);
 
             if ($action === "same_team") {
-                $successMessage = "Complaint reassigned to the same team successfully.";
+                header("Location: local-team-assignment.php?complaint_id=" . urlencode((string)$complaintId) . "&focus=1");
+                exit;
             } elseif ($action === "different_team") {
-                $successMessage = "Complaint moved back to Local Team Assignment for different team selection.";
+                header("Location: local-team-assignment.php?complaint_id=" . urlencode((string)$complaintId) . "&focus=1");
+                exit;
             } else {
                 $successMessage = "Complaint sent to inspector verification successfully.";
             }

@@ -114,7 +114,7 @@ if (!function_exists('ward_notification_icon')) {
         if (in_array($type, ['complaint_routed', 'status_update', 'verified', 'rejected'])) return 'bi-file-earmark-text';
         if (in_array($type, ['system', 'alert'])) return 'bi-exclamation-triangle';
         if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'bi-tools';
-        if ($type === 'comment_reply') return 'bi-chat-dots';
+        if (in_array($type, ['comment_reply', 'citizen_discussion_reply'], true)) return 'bi-chat-dots';
         return 'bi-bell';
     }
 }
@@ -125,7 +125,7 @@ if (!function_exists('ward_notification_type_class')) {
         if (in_array($type, ['complaint_routed', 'status_update', 'verified', 'rejected'])) return 'type-track';
         if (in_array($type, ['system', 'alert'])) return 'type-objection';
         if (in_array($type, ['maintenance_support_assigned_task', 'maintenance_support_in_progress'])) return 'type-alert';
-        if ($type === 'comment_reply') return 'type-reply';
+        if (in_array($type, ['comment_reply', 'citizen_discussion_reply'], true)) return 'type-reply';
         return 'type-system';
     }
 }
@@ -235,7 +235,9 @@ if (isset($conn) && $conn instanceof mysqli && isset($_SESSION["user_id"])) {
                                 if ($notificationType === 'central_instruction') {
                                     $notificationLink .= '&redirect=instruction';
                                 } elseif (!empty($notification['complaint_code'])) {
-                                    if ($notificationType === 'comment_reply') {
+                                    if ($notificationType === 'citizen_discussion_reply') {
+                                        $notificationLink .= '&redirect=ward-complaints';
+                                    } elseif ($notificationType === 'comment_reply') {
                                         $notificationLink .= '&redirect=discussion';
                                     } elseif ($notificationType === 'complaint_routed') {
                                         $notificationLink .= '&redirect=verification-queue';

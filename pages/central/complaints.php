@@ -1086,6 +1086,9 @@ if ($wardResult) {
 
                                     <tr
                                         class="cm-row"
+                                        data-complaint-id="<?php echo $complaintId; ?>"
+                                        data-complaint-code="<?php echo $complaintCode; ?>"
+                                        data-notification-target="<?php echo $complaintId; ?>"
                                         data-code="<?php echo strtolower($complaintCode); ?>"
                                         data-title="<?php echo strtolower($shortTitle); ?>"
                                         data-user="<?php echo strtolower(safeText($complaint["user_name"])); ?>"
