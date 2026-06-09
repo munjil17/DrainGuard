@@ -1,0 +1,255 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 2756 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(# DrainGuard Short Judge Documentation) Tj
+T*
+() Tj
+T*
+(## 1. Project Title) Tj
+T*
+() Tj
+T*
+(**DrainGuard: Smart Urban Drainage Issue Management System**) Tj
+T*
+() Tj
+T*
+(## 2. Project Overview) Tj
+T*
+() Tj
+T*
+(DrainGuard is a PHP/MySQL role-based urban drainage complaint management system. It allows) Tj
+T*
+(citizens to submit drainage issues digitally and helps municipal authorities process, route,) Tj
+T*
+(assign, verify, and close complaints through a structured database-driven workflow. The system) Tj
+T*
+(uses PHP, MySQLi, MySQL/MariaDB, HTML, CSS, JavaScript, Bootstrap, Bootstrap Icons, and XAMPP.) Tj
+T*
+() Tj
+T*
+(## 3. Problem Statement) Tj
+T*
+() Tj
+T*
+(Manual drainage complaint handling is slow and difficult to monitor. Citizens often cannot track) Tj
+T*
+(complaint status properly after reporting a problem. Authorities also face problems in routing) Tj
+T*
+(complaints to the correct ward, verifying actual maintenance work, and maintaining clear) Tj
+T*
+(accountability. Without structured audit records, it becomes difficult to identify who handled) Tj
+T*
+(each step and whether the complaint was properly resolved.) Tj
+T*
+() Tj
+T*
+(## 4. Objective) Tj
+T*
+() Tj
+T*
+(The main objectives of DrainGuard are:) Tj
+T*
+() Tj
+T*
+(- Digital complaint submission.) Tj
+T*
+(- Real-time complaint tracking.) Tj
+T*
+(- Role-wise workflow for all responsible users.) Tj
+T*
+(- Maintenance team assignment.) Tj
+T*
+(- Proof upload after work completion.) Tj
+T*
+(- Inspector verification before final closure.) Tj
+T*
+(- Citizen feedback and objection handling.) Tj
+T*
+(- Role-wise notification.) Tj
+T*
+(- Risk/high-risk area detection.) Tj
+T*
+() Tj
+T*
+(## 5. User Roles) Tj
+T*
+() Tj
+T*
+(| User Role | Main Responsibility |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| Citizen | Submits complaints, tracks status, gives feedback or objection. |) Tj
+T*
+(| Central Officer | Reviews complaints and routes accepted cases to wards. |) Tj
+T*
+(| Ward Officer | Verifies complaints, assigns teams, handles objections/disputes. |) Tj
+T*
+(| Maintenance Team | Starts assigned work and uploads completion proof. |) Tj
+T*
+(| Inspector | Verifies proof, approves work, or marks false completion. |) Tj
+T*
+() Tj
+T*
+(## 6. Core Workflow) Tj
+T*
+() Tj
+T*
+(Citizen submits a drainage complaint. The complaint is reviewed by a Central Officer, who) Tj
+T*
+(accepts or rejects it. Accepted complaints are routed to the proper ward. The Ward Officer) Tj
+T*
+(verifies the complaint and assigns a maintenance team. The Maintenance Team starts work and) Tj
+T*
+(uploads completion proof after finishing. The Inspector checks the case and either approves the) Tj
+T*
+(work or reports false completion. After approval, the Citizen can give feedback or raise an) Tj
+T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 2717 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(objection. Based on feedback or objection, the case is either closed or reopened for further) Tj
+T*
+(action.) Tj
+T*
+() Tj
+T*
+(**Workflow summary:**) Tj
+T*
+(Citizen submits complaint -> Central reviews and routes -> Ward verifies and assigns team ->) Tj
+T*
+(Maintenance starts work and uploads proof -> Inspector verifies -> Citizen gives) Tj
+T*
+(feedback/objection -> Case closes or reopens.) Tj
+T*
+() Tj
+T*
+(## 7. Database Design Summary) Tj
+T*
+() Tj
+T*
+(DrainGuard uses a relational MySQL database. Important table groups include:) Tj
+T*
+() Tj
+T*
+(- **Users and role tables:** `users`, `citizens`, `central_officers`, `ward_officers`,) Tj
+T*
+(`maintenance_teams`, `maintenance_team_members`, `inspectors`.) Tj
+T*
+(- **Location tables:** `cities`, `city_corporations`, `thanas`, `anchals`, `wards`, `areas`,) Tj
+T*
+(`locations`, `drains`.) Tj
+T*
+(- **Complaint tables:** `complaints`, `complaint_media`, `complaint_status_logs`,) Tj
+T*
+(`complaint_decisions`, `issues`, `affected_areas`.) Tj
+T*
+(- **Assignment and maintenance tables:** `complaint_assignments`, `maintenance_proofs`,) Tj
+T*
+(`maintenance_support_requests`.) Tj
+T*
+(- **Inspection, feedback, and reopen tables:** `inspection_logs`, `feedbacks`,) Tj
+T*
+(`reopen_requests`, `false_completion_reviews`, `maintenance_team_reviews`.) Tj
+T*
+(- **Notification tables:** `citizen_notifications`, `central_notifications`,) Tj
+T*
+(`ward_notifications`, `maintenance_notifications`, `inspector_notifications`.) Tj
+T*
+(- **Risk and instruction tables:** `risk`, `role_instructions`.) Tj
+T*
+() Tj
+T*
+(The `complaints` table is the main transaction table, while `users` is the central login table.) Tj
+T*
+(Assignment, proof, inspection, feedback, notification, and log tables help track the full) Tj
+T*
+(complaint lifecycle.) Tj
+T*
+() Tj
+T*
+(## 8. Advanced DBMS Topics Used) Tj
+T*
+() Tj
+T*
+(- Transaction Management) Tj
+T*
+(- ACID Properties) Tj
+T*
+(- Commit and Rollback) Tj
+T*
+(- Prepared Statement) Tj
+T*
+(- JOIN, filtering, and subquery) Tj
+T*
+(- Indexing) Tj
+T*
+(- Authentication) Tj
+T*
+(- Authorization / Role-based access) Tj
+T*
+(- Audit log / Status log) Tj
+T*
+() Tj
+T*
+(## 9. Conclusion) Tj
+T*
+() Tj
+T*
+(DrainGuard is a transparent, accountable, and database-driven urban drainage complaint) Tj
+T*
+(management system. It tracks the complete complaint lifecycle from citizen submission to central) Tj
+T*
+(review, ward routing, maintenance work, proof upload, inspector verification, feedback,) Tj
+T*
+(objection, and final closure or reopening. For a DBMS project show, it demonstrates practical) Tj
+T*
+(use of relational database design, role-based access, notifications, audit logs, and workflow) Tj
+T*
+(management.) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000003125 00000 n 
+0000003251 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+6020
+%%EOF

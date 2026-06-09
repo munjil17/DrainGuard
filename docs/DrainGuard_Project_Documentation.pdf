@@ -1,0 +1,2079 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R 30 0 R 32 0 R 34 0 R 36 0 R 38 0 R] /Count 18 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 2732 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(# DrainGuard Project Documentation) Tj
+T*
+() Tj
+T*
+(## 1. Project Title) Tj
+T*
+() Tj
+T*
+(**DrainGuard: Smart Urban Drainage Issue Management System**) Tj
+T*
+() Tj
+T*
+(## 2. Project Overview) Tj
+T*
+() Tj
+T*
+(DrainGuard is a PHP/MySQL role-based urban drainage issue management system. It digitizes) Tj
+T*
+(drainage complaint submission, review, ward routing, maintenance assignment, proof upload,) Tj
+T*
+(inspector verification, citizen feedback, objection handling, notifications, audit/status logs,) Tj
+T*
+(and high-risk area detection.) Tj
+T*
+() Tj
+T*
+(The inspected project uses PHP, MySQLi, MySQL/MariaDB, HTML, CSS, JavaScript, Bootstrap,) Tj
+T*
+(Bootstrap Icons, and XAMPP. No React, Laravel, Tailwind, PDO, or framework-based stack was) Tj
+T*
+(found.) Tj
+T*
+() Tj
+T*
+(The system is designed for municipal drainage operations. Citizens report problems, central) Tj
+T*
+(officers review and route complaints, ward officers verify local responsibility and assign) Tj
+T*
+(teams, maintenance teams perform the work, and inspectors verify completion before closure.) Tj
+T*
+() Tj
+T*
+(## 3. Problem Statement) Tj
+T*
+() Tj
+T*
+(Manual drainage complaint management creates these problems:) Tj
+T*
+() Tj
+T*
+(- Slow complaint handling because reports are forwarded manually.) Tj
+T*
+(- No clear real-time tracking for citizens.) Tj
+T*
+(- Weak accountability because responsible users and decisions are not recorded in a structured) Tj
+T*
+(way.) Tj
+T*
+(- Difficulty routing complaints to the correct city corporation, thana, ward, and area.) Tj
+T*
+(- Difficulty verifying actual work completion without uploaded proof and inspection.) Tj
+T*
+(- Lack of structured notification across citizen, central, ward, maintenance, and inspector) Tj
+T*
+(roles.) Tj
+T*
+(- Lack of audit/status logs for judging progress and responsibility.) Tj
+T*
+() Tj
+T*
+(DrainGuard solves these problems by storing the full complaint lifecycle in a relational) Tj
+T*
+(database and by giving every role a clear workflow.) Tj
+T*
+() Tj
+T*
+(## 4. Project Objective) Tj
+T*
+() Tj
+T*
+(The main objectives are:) Tj
+T*
+() Tj
+T*
+(- Digital complaint submission.) Tj
+T*
+(- Real-time complaint tracking through database statuses and logs.) Tj
+T*
+(- Role-wise workflow and authorization.) Tj
+T*
+(- Correct routing by city corporation, ward, area, location, and drain.) Tj
+T*
+(- Maintenance team assignment and change support.) Tj
+T*
+(- Proof-based work completion using image/video uploads.) Tj
+T*
+(- Inspector verification before final closure.) Tj
+T*
+(- Citizen feedback and objection after closure.) Tj
+T*
+(- Role-wise notification delivery.) Tj
+T*
+(- High-risk area detection from complaint frequency, affected area, urgency, and repeated) Tj
+T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 2974 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(reports.) Tj
+T*
+(- Audit/status logging for accountability.) Tj
+T*
+() Tj
+T*
+(## 5. User Roles) Tj
+T*
+() Tj
+T*
+(| Role | What the role does |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| Citizen | Registers, submits complaints, views public board, tracks own complaints, gives) Tj
+T*
+(feedback, and raises objections. |) Tj
+T*
+(| Central Officer | Accepts/rejects submitted complaints, routes accepted complaints to wards,) Tj
+T*
+(manages officers/teams/wards/drains, and views reports and high-risk zones. |) Tj
+T*
+(| Ward Officer | Verifies ward complaints, rejects or marks duplicate complaints, assigns or) Tj
+T*
+(changes maintenance teams, handles support requests, reviews objections, and manages) Tj
+T*
+(disputed/reopened cases. |) Tj
+T*
+(| Maintenance Team / Maintenance Member | Receives assigned work, starts work, requests support,) Tj
+T*
+(uploads completion proof, and views task history/feedback. |) Tj
+T*
+(| Inspector | Reviews solved-by-team cases, checks proof, approves work, marks false completion,) Tj
+T*
+(and records inspection decisions. |) Tj
+T*
+() Tj
+T*
+(## 6. Full Workflow Explanation) Tj
+T*
+() Tj
+T*
+(### Citizen) Tj
+T*
+() Tj
+T*
+(- Citizen submits a complaint from `pages/citizen/submit-complaint.php`.) Tj
+T*
+(- `auth/submit_complaint_process.php` inserts the complaint into `complaints` with status) Tj
+T*
+(`submitted`.) Tj
+T*
+(- Uploaded complaint images/videos are stored in `assets/uploads/complaints/` and recorded in) Tj
+T*
+(`complaint_media`.) Tj
+T*
+(- A status record is inserted in `complaint_status_logs`.) Tj
+T*
+(- Central officers receive rows in `central_notifications`.) Tj
+T*
+(- Citizen-facing visibility is provided through `pages/citizen/public-board.php`,) Tj
+T*
+(`pages/citizen/my-complaints.php`, and `pages/citizen/track-complaint.php`.) Tj
+T*
+() Tj
+T*
+(### Central Officer) Tj
+T*
+() Tj
+T*
+(- Submitted complaints appear in `pages/central/complaints.php`.) Tj
+T*
+(- The Central Officer accepts or rejects a complaint.) Tj
+T*
+(- Accepted complaints move to `received`.) Tj
+T*
+(- Rejected complaints are recorded in `complaint_decisions` and move to `rejected_by_central`.) Tj
+T*
+(- Accepted complaints go to `pages/central/routing-assignment.php`.) Tj
+T*
+(- Routing inserts `complaint_assignments` with `assignment_status = 'ward_assigned'` and changes) Tj
+T*
+(complaint status to `pending_verification`.) Tj
+T*
+(- Citizens and ward officers receive notification rows.) Tj
+T*
+(- Accepted/rejected records remain visible in `pages/central/processed-complaints.php`.) Tj
+T*
+() Tj
+T*
+(### Ward Officer) Tj
+T*
+() Tj
+T*
+(- Routed complaints appear in `pages/ward/verification-queue.php`.) Tj
+T*
+(- Ward Officer can verify, reject, or mark duplicate.) Tj
+T*
+(- Verified complaints move to `verified_by_ward`.) Tj
+T*
+(- Verified complaints move to `pages/ward/local-team-assignment.php` for local team assignment.) Tj
+T*
+(- Assignment updates `complaint_assignments.maintenance_team_id`, `assignment_status`,) Tj
+T*
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 3053 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(`deadline_at`, `assignment_priority`, and `task_note`.) Tj
+T*
+(- The complaint moves to `team_assigned`.) Tj
+T*
+(- Team change logic exists in `includes/ward/team_workflow_helpers.php`.) Tj
+T*
+(- Support requests are handled through `maintenance_support_requests` and) Tj
+T*
+(`pages/ward/reply_support.php`.) Tj
+T*
+(- Citizen objections and disputed cases are handled in `pages/ward/citizen-objections.php`,) Tj
+T*
+(`pages/ward/reopened-disputed.php`, `pages/ward/reopened-cases.php`, and) Tj
+T*
+(`pages/ward/false-completion-reviews.php`.) Tj
+T*
+() Tj
+T*
+(### Maintenance Team) Tj
+T*
+() Tj
+T*
+(- Assigned work appears in `pages/maintenance/assigned-tasks.php`.) Tj
+T*
+(- The team starts work; complaint and assignment can move to `in_progress`.) Tj
+T*
+(- Active work appears in `pages/maintenance/in-progress-work.php`.) Tj
+T*
+(- Support can be requested through `notifications/send_maintenance_support_request.php`, which) Tj
+T*
+(inserts `maintenance_support_requests` and notifies the Ward Officer.) Tj
+T*
+(- Completion proof is uploaded from `pages/maintenance/upload-completion-proof.php`.) Tj
+T*
+(- Proof files are stored in `assets/uploads/maintenance_proofs/` and metadata is inserted into) Tj
+T*
+(`maintenance_proofs`.) Tj
+T*
+(- The assignment is marked `completed`, the complaint moves toward `solved_by_team` / inspector) Tj
+T*
+(review, and inspectors receive notification.) Tj
+T*
+() Tj
+T*
+(### Inspector) Tj
+T*
+() Tj
+T*
+(- Solved cases appear in `pages/inspector/solved-cases.php` and inspection pages.) Tj
+T*
+(- Inspector reviews before/after details in `pages/inspector/before-after-review.php` and) Tj
+T*
+(decisions in `pages/inspector/inspection-queue.php`.) Tj
+T*
+(- Approval inserts `inspection_logs`, changes the complaint to `closed`, accepts proof, and) Tj
+T*
+(notifies related roles.) Tj
+T*
+(- False completion inserts `inspection_logs`, changes the complaint to `disputed`, and sends it) Tj
+T*
+(back for ward dispute handling.) Tj
+T*
+() Tj
+T*
+(### Feedback / Objection / Dispute) Tj
+T*
+() Tj
+T*
+(- Citizen feedback and objections are submitted from `pages/citizen/feedback-reopen.php`.) Tj
+T*
+(- Normal feedback inserts into `feedbacks` with `feedback_type = 'feedback'` and may create) Tj
+T*
+(`maintenance_team_reviews`.) Tj
+T*
+(- Bad feedback/objection inserts `feedbacks` with `feedback_type = 'false_completion'`, inserts) Tj
+T*
+(`reopen_requests`, and changes the complaint to `disputed`.) Tj
+T*
+(- Ward, central, inspector, and maintenance notification rows are created where recipient data) Tj
+T*
+(exists.) Tj
+T*
+(- Valid objection/dispute can reopen or reassign a complaint; invalid objection can be) Tj
+T*
+(rejected/resolved.) Tj
+T*
+() Tj
+T*
+(A main strength of the project is real-time complaint tracking through status changes and the) Tj
+T*
+(role-wise notification system.) Tj
+T*
+() Tj
+T*
+(## 7. Core Features) Tj
+T*
+() Tj
+T*
+(| Feature | Actual evidence in project |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| Login and role-based redirection | `auth/login.php`, `auth/login_process.php`,) Tj
+T*
+ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 11 0 R >>
+endobj
+11 0 obj
+<< /Length 3506 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(`auth/session_check.php` |) Tj
+T*
+(| Citizen registration | `citizenRegistration/citizen_signup.php` |) Tj
+T*
+(| Complaint submission | `pages/citizen/submit-complaint.php`,) Tj
+T*
+(`auth/submit_complaint_process.php` |) Tj
+T*
+(| Public complaint board | `pages/citizen/public-board.php` |) Tj
+T*
+(| My complaints | `pages/citizen/my-complaints.php` |) Tj
+T*
+(| Complaint tracking | `pages/citizen/track-complaint.php`, `complaint_status_logs` |) Tj
+T*
+(| Central review | `pages/central/complaints.php` |) Tj
+T*
+(| Ward routing | `pages/central/routing-assignment.php` |) Tj
+T*
+(| Ward verification | `pages/ward/verification-queue.php` |) Tj
+T*
+(| Team assignment/change | `pages/ward/local-team-assignment.php`,) Tj
+T*
+(`includes/ward/team_workflow_helpers.php` |) Tj
+T*
+(| Assigned work and start work | `pages/maintenance/assigned-tasks.php`,) Tj
+T*
+(`pages/maintenance/in-progress-work.php` |) Tj
+T*
+(| Support request | `notifications/send_maintenance_support_request.php`,) Tj
+T*
+(`maintenance_support_requests` |) Tj
+T*
+(| Completion proof | `pages/maintenance/upload-completion-proof.php`, `maintenance_proofs` |) Tj
+T*
+(| Inspector verification | `pages/inspector/inspection-queue.php`,) Tj
+T*
+(`pages/inspector/before-after-review.php` |) Tj
+T*
+(| False completion handling | `inspection_logs`, `false_completion_reviews`, ward dispute pages) Tj
+T*
+(|) Tj
+T*
+(| Feedback / objection / reopen | `pages/citizen/feedback-reopen.php`, `feedbacks`,) Tj
+T*
+(`reopen_requests` |) Tj
+T*
+(| Role notifications | Five notification tables and role notification pages |) Tj
+T*
+(| Audit/status logs | `complaint_status_logs`, `complaint_decisions`, `inspection_logs` |) Tj
+T*
+(| Risk zones | `risk`, central/ward/citizen high-risk pages |) Tj
+T*
+(| Role instructions | `role_instructions`, ward/inspector instruction details pages |) Tj
+T*
+(| Comment/reply/like system | `commentSystem/`, `comment_likes` |) Tj
+T*
+() Tj
+T*
+(## 8. Database Design) Tj
+T*
+() Tj
+T*
+(The database schema is defined in `database/drainguard.sql`. It uses InnoDB tables, primary) Tj
+T*
+(keys, foreign keys, indexed lookup columns, enum workflow statuses, and timestamp columns.) Tj
+T*
+() Tj
+T*
+(### User / Login Section) Tj
+T*
+() Tj
+T*
+(| Table | Purpose | Important columns | Relationship |) Tj
+T*
+(| --- | --- | --- | --- |) Tj
+T*
+(| `users` | Central authentication table. | `user_id`, `user_name`, `user_mail`,) Tj
+T*
+(`user_password`, `user_role`, `user_status`, `login_access`, `last_active`, `reset_token`,) Tj
+T*
+(`reset_time` | Parent login entity for all roles and notification recipients. |) Tj
+T*
+(| `citizens` | Citizen profile table. | `citizen_id`, `user_id`, `full_name`, `phone_number`,) Tj
+T*
+(`user_mail`, address fields, `profile_photo`, demerit/suspension fields | `user_id` references) Tj
+T*
+(`users`. |) Tj
+T*
+(| `central_officers` | Central officer profile. | `central_officer_id`, `user_id`, `full_name`,) Tj
+T*
+(`phone`, `employee_code`, `designation`, `office_address` | Extends `users`. |) Tj
+T*
+(| `ward_officers` | Ward officer profile and assigned ward. | `ward_officer_id`, `user_id`,) Tj
+T*
+(`city_cor_id`, `assigned_ward_id`, `full_name`, `designation` | Connects a user to one city) Tj
+T*
+(corporation and ward. |) Tj
+T*
+(| `maintenance_teams` | Maintenance team master data. | `maintenance_team_id`, `team_name`,) Tj
+T*
+(`city_cor_id`, `anchal_id`, `availability_status`, `assistant_login_access` | Used by) Tj
+T*
+(assignments, members, proofs, reviews. |) Tj
+T*
+ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 13 0 R >>
+endobj
+13 0 obj
+<< /Length 3541 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(| `maintenance_team_members` | Maintenance staff. | `member_id`, `maintenance_team_id`,) Tj
+T*
+(`user_id`, `full_name`, `role`, `status`, demerit/warning fields | Connects members to teams and) Tj
+T*
+(optional login users. |) Tj
+T*
+(| `inspectors` | Inspector profile and assigned ward. | `inspector_id`, `user_id`,) Tj
+T*
+(`city_cor_id`, `assigned_ward_id`, `full_name`, suspension fields | Used in inspection) Tj
+T*
+(decisions. |) Tj
+T*
+() Tj
+T*
+(### Location Section) Tj
+T*
+() Tj
+T*
+(| Table | Purpose | Important columns | Relationship |) Tj
+T*
+(| --- | --- | --- | --- |) Tj
+T*
+(| `cities` | City lookup. | `city_id`, `city_name` | Parent for city corporations. |) Tj
+T*
+(| `city_corporations` | City corporation lookup. | `city_cor_id`, `city_id`, `city_cor_name` |) Tj
+T*
+(Used by locations/officers/teams. |) Tj
+T*
+(| `thanas` | Thana lookup. | `thana_id`, `city_cor_id`, `thana_name` | Parent for wards and) Tj
+T*
+(location selection. |) Tj
+T*
+(| `anchals` | Administrative zone lookup. | `anchal_id`, `city_cor_id`, `anchal_name` | Used by) Tj
+T*
+(wards and maintenance teams. |) Tj
+T*
+(| `wards` | Ward lookup. | `ward_id`, `city_cor_id`, `thana_id`, `anchal_id`, `ward_no`,) Tj
+T*
+(`ward_name` | Used for routing and ward officer assignment. |) Tj
+T*
+(| `areas` | Area lookup under ward. | `area_id`, `ward_id`, `area_name` | Used by `locations`. |) Tj
+T*
+(| `locations` | Normalized location combination. | `loc_id`, `city_id`, `city_cor_id`,) Tj
+T*
+(`thana_id`, `ward_id`, `area_id` | Connected to complaints and drains. |) Tj
+T*
+(| `drains` | Drain record and condition. | `drain_id`, `loc_id`, `drain_code`, `drain_name`,) Tj
+T*
+(`drain_address_description`, `drain_condition`, condition update metadata | Connected to) Tj
+T*
+(complaints through `drain_id`. |) Tj
+T*
+() Tj
+T*
+(### Complaint Core Section) Tj
+T*
+() Tj
+T*
+(| Table | Purpose | Important columns | Relationship |) Tj
+T*
+(| --- | --- | --- | --- |) Tj
+T*
+(| `complaints` | Main transaction table. | `complaint_id`, `complaint_code`, `user_id`,) Tj
+T*
+(`loc_id`, `drain_id`, `issue_id`, `affected_area_id`, descriptions, `complaint_status`,) Tj
+T*
+(`work_started_at`, `parent_complaint_id`, `is_repeat_complaint`, timestamps | References user,) Tj
+T*
+(location, drain, issue, affected area, and optional parent complaint. |) Tj
+T*
+(| `complaint_media` | Complaint images/videos. | `media_id`, `complaint_id`, `media_type`,) Tj
+T*
+(`media_path`, `original_name`, file metadata | References `complaints`. |) Tj
+T*
+(| `complaint_status_logs` | Status/audit history. | `log_id`, `complaint_id`, `old_status`,) Tj
+T*
+(`new_status`, `action_by_user_id`, `action_by_role`, `remarks`, `created_at` | References) Tj
+T*
+(complaints/users. |) Tj
+T*
+(| `complaint_decisions` | Rejection/duplicate/final decision reasons. | `decision_id`,) Tj
+T*
+(`complaint_id`, `decided_by_user_id`, `decided_by_role`, `decision_type`, `reason`,) Tj
+T*
+(`reference_complaint_id` | References complaints/users. |) Tj
+T*
+(| `issues` | Issue lookup. | `issue_id`, `issue_name`, `priority` | Used by complaints and risk) Tj
+T*
+(logic. |) Tj
+T*
+(| `affected_areas` | Affected area lookup. | `affected_area_id`, `affected_area_name`,) Tj
+T*
+(`priority` | Used by complaints and urgency logic. |) Tj
+T*
+(| `comment_likes` | Discussion comments, replies, likes, dislikes. | `id`, `complaint_id`,) Tj
+T*
+(`parent_id`, `user_id`, `type`, `comment_text`, `is_deleted` | Supports `commentSystem/`. |) Tj
+T*
+() Tj
+T*
+(### Assignment and Maintenance Section) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 15 0 R >>
+endobj
+15 0 obj
+<< /Length 3703 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(| Table | Purpose | Important columns | Relationship |) Tj
+T*
+(| --- | --- | --- | --- |) Tj
+T*
+(| `complaint_assignments` | Ward/team assignment table. | `assignment_id`, `complaint_id`,) Tj
+T*
+(`ward_id`, `maintenance_team_id`, `assigned_by`, `assignment_status`, `assigned_at`,) Tj
+T*
+(`deadline_at`, `assignment_priority`, `task_note` | Connects complaint to ward, central) Tj
+T*
+(assigner, and maintenance team. |) Tj
+T*
+(| `maintenance_proofs` | Completion proof table. | `proof_id`, `assignment_id`, `complaint_id`,) Tj
+T*
+(`maintenance_team_id`, `uploaded_by`, `proof_stage`, `media_type`, `media_path`, `proof_note`,) Tj
+T*
+(`proof_status` | References assignment, complaint, team, and uploader. |) Tj
+T*
+(| `maintenance_support_requests` | Support requests from team to ward officer. |) Tj
+T*
+(`support_request_id`, `assignment_id`, `complaint_id`, `maintenance_team_id`, `requested_by`,) Tj
+T*
+(`ward_officer_user_id`, `support_reason`, `request_status`, `ward_reply` | Connects maintenance) Tj
+T*
+(issue with ward response. |) Tj
+T*
+(| `maintenance_updates` | Maintenance work update history. | `update_id`, `complaint_id`,) Tj
+T*
+(`assignment_id`, `maintenance_team_id`, `updated_by_user_id`, `work_status` | Tracks work) Tj
+T*
+(progress. |) Tj
+T*
+(| `delay_requests` | Delayed task support. | `delay_request_id`, assignment/complaint/team/user) Tj
+T*
+(fields | Used by delayed task pages. |) Tj
+T*
+() Tj
+T*
+(### Inspection / Reopen / Feedback Section) Tj
+T*
+() Tj
+T*
+(| Table | Purpose | Important columns | Relationship |) Tj
+T*
+(| --- | --- | --- | --- |) Tj
+T*
+(| `inspection_logs` | Inspector decision history. | `log_id`, `complaint_id`, `assignment_id`,) Tj
+T*
+(`inspector_user_id`, `decision_type`, `decision_note`, `source_type`, `source_id` | References) Tj
+T*
+(complaint, assignment, inspector user. |) Tj
+T*
+(| `false_completion_reviews` | Ward review of false completion cases. | `review_id`,) Tj
+T*
+(complaint/assignment/team/review fields | Supports false completion handling. |) Tj
+T*
+(| `reopen_requests` | Citizen objection/reopen/dispute requests. | `reopen_id`, `complaint_id`,) Tj
+T*
+(`requested_by`, `request_type`, `reason`, `request_status`, `handled_by`, timestamps |) Tj
+T*
+(References complaint and users. |) Tj
+T*
+(| `feedbacks` | Citizen feedback and objection feedback. | `feedback_id`, `complaint_id`,) Tj
+T*
+(`user_id`, `rating`, `feedback_text`, `feedback_type`, `created_at` | References complaint/user.) Tj
+T*
+(|) Tj
+T*
+(| `maintenance_team_reviews` | Citizen review of maintenance team. | `review_id`,) Tj
+T*
+(`complaint_id`, `citizen_user_id`, `maintenance_team_id`, rating/review fields | Used by team) Tj
+T*
+(performance pages. |) Tj
+T*
+(| `objection_reviews` | Review records for objections. | `review_id`, `reopen_id`,) Tj
+T*
+(`complaint_id`, `reviewed_by`, `reviewer_role`, `review_action` | Supports objection review) Tj
+T*
+(tracking. |) Tj
+T*
+() Tj
+T*
+(### Risk and Instruction Section) Tj
+T*
+() Tj
+T*
+(| Table | Purpose | Important columns | Relationship |) Tj
+T*
+(| --- | --- | --- | --- |) Tj
+T*
+(| `risk` | High-risk area records. | `risk_id`, `risk_area_key`, location ids, `urgency_level`,) Tj
+T*
+(`risk_status`, complaint count fields, `last_complaint_id` | References last related complaint) Tj
+T*
+(and location ids. |) Tj
+T*
+(| `role_instructions` | Officer-to-role instructions. | `instruction_id`, `sender_user_id`,) Tj
+T*
+(`receiver_user_id`, `receiver_role`, `ward_id`, `instruction_title`, `instruction_message`,) Tj
+T*
+(`priority`, `instruction_status` | Used by instruction detail pages. |) Tj
+T*
+(| `instruction_notifications_map` | Instruction notification mapping. | `map_id` and mapping) Tj
+T*
+ET
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 17 0 R >>
+endobj
+17 0 obj
+<< /Length 2911 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(fields | Supports instruction notifications. |) Tj
+T*
+() Tj
+T*
+(### Notification Section) Tj
+T*
+() Tj
+T*
+(All role notification tables share this structure: `notification_id`, `recipient_user_id`,) Tj
+T*
+(`sender_user_id`, `related_complaint_id`, `notification_type`, `notification_title`,) Tj
+T*
+(`notification_message`, `is_read`, and `created_at`.) Tj
+T*
+() Tj
+T*
+(| Table | Recipient role |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| `citizen_notifications` | Citizen |) Tj
+T*
+(| `central_notifications` | Central Officer |) Tj
+T*
+(| `ward_notifications` | Ward Officer |) Tj
+T*
+(| `maintenance_notifications` | Maintenance Team / Maintenance Member |) Tj
+T*
+(| `inspector_notifications` | Inspector |) Tj
+T*
+() Tj
+T*
+(## 9. ER Diagram Explanation) Tj
+T*
+() Tj
+T*
+(- `users` is the central login entity.) Tj
+T*
+(- Role tables extend `users` with role-specific attributes.) Tj
+T*
+(- `complaints` is the core transaction entity.) Tj
+T*
+(- `locations`, `drains`, `issues`, and `affected_areas` classify each complaint.) Tj
+T*
+(- `complaint_assignments` connects complaints to wards and maintenance teams.) Tj
+T*
+(- `maintenance_proofs` and `inspection_logs` verify work completion.) Tj
+T*
+(- `feedbacks`, `reopen_requests`, `false_completion_reviews`, and `objection_reviews` manage) Tj
+T*
+(post-closure review.) Tj
+T*
+(- Notification tables connect workflow events to recipient users.) Tj
+T*
+(- `complaint_status_logs` and `complaint_decisions` maintain audit evidence.) Tj
+T*
+(- `risk` supports high-risk area detection.) Tj
+T*
+() Tj
+T*
+(## 10. Relational Schema Explanation) Tj
+T*
+() Tj
+T*
+(- `users.user_id` connects to `citizens`, `central_officers`, `ward_officers`, `inspectors`, and) Tj
+T*
+(`maintenance_team_members`.) Tj
+T*
+(- `complaints.user_id` connects the complaint to the citizen/login user.) Tj
+T*
+(- `complaints.loc_id` connects to `locations.loc_id`.) Tj
+T*
+(- `complaints.drain_id` connects to `drains.drain_id`.) Tj
+T*
+(- `complaints.issue_id` connects to `issues.issue_id`.) Tj
+T*
+(- `complaints.affected_area_id` connects to `affected_areas.affected_area_id`.) Tj
+T*
+(- `complaints.parent_complaint_id` connects repeat/duplicate complaints to an earlier complaint.) Tj
+T*
+(- `complaint_assignments.complaint_id` connects assignment with complaint.) Tj
+T*
+(- `complaint_assignments.maintenance_team_id` connects assignment with team.) Tj
+T*
+(- `maintenance_proofs.assignment_id` and `maintenance_proofs.complaint_id` connect proof with) Tj
+T*
+(assignment and complaint.) Tj
+T*
+(- `inspection_logs.complaint_id`, `inspection_logs.assignment_id`, and) Tj
+T*
+(`inspection_logs.inspector_user_id` connect inspector decision with complaint, assignment, and) Tj
+T*
+(inspector user.) Tj
+T*
+(- Notification tables connect `recipient_user_id`, `sender_user_id`, and `related_complaint_id`) Tj
+T*
+(to users and complaints.) Tj
+T*
+() Tj
+T*
+(## 11. Normalization) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+18 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 19 0 R >>
+endobj
+19 0 obj
+<< /Length 2236 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(- **1NF:** Columns are atomic. Complaint status, issue id, affected area id, location id, media) Tj
+T*
+(path, proof path, and notification fields are stored separately.) Tj
+T*
+(- **2NF:** Non-key attributes depend on the table primary key. For example, complaint) Tj
+T*
+(descriptions depend on `complaint_id`, and proof file data depends on `proof_id`.) Tj
+T*
+(- **3NF:** Users, roles, complaints, media, logs, assignments, proofs, locations, notifications,) Tj
+T*
+(feedback, and risk data are separated into dedicated tables.) Tj
+T*
+(- The schema is mainly normalized up to **3NF**.) Tj
+T*
+(- **BCNF** can be discussed for lookup tables such as `issues`, `affected_areas`, `cities`,) Tj
+T*
+(`wards`, and `areas`.) Tj
+T*
+() Tj
+T*
+(## 12. Advanced DBMS Topics Used) Tj
+T*
+() Tj
+T*
+(### 1. Transaction Management) Tj
+T*
+() Tj
+T*
+(**Where used it:** Complaint submission, central routing, ward verification, maintenance proof) Tj
+T*
+(upload, support request, and inspector decision workflows.) Tj
+T*
+() Tj
+T*
+(**Table used:** `complaints`, `complaint_media`, `complaint_status_logs`,) Tj
+T*
+(`central_notifications`, `complaint_assignments`, `maintenance_proofs`, `inspection_logs`.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```php) Tj
+T*
+(mysqli_begin_transaction\($conn\);) Tj
+T*
+(// dependent INSERT and UPDATE statements) Tj
+T*
+(mysqli_commit\($conn\);) Tj
+T*
+(// on error) Tj
+T*
+(mysqli_rollback\($conn\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 2. ACID Properties) Tj
+T*
+() Tj
+T*
+(**Where used it:** Multi-step complaint submission and proof/inspection updates are handled as) Tj
+T*
+(one unit so partial database changes are avoided.) Tj
+T*
+() Tj
+T*
+(**Table used:** `complaints`, `complaint_status_logs`, `complaint_media`, `maintenance_proofs`,) Tj
+T*
+(`inspection_logs`, `reopen_requests`.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```php) Tj
+T*
+(try {) Tj
+T*
+(mysqli_begin_transaction\($conn\);) Tj
+T*
+(// insert complaint, log, notification, proof, inspection, or reopen data) Tj
+T*
+(mysqli_commit\($conn\);) Tj
+T*
+(} catch \(Throwable $exception\) {) Tj
+T*
+(mysqli_rollback\($conn\);) Tj
+T*
+(}) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 3. Commit and Rollback) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+20 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 21 0 R >>
+endobj
+21 0 obj
+<< /Length 2037 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(**Where used it:** `auth/submit_complaint_process.php`, `pages/central/routing-assignment.php`,) Tj
+T*
+(`pages/ward/verification-queue.php`, `pages/maintenance/upload-completion-proof.php`, and) Tj
+T*
+(`pages/inspector/inspection-queue.php`.) Tj
+T*
+() Tj
+T*
+(**Table used:** `complaints`, `complaint_assignments`, `maintenance_proofs`, `inspection_logs`,) Tj
+T*
+(notification tables.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```php) Tj
+T*
+(mysqli_commit\($conn\);) Tj
+T*
+(mysqli_rollback\($conn\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 4. Prepared Statement) Tj
+T*
+() Tj
+T*
+(**Where used it:** Login, complaint submission, assignment, proof upload, feedback,) Tj
+T*
+(notifications, search/filter pages, and reports.) Tj
+T*
+() Tj
+T*
+(**Table used:** `users`, `complaints`, `complaint_assignments`, `feedbacks`, notifications, and) Tj
+T*
+(many other tables.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```php) Tj
+T*
+($stmt = mysqli_prepare\($conn, "SELECT user_status, login_access FROM users WHERE user_id = ?"\);) Tj
+T*
+(mysqli_stmt_bind_param\($stmt, "i", $userId\);) Tj
+T*
+(mysqli_stmt_execute\($stmt\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 5. Query Processing using JOIN, filtering, and subquery) Tj
+T*
+() Tj
+T*
+(**Where used it:** Complaint routing, tracking, inspector review, reports, high-risk zones, and) Tj
+T*
+(role dashboards.) Tj
+T*
+() Tj
+T*
+(**Table used:** `complaints`, `locations`, `wards`, `city_corporations`,) Tj
+T*
+(`complaint_assignments`, `maintenance_teams`, `issues`, `areas`.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(SELECT c.complaint_id, c.complaint_status, ca.assignment_id, ca.maintenance_team_id) Tj
+T*
+(FROM complaints c) Tj
+T*
+(INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id) Tj
+T*
+(WHERE c.complaint_id = ?) Tj
+T*
+(AND ca.ward_id = ?) Tj
+T*
+(AND c.complaint_status = 'inspector_verification') Tj
+T*
+(LIMIT 1;) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 6. Indexing for faster lookup) Tj
+T*
+() Tj
+T*
+ET
+endstream
+endobj
+22 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 23 0 R >>
+endobj
+23 0 obj
+<< /Length 1896 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(**Where used it:** Frequent lookup by complaint, user, location, team, ward, notification) Tj
+T*
+(recipient, type, read flag, and created time.) Tj
+T*
+() Tj
+T*
+(**Table used:** `complaints`, `complaint_assignments`, `complaint_status_logs`,) Tj
+T*
+(`maintenance_proofs`, notification tables, `inspection_logs`, `locations`, `risk`.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(ALTER TABLE `complaints`) Tj
+T*
+(ADD KEY `idx_complaint_user` \(`user_id`\),) Tj
+T*
+(ADD KEY `idx_complaint_location` \(`loc_id`\),) Tj
+T*
+(ADD KEY `fk_complaints_drain` \(`drain_id`\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 7. Database Security) Tj
+T*
+() Tj
+T*
+(**Where used it:** Password hashing, prepared statements, login access checks, user status) Tj
+T*
+(checks, reset tokens, and session protection.) Tj
+T*
+() Tj
+T*
+(**Table used:** `users`, `remember_tokens`, role profile tables.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```php) Tj
+T*
+($hashedPassword = password_hash\($newPassword, PASSWORD_DEFAULT\);) Tj
+T*
+($updateSql = "UPDATE users SET user_password = ?, reset_token = NULL, reset_time = NULL WHERE) Tj
+T*
+(user_mail = ?";) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 8. Authentication) Tj
+T*
+() Tj
+T*
+(**Where used it:** Login validates identity through email/phone, password hash, account status,) Tj
+T*
+(login access, and remember token.) Tj
+T*
+() Tj
+T*
+(**Table used:** `users`, `remember_tokens`.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```php) Tj
+T*
+(if \(!password_verify\($password, $user["user_password"]\)\) {) Tj
+T*
+(// invalid login) Tj
+T*
+(}) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 9. Authorization / Role-based access) Tj
+T*
+() Tj
+T*
+(**Where used it:** Role pages check session role before allowing access.) Tj
+T*
+() Tj
+T*
+(**Table used:** `users`, role tables.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+ET
+endstream
+endobj
+24 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 25 0 R >>
+endobj
+25 0 obj
+<< /Length 1982 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+() Tj
+T*
+(```php) Tj
+T*
+(if \(!isset\($_SESSION["user_role"]\) || $_SESSION["user_role"] !== "ward_officer"\) {) Tj
+T*
+(header\("Location: ../../index.php"\);) Tj
+T*
+(exit\(\);) Tj
+T*
+(}) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### 10. Audit log / Status log) Tj
+T*
+() Tj
+T*
+(**Where used it:** Complaint submission, central decisions, ward verification, assignment,) Tj
+T*
+(maintenance progress, inspection, reopen, and dispute workflows.) Tj
+T*
+() Tj
+T*
+(**Table used:** `complaint_status_logs`, `inspection_logs`, `complaint_decisions`.) Tj
+T*
+() Tj
+T*
+(**Query / code snippet:**) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO complaint_status_logs) Tj
+T*
+(\(complaint_id, old_status, new_status, action_by_user_id, action_by_role, remarks, created_at\)) Tj
+T*
+(VALUES \(?, ?, ?, ?, 'central_officer', ?, NOW\(\)\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(## 13. SQL Query Demonstration) Tj
+T*
+() Tj
+T*
+(### INSERT complaint) Tj
+T*
+() Tj
+T*
+(Real pattern from `auth/submit_complaint_process.php`:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO complaints \() Tj
+T*
+(complaint_code, user_id, loc_id, drain_id, issue_id, affected_area_id,) Tj
+T*
+(address_description, problem_description, complaint_status,) Tj
+T*
+(parent_complaint_id, is_repeat_complaint) Tj
+T*
+(\)) Tj
+T*
+(VALUES \(?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?, ?\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### SELECT complaint with JOIN) Tj
+T*
+() Tj
+T*
+(Real pattern from `pages/ward/verification-queue.php`:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(SELECT c.complaint_id, c.complaint_code, c.user_id AS citizen_user_id,) Tj
+T*
+(c.complaint_status, l.ward_id, ca.assigned_by AS central_user_id) Tj
+T*
+(FROM complaints c) Tj
+T*
+(INNER JOIN locations l ON c.loc_id = l.loc_id) Tj
+T*
+(LEFT JOIN complaint_assignments ca ON c.complaint_id = ca.complaint_id) Tj
+T*
+(WHERE c.complaint_id = ?) Tj
+T*
+(AND c.complaint_status = 'pending_verification') Tj
+T*
+(AND l.ward_id = ? AND l.city_cor_id = ?) Tj
+T*
+(ORDER BY ca.assignment_id DESC) Tj
+T*
+ET
+endstream
+endobj
+26 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 27 0 R >>
+endobj
+27 0 obj
+<< /Length 1801 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(LIMIT 1;) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### UPDATE status) Tj
+T*
+() Tj
+T*
+(Real pattern from central routing and other workflow pages:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(UPDATE complaints) Tj
+T*
+(SET complaint_status = 'pending_verification', updated_at = NOW\(\)) Tj
+T*
+(WHERE complaint_id = ?;) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### INSERT status log) Tj
+T*
+() Tj
+T*
+(Real pattern from central complaint helper logic:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO complaint_status_logs) Tj
+T*
+(\(complaint_id, old_status, new_status, action_by_user_id, action_by_role, remarks, created_at\)) Tj
+T*
+(VALUES \(?, ?, ?, ?, 'central_officer', ?, NOW\(\)\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### INSERT notification) Tj
+T*
+() Tj
+T*
+(Real pattern from routing and notification pages:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO citizen_notifications) Tj
+T*
+(\(recipient_user_id, sender_user_id, related_complaint_id, notification_type,) Tj
+T*
+(notification_title, notification_message, is_read, created_at\)) Tj
+T*
+(VALUES \(?, ?, ?, 'status_update', 'Complaint Routed to Ward', ?, 0, NOW\(\)\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### Assignment query) Tj
+T*
+() Tj
+T*
+(Real pattern from `pages/central/routing-assignment.php`:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO complaint_assignments) Tj
+T*
+(\(complaint_id, ward_id, assigned_by, assignment_status\)) Tj
+T*
+(VALUES \(?, ?, ?, 'ward_assigned'\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### Maintenance proof query) Tj
+T*
+() Tj
+T*
+(Real pattern from `pages/maintenance/upload-completion-proof.php`:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO maintenance_proofs) Tj
+T*
+(\(assignment_id, complaint_id, maintenance_team_id, uploaded_by, proof_stage,) Tj
+T*
+(media_type, media_path, original_name, file_size, mime_type, proof_note, proof_status\)) Tj
+T*
+ET
+endstream
+endobj
+28 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 29 0 R >>
+endobj
+29 0 obj
+<< /Length 2269 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(VALUES \(?, ?, ?, ?, 'after', ?, ?, ?, ?, ?, ?, 'submitted'\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### Inspector verification query) Tj
+T*
+() Tj
+T*
+(Real pattern from `pages/inspector/inspection-queue.php`:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO inspection_logs) Tj
+T*
+(\(complaint_id, assignment_id, inspector_user_id, decision_type, decision_note, source_type\)) Tj
+T*
+(VALUES \(?, ?, ?, ?, ?, 'inspection_queue'\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### Feedback query) Tj
+T*
+() Tj
+T*
+(Real pattern from `pages/citizen/feedback-reopen.php`:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(INSERT INTO feedbacks) Tj
+T*
+(\(complaint_id, user_id, rating, feedback_text, feedback_type\)) Tj
+T*
+(VALUES \(?, ?, ?, ?, 'feedback'\);) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(### Search/filter query) Tj
+T*
+() Tj
+T*
+(Search/filter inputs exist in pages such as inspector review, inspection queue, citizen board,) Tj
+T*
+(tracking, and report helpers. A representative filtered query is:) Tj
+T*
+() Tj
+T*
+(```sql) Tj
+T*
+(SELECT c.complaint_id, c.complaint_status, ca.assignment_id, ca.maintenance_team_id) Tj
+T*
+(FROM complaints c) Tj
+T*
+(INNER JOIN complaint_assignments ca ON ca.complaint_id = c.complaint_id) Tj
+T*
+(WHERE c.complaint_id = ?) Tj
+T*
+(AND ca.ward_id = ?) Tj
+T*
+(AND c.complaint_status = 'inspector_verification') Tj
+T*
+(LIMIT 1;) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(## 14. Security Implementation) Tj
+T*
+() Tj
+T*
+(Security mechanisms found in the project include:) Tj
+T*
+() Tj
+T*
+(- Password hashing with `password_hash\(..., PASSWORD_DEFAULT\)`.) Tj
+T*
+(- Password validation with `password_verify\(\)`.) Tj
+T*
+(- Central session checking in `auth/session_check.php`.) Tj
+T*
+(- `login_access` in `users`, allowing login to be enabled/disabled without deleting users.) Tj
+T*
+(- `user_status` in `users`, supporting `active`, `inactive`, `suspended`, and `banned`.) Tj
+T*
+(- Role-based page access using session role checks and `$allowed_role` / `$allowed_roles`.) Tj
+T*
+(- Prepared statements for dynamic SQL queries.) Tj
+T*
+(- Forgot password/reset token support through `auth/forgot_password.php`,) Tj
+T*
+(`auth/reset_password.php`, `users.reset_token`, and `users.reset_time`.) Tj
+T*
+(- Remember-me token support through `remember_tokens` with hashed validators.) Tj
+T*
+ET
+endstream
+endobj
+30 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 31 0 R >>
+endobj
+31 0 obj
+<< /Length 2399 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(- No plain-text password storage was found; database user passwords are bcrypt-style hashes.) Tj
+T*
+() Tj
+T*
+(## 15. Notification System) Tj
+T*
+() Tj
+T*
+(DrainGuard uses separate role-wise notification tables:) Tj
+T*
+() Tj
+T*
+(- `citizen_notifications`) Tj
+T*
+(- `central_notifications`) Tj
+T*
+(- `ward_notifications`) Tj
+T*
+(- `maintenance_notifications`) Tj
+T*
+(- `inspector_notifications`) Tj
+T*
+() Tj
+T*
+(Each notification stores recipient user, sender user, related complaint, notification type,) Tj
+T*
+(title, message, read/unread status, and creation time. Notification pages exist for every major) Tj
+T*
+(role:) Tj
+T*
+() Tj
+T*
+(- `pages/citizen/notifications.php`) Tj
+T*
+(- `pages/central/notifications.php`) Tj
+T*
+(- `pages/ward/notifications.php`) Tj
+T*
+(- `pages/maintenance/notifications.php`) Tj
+T*
+(- `pages/inspector/notifications.php`) Tj
+T*
+() Tj
+T*
+(`includes/notification_workflow_cleanup.php` is used to reduce duplicate workflow notifications.) Tj
+T*
+(Notification records should redirect users to the related complaint/workflow page where) Tj
+T*
+(applicable. Supporting files include `css/global/notification-target.css` and) Tj
+T*
+(`js/global/notification-target.js`.) Tj
+T*
+() Tj
+T*
+(## 16. Real-time Tracking) Tj
+T*
+() Tj
+T*
+(The system tracks complaint progress using:) Tj
+T*
+() Tj
+T*
+(- `complaints.complaint_status`) Tj
+T*
+(- `complaint_status_logs`) Tj
+T*
+(- Role notification tables) Tj
+T*
+(- Citizen tracking page `pages/citizen/track-complaint.php`) Tj
+T*
+() Tj
+T*
+(Important statuses include `submitted`, `received`, `pending_verification`, `verified_by_ward`,) Tj
+T*
+(`team_assigned`, `in_progress`, `solved_by_team`, `inspector_verification`, `closed`,) Tj
+T*
+(`reopened`, `disputed`, `duplicate`, and rejection statuses. The inspected files indicate) Tj
+T*
+(database-driven tracking with refresh/navigation or polling-style reads, not WebSocket live) Tj
+T*
+(push.) Tj
+T*
+() Tj
+T*
+(## 17. Risk / High-risk Area Detection) Tj
+T*
+() Tj
+T*
+(Risk logic is implemented through `risk` and complaint submission logic in) Tj
+T*
+(`auth/submit_complaint_process.php`. The system considers:) Tj
+T*
+() Tj
+T*
+(- Complaint count in the last 7 days.) Tj
+T*
+(- Complaint count in the last 30 days.) Tj
+T*
+(- Complaint count in the current week.) Tj
+T*
+(- Issue priority from `issues`.) Tj
+T*
+(- Affected area priority from `affected_areas`.) Tj
+T*
+ET
+endstream
+endobj
+32 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 33 0 R >>
+endobj
+33 0 obj
+<< /Length 3054 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(- Repeated complaint relationships using `parent_complaint_id` and `is_repeat_complaint`.) Tj
+T*
+() Tj
+T*
+(The code explicitly treats **Water Contamination** as high/emergency priority. Risk pages exist) Tj
+T*
+(in:) Tj
+T*
+() Tj
+T*
+(- `pages/central/high-risk-zones.php`) Tj
+T*
+(- `pages/ward/ward-risk-zones.php`) Tj
+T*
+(- `pages/citizen/high-risk-areas.php`) Tj
+T*
+() Tj
+T*
+(## 18. File/Folder Structure) Tj
+T*
+() Tj
+T*
+(| Folder/File | Responsibility |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| `auth/` | Login, logout, session checks, forgot/reset password, complaint submission process,) Tj
+T*
+(report generation. |) Tj
+T*
+(| `pages/citizen/` | Citizen dashboard, complaint submission, public board, my complaints,) Tj
+T*
+(tracking, feedback/reopen, objection, high-risk areas, discussion, notifications,) Tj
+T*
+(profile/settings. |) Tj
+T*
+(| `pages/central/` | Central dashboard, complaint review, processed complaints, routing, user) Tj
+T*
+(management, ward/area/drain management, high-risk zones, reports, team feedback, discussion,) Tj
+T*
+(notifications. |) Tj
+T*
+(| `pages/ward/` | Ward dashboard, verification queue, local team assignment, in-progress cases,) Tj
+T*
+(citizen objections, reopened/disputed cases, false completion reviews, support replies, reports,) Tj
+T*
+(notifications. |) Tj
+T*
+(| `pages/maintenance/` | Maintenance dashboard, assigned tasks, in-progress work, completion) Tj
+T*
+(proof upload, delayed tasks, drain reference, feedback, task history, notifications,) Tj
+T*
+(profile/settings. |) Tj
+T*
+(| `pages/inspector/` | Inspector dashboard, solved cases, before/after review, inspection queue,) Tj
+T*
+(inspection logs, false completion reports, citizen objections, notifications, profile. |) Tj
+T*
+(| `includes/` | Shared helpers, sidebars, topbars, notification cleanup, reports, ward team) Tj
+T*
+(workflow helpers, maintenance access control. |) Tj
+T*
+(| `css/` | Global and role-wise styles. |) Tj
+T*
+(| `js/` | Global and role-wise JavaScript. |) Tj
+T*
+(| `notifications/` | Notification-related process scripts such as maintenance support request. |) Tj
+T*
+(| `commentSystem/` | Add/fetch/delete comments, replies, reactions, and discussion logic. |) Tj
+T*
+(| `assets/uploads/` | Uploaded profile photos, complaint media, and maintenance proof media. |) Tj
+T*
+(| `assets/reports/` | Generated central and ward reports. |) Tj
+T*
+(| `database/` | SQL dump/schema file `drainguard.sql`. |) Tj
+T*
+() Tj
+T*
+(## 19. Important Pages and Responsibilities) Tj
+T*
+() Tj
+T*
+(### Citizen Pages) Tj
+T*
+() Tj
+T*
+(| Page | Responsibility |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| `dashboard.php` | Citizen overview. |) Tj
+T*
+(| `submit-complaint.php` | Complaint submission form. |) Tj
+T*
+(| `public-board.php` | Public complaint board. |) Tj
+T*
+(| `my-complaints.php` | Citizen's own complaints. |) Tj
+T*
+(| `track-complaint.php` | Complaint tracking and progress view. |) Tj
+T*
+(| `feedback-reopen.php` | Feedback and citizen objection. |) Tj
+T*
+(| `citizen-objection.php` | Objection-related citizen page. |) Tj
+T*
+ET
+endstream
+endobj
+34 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 35 0 R >>
+endobj
+35 0 obj
+<< /Length 2524 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(| `high-risk-areas.php` | Citizen risk-zone view. |) Tj
+T*
+(| `discussion.php` | Complaint discussion/comments. |) Tj
+T*
+(| `notifications.php` | Citizen notifications. |) Tj
+T*
+() Tj
+T*
+(### Central Pages) Tj
+T*
+() Tj
+T*
+(| Page | Responsibility |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| `complaints.php` | Review submitted complaints. |) Tj
+T*
+(| `processed-complaints.php` | View processed complaints. |) Tj
+T*
+(| `routing-assignment.php` | Route accepted complaints to wards. |) Tj
+T*
+(| `user-management.php` | Manage users. |) Tj
+T*
+(| `add-ward-officer.php`, `add-inspector.php`, `add-maintenance-team.php`, `add-team-member.php`) Tj
+T*
+(| Create officer/team/member records. |) Tj
+T*
+(| `ward-area.php` | Ward and area management. |) Tj
+T*
+(| `drain-records.php` | Drain records and condition management. |) Tj
+T*
+(| `high-risk-zones.php` | System-wide risk zones. |) Tj
+T*
+(| `reports.php` | Central reports. |) Tj
+T*
+(| `team-feedback.php` | Maintenance team feedback/performance. |) Tj
+T*
+() Tj
+T*
+(### Ward Pages) Tj
+T*
+() Tj
+T*
+(| Page | Responsibility |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| `verification-queue.php` | Verify, reject, or mark duplicate complaints. |) Tj
+T*
+(| `local-team-assignment.php` | Assign/change maintenance teams. |) Tj
+T*
+(| `in-progress-cases.php` | Monitor active ward work. |) Tj
+T*
+(| `reply_support.php` | Reply to maintenance support requests. |) Tj
+T*
+(| `citizen-objections.php` | Review citizen objections. |) Tj
+T*
+(| `reopened-cases.php` | Manage reopened cases. |) Tj
+T*
+(| `reopened-disputed.php` | Handle disputed/reopened workflow. |) Tj
+T*
+(| `false-completion-reviews.php` | Review inspector false-completion reports. |) Tj
+T*
+(| `ward-risk-zones.php` | Ward-level high-risk zones. |) Tj
+T*
+(| `local-reports.php` | Ward reports. |) Tj
+T*
+() Tj
+T*
+(### Maintenance Pages) Tj
+T*
+() Tj
+T*
+(| Page | Responsibility |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| `assigned-tasks.php` | View assigned complaints and start work. |) Tj
+T*
+(| `in-progress-work.php` | Manage active work. |) Tj
+T*
+(| `upload-completion-proof.php` | Submit completion proof. |) Tj
+T*
+(| `delayed-tasks.php` | View delayed tasks. |) Tj
+T*
+(| `task-history.php` | View task history. |) Tj
+T*
+(| `drain-area-reference.php` | Drain/location reference. |) Tj
+T*
+(| `feedback.php` | View maintenance feedback. |) Tj
+T*
+() Tj
+T*
+(### Inspector Pages) Tj
+T*
+() Tj
+T*
+(| Page | Responsibility |) Tj
+T*
+(| --- | --- |) Tj
+T*
+(| `solved-cases.php` | View cases solved by maintenance team. |) Tj
+T*
+ET
+endstream
+endobj
+36 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 37 0 R >>
+endobj
+37 0 obj
+<< /Length 2617 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(| `before-after-review.php` | Compare complaint and completion proof. |) Tj
+T*
+(| `inspection-queue.php` | Approve work or mark false completion. |) Tj
+T*
+(| `inspection-logs.php` | View inspection history. |) Tj
+T*
+(| `false-completion-reports.php` | View false completion reports. |) Tj
+T*
+(| `citizen-objections.php` | Review citizen objection cases. |) Tj
+T*
+() Tj
+T*
+(## 20. Testing / Demo Data) Tj
+T*
+() Tj
+T*
+(The SQL dump contains development/demo users, complaints, notifications, reports, and upload) Tj
+T*
+(paths. The system also has role creation pages for adding test officers, teams, and members.) Tj
+T*
+() Tj
+T*
+(A judge can test the project with this flow:) Tj
+T*
+() Tj
+T*
+(1. Login as a citizen.) Tj
+T*
+(2. Submit a complaint with location, issue, affected area, description, and optional media.) Tj
+T*
+(3. Check Public Complaint Board, My Complaints, Track Complaint, and citizen notifications.) Tj
+T*
+(4. Login as Central Officer.) Tj
+T*
+(5. Accept the complaint and route it to a ward.) Tj
+T*
+(6. Login as the assigned Ward Officer.) Tj
+T*
+(7. Verify the complaint and assign a maintenance team.) Tj
+T*
+(8. Login as maintenance team leader/member.) Tj
+T*
+(9. Start work, optionally request support, and upload completion proof.) Tj
+T*
+(10. Login as Inspector.) Tj
+T*
+(11. Review before/after proof and approve work or mark false completion.) Tj
+T*
+(12. Login again as Citizen.) Tj
+T*
+(13. Submit feedback or objection.) Tj
+T*
+(14. Check notifications and complaint tracking after each step.) Tj
+T*
+() Tj
+T*
+(## 21. Limitations) Tj
+T*
+() Tj
+T*
+(- The project is local unless deployed and configured on a live server.) Tj
+T*
+(- No GPS/map integration was found in the inspected files.) Tj
+T*
+(- Notifications are system/database-based, not SMS-based.) Tj
+T*
+(- Email support is present for password reset through PHPMailer, but workflow notifications are) Tj
+T*
+(mainly in-system.) Tj
+T*
+(- Real-time tracking may require refresh or polling unless a WebSocket layer is added later.) Tj
+T*
+(- Risk detection is rule/frequency-based, not AI-based.) Tj
+T*
+(- Analytics can be expanded further.) Tj
+T*
+() Tj
+T*
+(## 22. Future Scope) Tj
+T*
+() Tj
+T*
+(- GIS/map integration.) Tj
+T*
+(- SMS/email notification for workflow events.) Tj
+T*
+(- Mobile app for citizens and field workers.) Tj
+T*
+(- AI-based complaint classification.) Tj
+T*
+(- Automated risk prediction.) Tj
+T*
+(- Analytics dashboard.) Tj
+T*
+(- Deployment on live server.) Tj
+T*
+(- Role-wise performance reports.) Tj
+T*
+(- SLA/deadline escalation and automatic reminders.) Tj
+T*
+() Tj
+T*
+(## 23. Conclusion) Tj
+T*
+ET
+endstream
+endobj
+38 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 39 0 R >>
+endobj
+39 0 obj
+<< /Length 703 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+() Tj
+T*
+(DrainGuard is useful because it is transparent, accountable, role-based, and database-driven. It) Tj
+T*
+(tracks the full complaint lifecycle from citizen submission to central review, ward routing,) Tj
+T*
+(maintenance assignment, proof upload, inspector verification, citizen feedback, objection) Tj
+T*
+(handling, and risk analysis.) Tj
+T*
+() Tj
+T*
+(For a DBMS/project-show judge, DrainGuard demonstrates normalized relational design,) Tj
+T*
+(primary/foreign key relationships, indexes, prepared statements, transactions, commit/rollback,) Tj
+T*
+(authentication, authorization, audit logs, notification tables, and a complete multi-role) Tj
+T*
+(workflow.) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 40
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000233 00000 n 
+0000000303 00000 n 
+0000000429 00000 n 
+0000003213 00000 n 
+0000003339 00000 n 
+0000006365 00000 n 
+0000006491 00000 n 
+0000009596 00000 n 
+0000009724 00000 n 
+0000013283 00000 n 
+0000013411 00000 n 
+0000017005 00000 n 
+0000017133 00000 n 
+0000020889 00000 n 
+0000021017 00000 n 
+0000023981 00000 n 
+0000024109 00000 n 
+0000026398 00000 n 
+0000026526 00000 n 
+0000028616 00000 n 
+0000028744 00000 n 
+0000030693 00000 n 
+0000030821 00000 n 
+0000032856 00000 n 
+0000032984 00000 n 
+0000034838 00000 n 
+0000034966 00000 n 
+0000037288 00000 n 
+0000037416 00000 n 
+0000039868 00000 n 
+0000039996 00000 n 
+0000043103 00000 n 
+0000043231 00000 n 
+0000045808 00000 n 
+0000045936 00000 n 
+0000048606 00000 n 
+0000048734 00000 n 
+trailer
+<< /Size 40 /Root 1 0 R >>
+startxref
+49489
+%%EOF
